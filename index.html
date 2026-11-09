@@ -3,17 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>金句卡片工坊 · 日签生成器</title>
+<title>oneline. · 金句卡片工坊</title>
 <style>
   :root{
-    --bg:#0f1115;
-    --panel:#171a21;
-    --panel2:#1e222b;
-    --line:#2a2f3a;
-    --text:#e8eaf0;
-    --muted:#8b93a7;
-    --accent:#ff8a5c;
-    --accent2:#ff5c8a;
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2a2f3a;
+    --text:#e8eaf0; --muted:#8b93a7; --accent:#ff8a5c; --accent2:#ff5c8a;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{
@@ -22,90 +16,78 @@
       radial-gradient(1200px 600px at 80% -10%, rgba(255,92,138,.12), transparent 60%),
       radial-gradient(900px 500px at -10% 110%, rgba(255,138,92,.10), transparent 60%),
       var(--bg);
-    color:var(--text);
-    min-height:100vh;
+    color:var(--text); min-height:100vh;
   }
-  .wrap{max-width:1180px;margin:0 auto;padding:28px 24px 60px}
+  .wrap{max-width:1240px;margin:0 auto;padding:28px 24px 70px}
   header{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
-  h1{font-size:24px;font-weight:700;letter-spacing:.5px}
-  h1 span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .logo{font-size:26px;font-weight:800;letter-spacing:.5px}
+  .logo em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
   .tag{color:var(--muted);font-size:13px}
-  .layout{display:grid;grid-template-columns:380px 1fr;gap:22px;align-items:start}
-  @media(max-width:900px){.layout{grid-template-columns:1fr}}
+  .layout{display:grid;grid-template-columns:420px 1fr;gap:22px;align-items:start}
+  @media(max-width:920px){.layout{grid-template-columns:1fr}}
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
-  .panel h2{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:1px;margin-bottom:12px}
+  .panel h2{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:2px;margin-bottom:12px;text-transform:uppercase}
   .field{margin-bottom:14px}
   .chips{display:flex;flex-wrap:wrap;gap:8px}
-  .chip{
-    padding:7px 14px;border-radius:999px;border:1px solid var(--line);
-    background:var(--panel2);color:var(--text);cursor:pointer;font-size:13px;
-    transition:.15s;
-  }
+  .chip{padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--text);cursor:pointer;font-size:13px;transition:.15s}
   .chip:hover{border-color:#3a4252}
   .chip.on{background:linear-gradient(90deg,var(--accent),var(--accent2));border-color:transparent;color:#fff;font-weight:600}
   textarea,input[type=text]{
     width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
     color:var(--text);padding:10px 12px;font-size:14px;font-family:inherit;resize:vertical;
   }
-  textarea:focus,input[type=text]:focus{outline:none;border-color:var(--accent)}
-  .row{display:flex;gap:8px}
-  .btn{
-    border:none;border-radius:10px;padding:10px 14px;font-size:14px;cursor:pointer;
-    background:var(--panel2);border:1px solid var(--line);color:var(--text);transition:.15s;
-  }
+  textarea:focus,input[type=text]:focus,select:focus{outline:none;border-color:var(--accent)}
+  select{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:9px 10px;font-size:14px;font-family:inherit}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .btn{border:none;border-radius:10px;padding:10px 14px;font-size:14px;cursor:pointer;background:var(--panel2);border:1px solid var(--line);color:var(--text);transition:.15s;white-space:nowrap}
   .btn:hover{border-color:#3a4252}
   .btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border:none;font-weight:600}
   .btn.primary:hover{filter:brightness(1.08)}
   .btn.block{width:100%}
-  .swatches{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-  .swatch{
-    height:58px;border-radius:10px;cursor:pointer;position:relative;overflow:hidden;
-    border:2px solid transparent;display:flex;align-items:flex-end;padding:7px;
-  }
-  .swatch span{font-size:11px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.55)}
+  .btn.sm{padding:7px 10px;font-size:12px}
+  .seg{display:flex;gap:6px}
+  .seg .btn{flex:1;padding:8px 4px;font-size:12px;text-align:center}
+  .seg .btn.on{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;font-weight:600}
+  .swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-height:300px;overflow:auto;padding-right:2px}
+  .swatches::-webkit-scrollbar{width:6px}
+  .swatches::-webkit-scrollbar-thumb{background:#333b49;border-radius:3px}
+  .swatch{height:52px;border-radius:9px;cursor:pointer;position:relative;overflow:hidden;border:2px solid transparent;display:flex;align-items:flex-end;padding:5px}
+  .swatch span{font-size:10px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.65)}
+  .swatch.light span{color:#3a3a3a;text-shadow:0 1px 2px rgba(255,255,255,.7)}
   .swatch.on{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,138,92,.22)}
+  .slider-row{display:grid;grid-template-columns:64px 1fr 40px;align-items:center;gap:10px;margin-bottom:10px}
+  .slider-row label{font-size:13px;color:var(--muted)}
+  .slider-row output{font-size:13px;color:var(--text);text-align:right;font-variant-numeric:tabular-nums}
+  input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer}
   .check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer}
   .check input{accent-color:var(--accent);width:16px;height:16px}
+  .filehint{font-size:11px;color:#70788c;line-height:1.5;margin-top:6px}
   details{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:4px}
   summary{cursor:pointer;font-size:13px;color:var(--muted);font-weight:600}
   .ai-inner{margin-top:10px;display:flex;flex-direction:column;gap:8px}
-  .ai-inner .hint{font-size:11px;color:#70788c;line-height:1.5}
   .ai-msg{font-size:12px;min-height:16px;color:var(--muted)}
   .ai-msg.err{color:#ff8a8a}
   .stage{display:flex;justify-content:center;align-items:flex-start}
   .cardbox{position:sticky;top:20px;display:flex;flex-direction:column;align-items:center;gap:12px}
-  #preview{
-    height:min(82vh,760px);width:auto;border-radius:16px;
-    box-shadow:0 20px 60px rgba(0,0,0,.5);background:#fff;
-  }
-  .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-  #toast{
-    position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);
-    background:#242936;border:1px solid var(--line);color:var(--text);
-    padding:10px 18px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;
-  }
+  #preview{height:min(84vh,780px);width:auto;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.5);background:#fff}
+  .hintbar{color:var(--muted);font-size:12px;text-align:center}
+  #toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);background:#242936;border:1px solid var(--line);color:var(--text);padding:10px 18px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:99}
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>金句卡片<span>工坊</span></h1>
-    <div class="tag">点一下出图 · 一键导出 · 小红书 / 朋友圈规格</div>
+    <div class="logo">oneline<em>.</em></div>
+    <div class="tag">金句卡片工坊 · 单张导出 · 批量打包 · 小红书 / 朋友圈规格</div>
   </header>
 
   <div class="layout">
     <div class="panel">
       <h2>内容</h2>
-      <div class="field">
-        <div class="chips" id="chips"></div>
-      </div>
-      <div class="field">
-        <textarea id="quote" rows="4" placeholder="写一句你想说的话，或点下面「换一句」"></textarea>
-      </div>
-      <div class="field">
-        <input type="text" id="author" placeholder="署名 / 出处（可留空）">
-      </div>
+      <div class="field"><div class="chips" id="chips"></div></div>
+      <div class="field"><textarea id="quote" rows="3" placeholder="写一句你想说的话，或点「换一句」"></textarea></div>
+      <div class="field"><input type="text" id="author" placeholder="署名 / 出处（可留空）"></div>
       <div class="field row">
         <button class="btn" id="randomBtn">🎲 换一句</button>
         <label class="check"><input type="checkbox" id="showDate" checked>显示日期</label>
@@ -114,19 +96,59 @@
       <h2 style="margin-top:18px">主题</h2>
       <div class="swatches" id="swatches"></div>
 
-      <div class="field" style="margin-top:14px">
-        <input type="text" id="watermark" placeholder="水印（账号名/品牌，可留空）">
-      </div>
-
+      <h2 style="margin-top:18px">排版</h2>
+      <div class="field"><select id="fontSel"></select></div>
+      <div class="slider-row"><label>字号</label><input type="range" id="sizeRange" min="36" max="96" step="2" value="64"><output id="sizeVal">64</output></div>
+      <div class="slider-row"><label>字距</label><input type="range" id="lsRange" min="0" max="24" step="1" value="0"><output id="lsVal">0</output></div>
+      <div class="slider-row"><label>行距</label><input type="range" id="lhRange" min="1.3" max="2.2" step="0.05" value="1.62"><output id="lhVal">1.62</output></div>
       <div class="field row">
-        <button class="btn primary block" id="exportBtn">⬇ 导出 PNG</button>
-        <button class="btn block" id="copyBtn">复制到剪贴板</button>
+        <div class="seg" id="alignSeg">
+          <button class="btn" data-a="left">左</button>
+          <button class="btn" data-a="center">中</button>
+          <button class="btn" data-a="right">右</button>
+        </div>
+        <label class="check"><input type="checkbox" id="verticalToggle">竖排</label>
+      </div>
+      <div class="field row">
+        <label class="btn sm" for="bgFile">背景图片（可选）</label>
+        <input type="file" id="bgFile" accept="image/*" style="display:none">
+        <button class="btn sm" id="bgClear">清除背景</button>
       </div>
 
-      <details>
+      <h2 style="margin-top:18px">水印</h2>
+      <div class="field row">
+        <input type="text" id="wmText" value="oneline." style="flex:1">
+        <label class="check"><input type="checkbox" id="wmOn" checked>显示</label>
+      </div>
+      <div class="field row">
+        <select id="wmPos" style="flex:1">
+          <option value="br">右下角</option>
+          <option value="bl">左下角</option>
+          <option value="bc">底部居中</option>
+        </select>
+        <label class="btn sm" for="wmFile">传二维码</label>
+        <input type="file" id="wmFile" accept="image/*" style="display:none">
+        <button class="btn sm" id="wmClear">清除</button>
+      </div>
+
+      <h2 style="margin-top:18px">导出</h2>
+      <div class="field row">
+        <button class="btn primary" id="exportBtn" style="flex:1">⬇ 导出 PNG</button>
+        <button class="btn" id="copyBtn" style="flex:1">复制到剪贴板</button>
+      </div>
+
+      <h2 style="margin-top:18px">批量生成</h2>
+      <div class="field"><textarea id="batchText" rows="5" placeholder="每行一句，批量生成整套卡片（每张都是当前主题和排版）"></textarea></div>
+      <div class="field row">
+        <button class="btn sm" id="fillQuotesBtn">填入全部金句</button>
+        <button class="btn primary" id="batchBtn" style="flex:1">批量生成并打包下载</button>
+      </div>
+      <div class="filehint" id="batchMsg"></div>
+
+      <details style="margin-top:18px">
         <summary>✨ 进阶：接 AI 自动写文案（可选）</summary>
         <div class="ai-inner">
-          <div class="hint">填入你自己的 OpenAI 兼容接口即可让 AI 帮你写金句。浏览器直连可能被 CORS 拦截，建议用支持 CORS 的网关或本地代理。</div>
+          <div class="filehint">填入你自己的 OpenAI 兼容接口即可让 AI 现场写金句。浏览器直连可能被 CORS 拦截，建议用支持 CORS 的网关。</div>
           <input type="text" id="aiBase" placeholder="Base URL，默认 https://api.openai.com/v1">
           <input type="text" id="aiKey" placeholder="API Key（只存在你浏览器本地）">
           <input type="text" id="aiModel" placeholder="模型，默认 gpt-4o-mini">
@@ -140,6 +162,7 @@
     <div class="stage">
       <div class="cardbox">
         <canvas id="preview" width="1080" height="1440"></canvas>
+        <div class="hintbar">1080 × 1440 · 3:4 · 导出即用</div>
       </div>
     </div>
   </div>
@@ -147,355 +170,531 @@
 <div id="toast"></div>
 
 <script>
-const W = 1080, H = 1440, PAD = 120, MAXW = W - PAD*2, MAXLINES = 9;
+const W=1080, H=1440, PAD=120, MAXW=W-PAD*2;
 
-const QUOTES = [
-  {t:"搞钱第一步，是承认钱很重要。", a:"佚名", c:"搞钱"},
-  {t:"把一件事做到极致，钱会追着你跑。", a:"佚名", c:"搞钱"},
-  {t:"你缺的不是机会，是执行力。", a:"佚名", c:"搞钱"},
-  {t:"先完成，再完美。", a:"佚名", c:"搞钱"},
-  {t:"省下来的不是钱，赚到的才是。", a:"佚名", c:"搞钱"},
-  {t:"不要用战术上的勤奋，掩盖战略上的懒惰。", a:"佚名", c:"搞钱"},
-  {t:"现金流的尽头，是被动收入。", a:"佚名", c:"搞钱"},
-  {t:"风口上猪都能飞，但风停了摔死的也是猪。", a:"佚名", c:"搞钱"},
-  {t:"种一棵树最好的时间是十年前，其次是现在。", a:"谚语", c:"成长"},
-  {t:"你要悄悄努力，然后惊艳所有人。", a:"佚名", c:"成长"},
-  {t:"真正的成长，是敢于直面自己的不堪。", a:"佚名", c:"成长"},
-  {t:"慢一点没关系，但别停下来。", a:"佚名", c:"成长"},
-  {t:"熬过无人问津的日子，才有诗和远方。", a:"佚名", c:"成长"},
-  {t:"自律不是自虐，是对未来的自己温柔。", a:"佚名", c:"成长"},
-  {t:"学如逆水行舟，不进则退。", a:"《增广贤文》", c:"成长"},
-  {t:"不积跬步，无以至千里。", a:"荀子", c:"成长"},
-  {t:"天行健，君子以自强不息。", a:"《周易》", c:"成长"},
-  {t:"知人者智，自知者明。", a:"老子", c:"成长"},
-  {t:"路虽远，行则将至；事虽难，做则必成。", a:"《荀子》", c:"成长"},
-  {t:"长风破浪会有时，直挂云帆济沧海。", a:"李白", c:"成长"},
-  {t:"生活明朗，万物可爱。", a:"佚名", c:"生活"},
-  {t:"人间烟火气，最抚凡人心。", a:"佚名", c:"生活"},
-  {t:"治愈你的从来不是时间，而是你自己。", a:"佚名", c:"生活"},
-  {t:"今天也要好好吃饭。", a:"佚名", c:"生活"},
-  {t:"好好生活，慢慢相遇。", a:"佚名", c:"生活"},
-  {t:"日子常新，未来可期。", a:"佚名", c:"生活"},
-  {t:"平安喜乐，万事胜意。", a:"佚名", c:"生活"},
-  {t:"有人爱，有事做，有所期待。", a:"佚名", c:"生活"},
-  {t:"让专业成为你的护城河。", a:"佚名", c:"职场"},
-  {t:"汇报工作，结论先行。", a:"佚名", c:"职场"},
-  {t:"靠谱，是成年人最高级的修养。", a:"佚名", c:"职场"},
-  {t:"职场没有苦劳，只有功劳。", a:"佚名", c:"职场"},
-  {t:"别把平台当能力。", a:"佚名", c:"职场"},
-  {t:"学会说不，是对时间负责。", a:"佚名", c:"职场"},
-  {t:"解决问题，而不是制造问题。", a:"佚名", c:"职场"},
-  {t:"你的工资，是你解决问题能力的标价。", a:"佚名", c:"职场"}
+const QUOTES=[
+  {t:"搞钱第一步，是承认钱很重要。",a:"佚名",c:"搞钱"},
+  {t:"把一件事做到极致，钱会追着你跑。",a:"佚名",c:"搞钱"},
+  {t:"你缺的不是机会，是执行力。",a:"佚名",c:"搞钱"},
+  {t:"先完成，再完美。",a:"佚名",c:"搞钱"},
+  {t:"省下来的不是钱，赚到的才是。",a:"佚名",c:"搞钱"},
+  {t:"现金流的尽头，是被动收入。",a:"佚名",c:"搞钱"},
+  {t:"风口上猪都能飞，但风停了摔死的也是猪。",a:"佚名",c:"搞钱"},
+  {t:"你的时间，是唯一不可再生的资源。",a:"佚名",c:"搞钱"},
+  {t:"种一棵树最好的时间是十年前，其次是现在。",a:"谚语",c:"成长"},
+  {t:"你要悄悄努力，然后惊艳所有人。",a:"佚名",c:"成长"},
+  {t:"真正的成长，是敢于直面自己的不堪。",a:"佚名",c:"成长"},
+  {t:"慢一点没关系，但别停下来。",a:"佚名",c:"成长"},
+  {t:"熬过无人问津的日子，才有诗和远方。",a:"佚名",c:"成长"},
+  {t:"自律不是自虐，是对未来的自己温柔。",a:"佚名",c:"成长"},
+  {t:"学如逆水行舟，不进则退。",a:"《增广贤文》",c:"成长"},
+  {t:"不积跬步，无以至千里。",a:"荀子",c:"成长"},
+  {t:"天行健，君子以自强不息。",a:"《周易》",c:"成长"},
+  {t:"路虽远，行则将至；事虽难，做则必成。",a:"《荀子》",c:"成长"},
+  {t:"生活明朗，万物可爱。",a:"佚名",c:"生活"},
+  {t:"人间烟火气，最抚凡人心。",a:"佚名",c:"生活"},
+  {t:"治愈你的从来不是时间，而是你自己。",a:"佚名",c:"生活"},
+  {t:"今天也要好好吃饭。",a:"佚名",c:"生活"},
+  {t:"好好生活，慢慢相遇。",a:"佚名",c:"生活"},
+  {t:"日子常新，未来可期。",a:"佚名",c:"生活"},
+  {t:"平安喜乐，万事胜意。",a:"佚名",c:"生活"},
+  {t:"有人爱，有事做，有所期待。",a:"佚名",c:"生活"},
+  {t:"把日子过成诗，简单而精致。",a:"佚名",c:"生活"},
+  {t:"清醒时做事，糊涂时读书。",a:"佚名",c:"生活"},
+  {t:"让专业成为你的护城河。",a:"佚名",c:"职场"},
+  {t:"汇报工作，结论先行。",a:"佚名",c:"职场"},
+  {t:"靠谱，是成年人最高级的修养。",a:"佚名",c:"职场"},
+  {t:"职场没有苦劳，只有功劳。",a:"佚名",c:"职场"},
+  {t:"别把平台当能力。",a:"佚名",c:"职场"},
+  {t:"学会说不，是对时间负责。",a:"佚名",c:"职场"},
+  {t:"解决问题，而不是制造问题。",a:"佚名",c:"职场"},
+  {t:"你的工资，是解决问题能力的标价。",a:"佚名",c:"职场"},
+  {t:"早安，今天也要加油鸭。",a:"佚名",c:"早安"},
+  {t:"清晨的光，会照亮每个早起的人。",a:"佚名",c:"早安"},
+  {t:"新的一天，从一杯温水开始。",a:"佚名",c:"早安"},
+  {t:"把今天的自己，过成想要的样子。",a:"佚名",c:"早安"},
+  {t:"早安，世界和我爱着你。",a:"佚名",c:"早安"},
+  {t:"愿你今天也元气满满。",a:"佚名",c:"早安"},
+  {t:"晚安，做个好梦。",a:"佚名",c:"晚安"},
+  {t:"今天辛苦了，明天继续。",a:"佚名",c:"晚安"},
+  {t:"夜色温柔，愿你安睡。",a:"佚名",c:"晚安"},
+  {t:"睡前原谅一切，醒来便是新生。",a:"佚名",c:"晚安"},
+  {t:"晚安，世界先睡了，你也别熬夜。",a:"佚名",c:"晚安"},
+  {t:"愿你梦里有星辰。",a:"佚名",c:"晚安"},
+  {t:"遇见你之后，万物都可爱。",a:"佚名",c:"情感"},
+  {t:"喜欢是乍见之欢，爱是久处不厌。",a:"佚名",c:"情感"},
+  {t:"我见众生皆草木，唯你是青山。",a:"佚名",c:"情感"},
+  {t:"双向奔赴，才有意义。",a:"佚名",c:"情感"},
+  {t:"温柔，是这世界最有力的回击。",a:"佚名",c:"情感"},
+  {t:"山海皆可平，只要是你。",a:"佚名",c:"情感"},
+  {t:"所有的相遇，都是久别重逢。",a:"佚名",c:"情感"},
+  {t:"你迟到的这些年，我一眼就认出了你。",a:"佚名",c:"情感"},
+  {t:"腹有诗书气自华。",a:"苏轼",c:"读书"},
+  {t:"读书，是门槛最低的高贵。",a:"佚名",c:"读书"},
+  {t:"你的气质里，藏着你读过的书。",a:"佚名",c:"读书"},
+  {t:"阅读是一座随身携带的避难所。",a:"毛姆",c:"读书"},
+  {t:"书读百遍，其义自见。",a:"《三国志》",c:"读书"},
+  {t:"读万卷书，行万里路。",a:"董其昌",c:"读书"},
+  {t:"长风破浪会有时，直挂云帆济沧海。",a:"李白",c:"古诗词"},
+  {t:"天生我材必有用。",a:"李白",c:"古诗词"},
+  {t:"海内存知己，天涯若比邻。",a:"王勃",c:"古诗词"},
+  {t:"会当凌绝顶，一览众山小。",a:"杜甫",c:"古诗词"},
+  {t:"春江潮水连海平，海上明月共潮生。",a:"张若虚",c:"古诗词"},
+  {t:"落霞与孤鹜齐飞，秋水共长天一色。",a:"王勃",c:"古诗词"},
+  {t:"山重水复疑无路，柳暗花明又一村。",a:"陆游",c:"古诗词"},
+  {t:"不畏浮云遮望眼，自缘身在最高层。",a:"王安石",c:"古诗词"},
+  {t:"海日生残夜，江春入旧年。",a:"王湾",c:"古诗词"},
+  {t:"月上柳梢头，人约黄昏后。",a:"欧阳修",c:"古诗词"}
 ];
 
-const FONTS = {
-  sans:'"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif',
-  serif:'"SimSun","Songti SC","STSong",serif',
-  kai:'"KaiTi","STKaiti",serif',
+const FONTS={
+  hei:'SimHei,"PingFang SC","Microsoft YaHei",sans-serif',
+  yahei:'"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif',
+  song:'SimSun,"Songti SC","STSong",serif',
+  kai:'KaiTi,"STKaiti","Kaiti SC",serif',
+  yuan:'"YouYuan","Microsoft YaHei",sans-serif',
   mono:'Consolas,"Courier New",monospace'
 };
+const FONT_LABELS={hei:"黑体",yahei:"微软雅黑",song:"宋体",kai:"楷体",yuan:"幼圆",mono:"等宽"};
 
-const THEMES = [
-  {id:"minimal", name:"极简黑白", font:"sans", align:"center", decor:"dot",
-   bg:{type:"solid", color:"#fafafa"}, text:"#111111", sub:"#666666", accent:"#d64545"},
-  {id:"cream", name:"奶油暖阳", font:"kai", align:"center", decor:"quote",
-   bg:{type:"gradient", stops:[["#fdf6ec",0],["#f7e9d7",1]]}, text:"#7a4a1f", sub:"#a97b50", accent:"#d98e32"},
-  {id:"navy", name:"深海蓝", font:"sans", align:"center", decor:"line",
-   bg:{type:"gradient", stops:[["#0f1f3d",0],["#1c3a66",1]]}, text:"#f4f7fb", sub:"#9db4d6", accent:"#6ec6ff"},
-  {id:"sunset", name:"落日渐变", font:"sans", align:"center", decor:"dots",
-   bg:{type:"gradient", stops:[["#ff7e5f",0],["#feb47b",.5],["#ff6a88",1]]}, text:"#fff8f2", sub:"#ffe0cf", accent:"#ffffff"},
-  {id:"paper", name:"复古报纸", font:"serif", align:"left", decor:"frame",
-   bg:{type:"solid", color:"#f2ead8"}, text:"#2b2b2b", sub:"#6b5d45", accent:"#9c3d2e"},
-  {id:"neon", name:"荧光霓虹", font:"sans", align:"center", decor:"corner",
-   bg:{type:"gradient", stops:[["#0a0a0f",0],["#151526",1]]}, text:"#e0f2fe", sub:"#7dd3fc", accent:"#f472b6"}
+const THEMES=[
+  {id:"minimal",name:"极简黑白",font:"yahei",align:"center",vertical:false,decor:"dot",dark:false,
+   bg:{type:"solid",color:"#fafafa"},text:"#111111",sub:"#666666",accent:"#d64545"},
+  {id:"cream",name:"奶油暖阳",font:"kai",align:"center",vertical:false,decor:"quote",dark:false,
+   bg:{type:"gradient",stops:[["#fdf6ec",0],["#f7e9d7",1]]},text:"#7a4a1f",sub:"#a97b50",accent:"#d98e32"},
+  {id:"navy",name:"深海蓝",font:"yahei",align:"center",vertical:false,decor:"line",dark:true,
+   bg:{type:"gradient",stops:[["#0f1f3d",0],["#1c3a66",1]]},text:"#f4f7fb",sub:"#9db4d6",accent:"#6ec6ff"},
+  {id:"sunset",name:"落日渐变",font:"yahei",align:"center",vertical:false,decor:"dots",dark:true,
+   bg:{type:"gradient",stops:[["#ff7e5f",0],["#feb47b",.5],["#ff6a88",1]]},text:"#fff8f2",sub:"#ffe0cf",accent:"#ffffff"},
+  {id:"paper",name:"复古报纸",font:"song",align:"left",vertical:false,decor:"frame",dark:false,
+   bg:{type:"solid",color:"#f2ead8"},text:"#2b2b2b",sub:"#6b5d45",accent:"#9c3d2e"},
+  {id:"neon",name:"荧光霓虹",font:"yahei",align:"center",vertical:false,decor:"corner",dark:true,
+   bg:{type:"gradient",stops:[["#0a0a0f",0],["#151526",1]]},text:"#e0f2fe",sub:"#7dd3fc",accent:"#f472b6"},
+  {id:"ink",name:"国风水墨",font:"kai",align:"center",vertical:true,decor:"seal",dark:false,
+   bg:{type:"solid",color:"#f5f0e6"},text:"#1f1f1f",sub:"#6b6b6b",accent:"#b03a2e"},
+  {id:"vermilion",name:"朱砂红",font:"kai",align:"center",vertical:false,decor:"none",dark:true,
+   bg:{type:"gradient",stops:[["#c0392b",0],["#a93226",1]]},text:"#fdf3e7",sub:"#f5cba7",accent:"#f7dc6f"},
+  {id:"journal",name:"日系手帐",font:"yuan",align:"left",vertical:false,decor:"dots",dark:false,
+   bg:{type:"gradient",stops:[["#fff9ee",0],["#f7efdd",1]]},text:"#4a4034",sub:"#8b7f6d",accent:"#e8a87c"},
+  {id:"xhs",name:"小红书爆款",font:"hei",align:"center",vertical:false,decor:"bar",dark:true,size:72,
+   bg:{type:"gradient",stops:[["#ff6b81",0],["#ff9f43",1]]},text:"#ffffff",sub:"#ffe4d6",accent:"#ffffff"},
+  {id:"premium",name:"高级灰",font:"yahei",align:"center",vertical:false,decor:"line",dark:true,
+   bg:{type:"solid",color:"#2f343a"},text:"#e9ecef",sub:"#9aa3ad",accent:"#c9d1d9"},
+  {id:"hk",name:"港风复古",font:"song",align:"center",vertical:false,decor:"corner",dark:true,
+   bg:{type:"gradient",stops:[["#1a1420",0],["#2a1f30",1]]},text:"#f4e9d8",sub:"#b99e7a",accent:"#e63946"},
+  {id:"aurora",name:"极光渐变",font:"yahei",align:"center",vertical:false,decor:"dots",dark:true,
+   bg:{type:"gradient",stops:[["#062a2a",0],["#166d6b",.55],["#3b3a7a",1]]},text:"#eaf6f6",sub:"#a8d5d5",accent:"#7ce0c3"},
+  {id:"star",name:"星空",font:"yahei",align:"center",vertical:false,decor:"stars",dark:true,
+   bg:{type:"gradient",stops:[["#0d0d1a",0],["#1a1a3a",1]]},text:"#f0f0ff",sub:"#a0a0cc",accent:"#ffd76a"},
+  {id:"pink",name:"少女粉",font:"yuan",align:"center",vertical:false,decor:"dots",dark:false,
+   bg:{type:"gradient",stops:[["#ffd6e7",0],["#ffb3c8",1]]},text:"#7a2e4a",sub:"#b06a86",accent:"#ffffff"},
+  {id:"mint",name:"薄荷清新",font:"yahei",align:"center",vertical:false,decor:"dot",dark:false,
+   bg:{type:"gradient",stops:[["#e8f7ee",0],["#cdeee0",1]]},text:"#1f4a3d",sub:"#5f8a78",accent:"#2fa578"},
+  {id:"earth",name:"大地棕",font:"song",align:"center",vertical:false,decor:"line",dark:false,
+   bg:{type:"gradient",stops:[["#e8dcc8",0],["#d6c4a5",1]]},text:"#4a3b28",sub:"#8a7558",accent:"#a67c52"},
+  {id:"blackgold",name:"黑金",font:"song",align:"center",vertical:false,decor:"line",dark:true,
+   bg:{type:"gradient",stops:[["#111111",0],["#1c1a17",1]]},text:"#f5e8c8",sub:"#c9ad7a",accent:"#e3c26d"},
+  {id:"party",name:"生日派对",font:"yuan",align:"center",vertical:false,decor:"dots",dark:false,
+   bg:{type:"gradient",stops:[["#ff9a9e",0],["#fecfef",.5],["#a1c4fd",1]]},text:"#4a2b5f",sub:"#7a5b8a",accent:"#ffffff"},
+  {id:"magazine",name:"极简杂志",font:"song",align:"left",vertical:false,decor:"bar",dark:false,size:80,
+   bg:{type:"solid",color:"#ffffff"},text:"#111111",sub:"#777777",accent:"#111111"},
+  {id:"note",name:"手写便签",font:"kai",align:"center",vertical:false,decor:"none",dark:false,
+   bg:{type:"solid",color:"#fff59d"},text:"#3a3320",sub:"#6e6544",accent:"#d9a441"},
+  {id:"dark",name:"极暗",font:"yahei",align:"center",vertical:false,decor:"frame",dark:true,
+   bg:{type:"solid",color:"#000000"},text:"#f5f5f5",sub:"#999999",accent:"#f5f5f5"}
 ];
 
-const CATS = ["全部","搞钱","成长","生活","职场"];
+const CATS=["全部","搞钱","成长","生活","职场","早安","晚安","情感","读书","古诗词"];
 
-const $ = id => document.getElementById(id);
-const els = {
-  chips:$("chips"), swatches:$("swatches"), quote:$("quote"), author:$("author"),
-  randomBtn:$("randomBtn"), showDate:$("showDate"), watermark:$("watermark"),
-  exportBtn:$("exportBtn"), copyBtn:$("copyBtn"), canvas:$("preview"),
-  aiBase:$("aiBase"), aiKey:$("aiKey"), aiModel:$("aiModel"), aiPrompt:$("aiPrompt"),
-  aiBtn:$("aiBtn"), aiMsg:$("aiMsg")
+const $=id=>document.getElementById(id);
+const els={
+  chips:$("chips"),swatches:$("swatches"),quote:$("quote"),author:$("author"),randomBtn:$("randomBtn"),
+  showDate:$("showDate"),fontSel:$("fontSel"),sizeRange:$("sizeRange"),sizeVal:$("sizeVal"),
+  lsRange:$("lsRange"),lsVal:$("lsVal"),lhRange:$("lhRange"),lhVal:$("lhVal"),
+  alignSeg:$("alignSeg"),verticalToggle:$("verticalToggle"),bgFile:$("bgFile"),bgClear:$("bgClear"),
+  wmText:$("wmText"),wmOn:$("wmOn"),wmPos:$("wmPos"),wmFile:$("wmFile"),wmClear:$("wmClear"),
+  exportBtn:$("exportBtn"),copyBtn:$("copyBtn"),batchText:$("batchText"),fillQuotesBtn:$("fillQuotesBtn"),
+  batchBtn:$("batchBtn"),batchMsg:$("batchMsg"),canvas:$("preview"),
+  aiBase:$("aiBase"),aiKey:$("aiKey"),aiModel:$("aiModel"),aiPrompt:$("aiPrompt"),aiBtn:$("aiBtn"),aiMsg:$("aiMsg")
 };
 
-let state = { cat:"全部", theme:0 };
-let toastTimer = null;
+const state={cat:"全部",theme:0,font:"yahei",size:64,ls:0,lh:1.62,align:"center",vertical:false,showDate:true,wmOn:true,wmPos:"br",wmImage:null,bgImage:null};
+let toastTimer=null;
 
-function flash(msg){
-  const t = $("toast");
-  t.textContent = msg;
-  t.classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>t.classList.remove("show"), 1600);
+function flash(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),1800);}
+function hexA(hex,a){const n=parseInt(hex.slice(1),16);return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;}
+
+function setFont(ctx,key,size,bold){
+  const base=FONTS[key]||FONTS.yahei;
+  const w=(key==="hei"||key==="yahei"||key==="yuan")&&bold?"700":"400";
+  ctx.font=`${w} ${size}px ${base}`;
 }
+function chW(ctx,ch){return ctx.measureText(ch).width;}
 
-function hexA(hex, a){
-  const n = parseInt(hex.slice(1), 16);
-  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
-}
-
-function fontSpec(theme, size, bold){
-  const base = FONTS[theme.font];
-  const weight = (theme.font === "sans" && bold) ? "700" : "400";
-  return `${weight} ${size}px ${base}`;
-}
-
-function wrap(ctx, text, theme, size){
-  ctx.font = fontSpec(theme, size, true);
-  const out = []; let line = "";
-  for(const ch of text){
-    const test = line + ch;
-    if(ctx.measureText(test).width > MAXW && line){
-      out.push(line); line = ch;
-    } else {
-      line = test;
-    }
+function drawBG(ctx,theme,bgImage){
+  if(bgImage){
+    const cw=bgImage.width, chh=bgImage.height, s=Math.max(W/cw,H/chh);
+    const dw=cw*s, dh=chh*s;
+    ctx.drawImage(bgImage,(W-dw)/2,(H-dh)/2,dw,dh);
+    ctx.fillStyle=theme.dark?"rgba(0,0,0,.46)":"rgba(255,255,255,.56)";
+    ctx.fillRect(0,0,W,H);
+    return;
   }
-  if(line) out.push(line);
-  return out;
+  if(theme.bg.type==="solid"){ctx.fillStyle=theme.bg.color;ctx.fillRect(0,0,W,H);}
+  else{const g=ctx.createLinearGradient(0,0,0,H);for(const [c,p] of theme.bg.stops)g.addColorStop(p,c);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
 }
 
-function drawCorner(ctx, x, y, len, sx, sy){
-  ctx.beginPath();
-  ctx.moveTo(x + len*sx, y);
-  ctx.lineTo(x, y);
-  ctx.lineTo(x, y + len*sy);
-  ctx.stroke();
-}
+function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 
-function drawDecor(ctx, theme){
+function drawCorner(ctx,x,y,len,sx,sy){ctx.beginPath();ctx.moveTo(x+len*sx,y);ctx.lineTo(x,y);ctx.lineTo(x,y+len*sy);ctx.stroke();}
+
+function drawDecor(ctx,theme){
   switch(theme.decor){
-    case "dot":
-      ctx.fillStyle = theme.accent;
-      ctx.beginPath(); ctx.arc(W/2, 180, 10, 0, Math.PI*2); ctx.fill();
-      break;
-    case "quote": {
-      ctx.fillStyle = hexA(theme.accent, .45);
-      ctx.font = "300px serif";
-      ctx.fillText("“", PAD-10, 330);
-      ctx.textAlign = "right";
-      ctx.fillText("”", W-PAD+10, H-290);
-      ctx.textAlign = "left";
-      break;
-    }
-    case "line":
-      ctx.fillStyle = theme.accent;
-      ctx.fillRect(W/2 - 70, 165, 140, 6);
-      break;
-    case "dots": {
-      const pts = [[90,210],[175,420],[W-100,250],[W-180,490],[100,H-310],[W-125,H-190]];
-      ctx.fillStyle = hexA(theme.sub, .85);
-      for(const [x,y] of pts){ ctx.beginPath(); ctx.arc(x,y,6,0,Math.PI*2); ctx.fill(); }
+    case "dot":ctx.fillStyle=theme.accent;ctx.beginPath();ctx.arc(W/2,175,10,0,Math.PI*2);ctx.fill();break;
+    case "quote":
+      ctx.fillStyle=hexA(theme.accent,.45);ctx.font="300px serif";ctx.fillText("“",PAD-10,330);
+      ctx.textAlign="right";ctx.fillText("”",W-PAD+10,H-290);ctx.textAlign="left";break;
+    case "line":ctx.fillStyle=theme.accent;ctx.fillRect(W/2-70,160,140,6);break;
+    case "bar":ctx.fillStyle=theme.accent;ctx.fillRect(PAD,160,8,80);break;
+    case "dots":{
+      const pts=[[90,210],[175,420],[W-100,250],[W-180,490],[100,H-310],[W-125,H-190]];
+      ctx.fillStyle=hexA(theme.sub,.85);
+      for(const [x,y] of pts){ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.fill();}
       break;
     }
     case "frame":
-      ctx.strokeStyle = hexA(theme.text, .55); ctx.lineWidth = 3;
-      ctx.strokeRect(68,68,W-136,H-136);
-      ctx.strokeRect(86,86,W-172,H-172);
-      break;
-    case "corner": {
-      ctx.strokeStyle = theme.accent; ctx.lineWidth = 8; ctx.lineCap = "round";
-      const L = 66, m = 100;
-      drawCorner(ctx, m, m, L, 1, 1);
-      drawCorner(ctx, W-m, m, L, -1, 1);
-      drawCorner(ctx, m, H-m, L, 1, -1);
-      drawCorner(ctx, W-m, H-m, L, -1, -1);
+      ctx.strokeStyle=hexA(theme.text,.55);ctx.lineWidth=3;
+      ctx.strokeRect(68,68,W-136,H-136);ctx.strokeRect(86,86,W-172,H-172);break;
+    case "corner":{
+      ctx.strokeStyle=theme.accent;ctx.lineWidth=8;ctx.lineCap="round";const L=66,m=100;
+      drawCorner(ctx,m,m,L,1,1);drawCorner(ctx,W-m,m,L,-1,1);
+      drawCorner(ctx,m,H-m,L,1,-1);drawCorner(ctx,W-m,H-m,L,-1,-1);break;
+    }
+    case "seal":{
+      ctx.fillStyle="#b03a2e";roundRect(ctx,W-PAD-120,H-PAD-160,120,120,10);ctx.fill();
+      ctx.fillStyle="#f7efe2";ctx.font="600 58px KaiTi,serif";ctx.textAlign="center";
+      ctx.fillText("签",W-PAD-60,H-PAD-82);ctx.textAlign="left";break;
+    }
+    case "stars":{
+      const pts=[[90,180],[250,300],[W-140,220],[W-220,420],[170,560],[W-120,700],[110,H-360],[W-240,H-220]];
+      for(const [x,y] of pts){ctx.fillStyle="rgba(255,255,255,.55)";ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill();}
       break;
     }
   }
 }
 
-function render(){
-  const ctx = els.canvas.getContext("2d");
-  const theme = THEMES[state.theme];
-  ctx.clearRect(0,0,W,H);
-
-  if(theme.bg.type === "solid"){
-    ctx.fillStyle = theme.bg.color; ctx.fillRect(0,0,W,H);
-  } else {
-    const g = ctx.createLinearGradient(0,0,0,H);
-    for(const [col,pos] of theme.bg.stops) g.addColorStop(pos,col);
-    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+function wrapH(ctx,text,font,size,ls){
+  setFont(ctx,font,size,true);
+  const out=[];let line="",w=0;
+  for(const ch of text){
+    const cw=chW(ctx,ch);
+    const add=(line?ls:0)+cw;
+    if(line&&w+add>MAXW){out.push(line);line=ch;w=cw;}
+    else{line+=ch;w+=add;}
   }
+  if(line)out.push(line);
+  return out;
+}
+function lineWidth(ctx,line,font,size,ls){
+  setFont(ctx,font,size,true);
+  let w=0;for(let i=0;i<line.length;i++){w+=chW(ctx,line[i]);if(i<line.length-1)w+=ls;}
+  return w;
+}
 
-  drawDecor(ctx, theme);
-
-  let text = els.quote.value.trim() || "写一句你的话";
-  let size = 64, lines = [];
-  while(size >= 36){
-    lines = wrap(ctx, text, theme, size);
-    if(lines.length <= MAXLINES) break;
-    size -= 4;
-  }
-
-  const lineH = Math.round(size * 1.62);
-  const author = els.author.value.trim();
-  const authorH = author ? Math.round(size * 0.62) + 46 : 0;
-  const blockH = lines.length * lineH;
-  const totalH = blockH + authorH;
-  let y = (H - totalH) / 2;
-
-  ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = theme.text;
-  ctx.font = fontSpec(theme, size, true);
-  const align = theme.align;
-  ctx.textAlign = align === "center" ? "center" : "left";
-  const x = align === "center" ? W/2 : PAD;
-  lines.forEach((ln, i) => {
-    ctx.fillText(ln, x, y + size + i*lineH);
+function drawHorizontal(ctx,text,font,size,ls,lh,theme,o){
+  setFont(ctx,font,size,true);
+  const lines=wrapH(ctx,text,font,size,ls);
+  const lineH=Math.round(size*lh);
+  const authorH=o.author?Math.round(size*.58)+50:0;
+  const totalH=lines.length*lineH+authorH;
+  let y=Math.max(PAD+80,(H-totalH)/2);
+  ctx.fillStyle=theme.text;ctx.textBaseline="alphabetic";ctx.textAlign="left";
+  lines.forEach((ln,i)=>{
+    const lw=lineWidth(ctx,ln,font,size,ls);
+    let x=PAD;
+    if(o.align==="center")x=(W-lw)/2;
+    else if(o.align==="right")x=W-PAD-lw;
+    let cx=x;
+    for(const ch of ln){ctx.fillText(ch,cx,y+size+i*lineH);cx+=chW(ctx,ch)+ls;}
   });
-
-  if(author){
-    const ay = y + blockH + Math.round(size*0.62) + 22;
-    if(theme.decor === "line"){
-      ctx.fillStyle = theme.accent;
-      ctx.fillRect(align === "center" ? W/2 - 46 : PAD, ay - 42, 92, 4);
-    }
-    ctx.fillStyle = theme.sub;
-    ctx.font = fontSpec(theme, Math.round(size*0.58), false);
-    ctx.fillText("—— " + author, x, ay);
+  if(o.author){
+    const ay=y+lines.length*lineH+Math.round(size*.58)+22;
+    ctx.fillStyle=theme.sub;setFont(ctx,font,Math.round(size*.56),false);
+    ctx.textAlign=o.align==="left"?"left":o.align==="right"?"right":"center";
+    const ax=o.align==="left"?PAD:o.align==="right"?W-PAD:W/2;
+    ctx.fillText("—— "+o.author,ax,ay);
   }
+}
 
-  // footer
-  ctx.font = '400 26px "Microsoft YaHei","PingFang SC",sans-serif';
-  ctx.fillStyle = hexA(theme.sub, .85);
-  const now = new Date();
-  const p = n => String(n).padStart(2,"0");
-  const dateStr = `${now.getFullYear()}.${p(now.getMonth()+1)}.${p(now.getDate())}`;
-  ctx.textAlign = "left";
-  if(els.showDate.checked) ctx.fillText(dateStr, PAD, H - 66);
-  ctx.textAlign = "right";
-  if(state.cat !== "全部") ctx.fillText("#" + state.cat, W - PAD, H - 66);
-  const wm = els.watermark.value.trim();
+function drawVertical(ctx,text,font,size,ls,lh,theme,o){
+  setFont(ctx,font,size,true);
+  const charStep=Math.round(size*lh);
+  const top=PAD+60,bottom=H-PAD-190;
+  const cols=[];let col=[],y=top;
+  for(const ch of text){
+    if(y+charStep>bottom){cols.push(col);col=[];y=top;}
+    col.push(ch);y+=charStep;
+  }
+  if(col.length)cols.push(col);
+  const colGap=Math.round(size*.88);
+  const totalW=(cols.length-1)*colGap;
+  let x=W/2+totalW/2;
+  ctx.fillStyle=theme.text;ctx.textAlign="center";
+  cols.forEach(col=>{
+    let cy=top;
+    for(const ch of col){ctx.fillText(ch,x,cy+size);cy+=charStep;}
+    x-=colGap;
+  });
+  if(o.author){
+    ctx.fillStyle=theme.sub;setFont(ctx,font,Math.round(size*.52),false);ctx.textAlign="center";
+    ctx.fillText("—— "+o.author,W/2,H-PAD-150);
+  }
+}
+
+function drawFooter(ctx,theme,o){
+  ctx.font='400 26px "Microsoft YaHei","PingFang SC",sans-serif';
+  ctx.fillStyle=hexA(theme.sub,.85);
+  if(o.cat&&o.cat!=="全部"){ctx.textAlign="left";ctx.fillText("#"+o.cat,PAD,64);}
+  if(o.showDate){
+    const now=new Date();const p=n=>String(n).padStart(2,"0");
+    const d=`${now.getFullYear()}.${p(now.getMonth()+1)}.${p(now.getDate())}`;
+    ctx.textAlign="left";ctx.fillText(d,PAD,H-66);
+  }
+}
+
+function drawWatermark(ctx,theme,o){
+  if(!o.wmOn)return;
+  const wm=o.wmText;
+  const hasImg=!!o.wmImage;
+  if(hasImg){
+    const s=150;
+    let ix=W-PAD-s, iy=H-PAD-s;
+    if(o.wmPos==="bl")ix=PAD;
+    if(o.wmPos==="bc")ix=(W-s)/2;
+    ctx.fillStyle="#ffffff";roundRect(ctx,ix-10,iy-10,s+20,s+20,18);ctx.fill();
+    ctx.drawImage(o.wmImage,ix,iy,s,s);
+  }
   if(wm){
-    ctx.textAlign = "center";
-    ctx.fillStyle = hexA(theme.sub, .7);
-    ctx.fillText(wm, W/2, H - 66);
+    ctx.font='400 28px "Microsoft YaHei","PingFang SC",sans-serif';
+    ctx.fillStyle=theme.dark?"rgba(255,255,255,.62)":hexA(theme.sub,.9);
+    const tx=W-PAD, ty=hasImg?H-PAD-172:H-PAD-66;
+    ctx.textAlign="right";
+    if(o.wmPos==="bl"){ctx.textAlign="left";ctx.fillText(wm,PAD,ty);}
+    else if(o.wmPos==="bc"){ctx.textAlign="center";ctx.fillText(wm,W/2,ty);}
+    else ctx.fillText(wm,tx,ty);
   }
+}
+
+function drawCard(cv,o){
+  const ctx=cv.getContext("2d");
+  const theme=o.theme;
+  ctx.clearRect(0,0,W,H);
+  drawBG(ctx,theme,o.bgImage);
+  drawDecor(ctx,theme);
+  const text=o.text||"写一句你的话";
+  if(o.vertical)drawVertical(ctx,text,o.font,o.size,o.ls,o.lh,theme,o);
+  else drawHorizontal(ctx,text,o.font,o.size,o.ls,o.lh,theme,o);
+  drawFooter(ctx,theme,o);
+  drawWatermark(ctx,theme,o);
+}
+
+function buildRenderOpts(textOverride,authorOverride){
+  return {
+    text:textOverride!==undefined?textOverride:(els.quote.value.trim()||"写一句你的话"),
+    author:authorOverride!==undefined?authorOverride:els.author.value.trim(),
+    theme:THEMES[state.theme],font:state.font,size:state.size,ls:state.ls,lh:state.lh,
+    align:state.align,vertical:state.vertical,showDate:state.showDate,cat:state.cat,
+    wmText:els.wmText.value.trim(),wmOn:state.wmOn,wmPos:state.wmPos,
+    wmImage:state.wmImage,bgImage:state.bgImage
+  };
+}
+
+function render(){drawCard(els.canvas,buildRenderOpts());}
+
+function applyTheme(i){
+  state.theme=i;
+  const t=THEMES[i];
+  state.font=t.font;state.align=t.align;state.vertical=t.vertical;
+  if(t.size)state.size=t.size;
+  syncControls();buildSwatches();render();
 }
 
 function pickQuote(){
-  const pool = state.cat === "全部" ? QUOTES : QUOTES.filter(q => q.cat === state.cat);
-  const q = pool[Math.floor(Math.random()*pool.length)];
-  els.quote.value = q.t;
-  els.author.value = q.a;
-  render();
+  const pool=state.cat==="全部"?QUOTES:QUOTES.filter(q=>q.cat===state.cat);
+  const q=pool[Math.floor(Math.random()*pool.length)];
+  els.quote.value=q.t;els.author.value=q.a;render();
 }
 
 function buildChips(){
-  els.chips.innerHTML = "";
-  CATS.forEach(cat => {
-    const el = document.createElement("button");
-    el.className = "chip" + (cat === state.cat ? " on" : "");
-    el.textContent = cat;
-    el.onclick = () => {
-      state.cat = cat;
-      buildChips();
-      render();
-    };
+  els.chips.innerHTML="";
+  CATS.forEach(cat=>{
+    const el=document.createElement("button");
+    el.className="chip"+(cat===state.cat?" on":"");
+    el.textContent=cat;
+    el.onclick=()=>{state.cat=cat;buildChips();render();};
     els.chips.appendChild(el);
   });
 }
 
+function swatchBG(t){
+  if(t.bg.type==="solid")return t.bg.color;
+  return `linear-gradient(135deg, ${t.bg.stops.map(s=>s[0]).join(",")})`;
+}
 function buildSwatches(){
-  els.swatches.innerHTML = "";
-  THEMES.forEach((t, i) => {
-    const el = document.createElement("div");
-    el.className = "swatch" + (i === state.theme ? " on" : "");
-    if(t.bg.type === "solid"){
-      el.style.background = t.bg.color;
-    } else {
-      el.style.background = `linear-gradient(180deg, ${t.bg.stops.map(s=>s[0]).join(",")})`;
-    }
-    el.innerHTML = `<span>${t.name}</span>`;
-    el.onclick = () => {
-      state.theme = i;
-      buildSwatches();
-      render();
-    };
+  els.swatches.innerHTML="";
+  THEMES.forEach((t,i)=>{
+    const el=document.createElement("div");
+    el.className="swatch"+(i===state.theme?" on":"")+(t.dark?"":" light");
+    el.style.background=swatchBG(t);
+    el.innerHTML=`<span>${t.name}</span>`;
+    el.onclick=()=>applyTheme(i);
     els.swatches.appendChild(el);
   });
 }
 
-function exportPNG(){
-  els.canvas.toBlob(b => {
-    if(!b){ flash("导出失败"); return; }
-    const a = document.createElement("a");
-    const u = URL.createObjectURL(b);
-    a.href = u;
-    const now = new Date();
-    const p = n => String(n).padStart(2,"0");
-    a.download = `日签_${now.getFullYear()}${p(now.getMonth()+1)}${p(now.getDate())}_${THEMES[state.theme].name}.png`;
-    a.click();
-    setTimeout(()=>URL.revokeObjectURL(u), 1000);
-    flash("已导出 PNG");
-  }, "image/png");
+function buildFontSel(){
+  els.fontSel.innerHTML="";
+  Object.keys(FONTS).forEach(k=>{
+    const o=document.createElement("option");o.value=k;o.textContent=FONT_LABELS[k];
+    els.fontSel.appendChild(o);
+  });
 }
 
+function syncControls(){
+  els.fontSel.value=state.font;
+  els.sizeRange.value=state.size;els.sizeVal.textContent=state.size;
+  els.lsRange.value=state.ls;els.lsVal.textContent=state.ls;
+  els.lhRange.value=state.lh;els.lhVal.textContent=state.lh;
+  els.verticalToggle.checked=state.vertical;
+  [...els.alignSeg.querySelectorAll(".btn")].forEach(b=>b.classList.toggle("on",b.dataset.a===state.align));
+}
+
+function exportPNG(){
+  els.canvas.toBlob(b=>{
+    if(!b){flash("导出失败");return;}
+    downloadBlob(b,`oneline_${stamp()}_${THEMES[state.theme].name}.png`);
+    flash("已导出 PNG");
+  },"image/png");
+}
 async function copyPNG(){
   try{
-    const blob = await new Promise(r => els.canvas.toBlob(r, "image/png"));
-    await navigator.clipboard.write([new ClipboardItem({"image/png": blob})]);
+    const blob=await new Promise(r=>els.canvas.toBlob(r,"image/png"));
+    await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);
     flash("已复制到剪贴板");
-  }catch(e){
-    flash("复制失败，请改用导出");
+  }catch(e){flash("复制失败，请改用导出");}
+}
+function stamp(){
+  const now=new Date();const p=n=>String(n).padStart(2,"0");
+  return `${now.getFullYear()}${p(now.getMonth()+1)}${p(now.getDate())}`;
+}
+function downloadBlob(blob,name){
+  const a=document.createElement("a");const u=URL.createObjectURL(blob);
+  a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);
+}
+
+const crcTable=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);t[n]=c>>>0;}return t;})();
+function crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=(c>>>8)^crcTable[(c^u8[i])&0xFF];return (c^0xFFFFFFFF)>>>0;}
+function buildZip(entries){
+  const enc=new TextEncoder();const parts=[];const central=[];let offset=0;
+  for(const e of entries){
+    const name=enc.encode(e.name),data=e.data,crc=crc32(data);
+    const lh=new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);
+    lh.setUint16(8,0,true);lh.setUint32(14,crc,true);lh.setUint32(18,data.length,true);
+    lh.setUint32(22,data.length,true);lh.setUint16(26,name.length,true);lh.setUint16(28,0,true);
+    parts.push(lh.buffer,name,data);
+    const cd=new DataView(new ArrayBuffer(46));
+    cd.setUint32(0,0x02014b50,true);cd.setUint16(4,20,true);cd.setUint16(6,20,true);cd.setUint16(8,0x0800,true);
+    cd.setUint16(10,0,true);cd.setUint32(16,crc,true);cd.setUint32(20,data.length,true);
+    cd.setUint32(24,data.length,true);cd.setUint16(28,name.length,true);
+    cd.setUint32(42,offset,true);
+    central.push(cd.buffer,name);
+    offset+=30+name.length+data.length;
   }
+  let cdSize=0;for(const c of central)cdSize+=c.byteLength;
+  const eo=new DataView(new ArrayBuffer(22));
+  eo.setUint32(0,0x06054b50,true);eo.setUint16(8,entries.length,true);eo.setUint16(10,entries.length,true);
+  eo.setUint32(12,cdSize,true);eo.setUint32(16,offset,true);
+  parts.push(...central,eo.buffer);
+  return new Blob(parts,{type:"application/zip"});
+}
+
+async function batchGenerate(){
+  const lines=els.batchText.value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  if(!lines.length){els.batchMsg.textContent="请先在文本框里粘贴文案（每行一句）";return;}
+  if(lines.length>200){els.batchMsg.textContent="一次最多 200 句，请分批";return;}
+  els.batchBtn.disabled=true;
+  const entries=[];
+  for(let i=0;i<lines.length;i++){
+    els.batchMsg.textContent=`正在生成 ${i+1}/${lines.length}…`;
+    const cv=document.createElement("canvas");cv.width=W;cv.height=H;
+    drawCard(cv,buildRenderOpts(lines[i],""));
+    const blob=await new Promise(r=>cv.toBlob(r,"image/png"));
+    const buf=new Uint8Array(await blob.arrayBuffer());
+    entries.push({name:`oneline_${String(i+1).padStart(2,"0")}.png`,data:buf});
+    await new Promise(r=>setTimeout(r,0));
+  }
+  const zip=buildZip(entries);
+  downloadBlob(zip,`oneline_cards_${stamp()}.zip`);
+  els.batchMsg.textContent=`完成！已打包 ${entries.length} 张卡片`;
+  els.batchBtn.disabled=false;
 }
 
 async function aiGenerate(){
-  const key = els.aiKey.value.trim();
-  if(!key){ els.aiMsg.textContent = "请先填入 API Key"; els.aiMsg.className = "ai-msg err"; return; }
-  const base = (els.aiBase.value.trim() || "https://api.openai.com/v1").replace(/\/+$/,"");
-  const model = els.aiModel.value.trim() || "gpt-4o-mini";
-  const prompt = els.aiPrompt.value.trim() || "写一句关于「搞钱」的原创金句，25字内，有冲击力";
-  els.aiMsg.className = "ai-msg";
-  els.aiMsg.textContent = "生成中…";
-  els.aiBtn.disabled = true;
+  const key=els.aiKey.value.trim();
+  if(!key){els.aiMsg.textContent="请先填入 API Key";els.aiMsg.className="ai-msg err";return;}
+  const base=(els.aiBase.value.trim()||"https://api.openai.com/v1").replace(/\/+$/,"");
+  const model=els.aiModel.value.trim()||"gpt-4o-mini";
+  const prompt=els.aiPrompt.value.trim()||"写一句关于「搞钱」的原创金句，25字内，有冲击力";
+  els.aiMsg.className="ai-msg";els.aiMsg.textContent="生成中…";els.aiBtn.disabled=true;
   try{
-    const r = await fetch(base + "/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
-      body: JSON.stringify({ model, messages:[{role:"user", content: prompt}], temperature: 1.0, max_tokens: 120 })
-    });
-    if(!r.ok){
-      let msg = r.statusText;
-      try{ msg = (await r.json()).error?.message || msg; }catch(_){}
-      throw new Error(msg);
-    }
-    const d = await r.json();
-    const text = (d.choices?.[0]?.message?.content || "").trim().replace(/^["“"]+|["”"]+$/g,"");
-    if(!text){ throw new Error("返回内容为空"); }
-    els.quote.value = text;
-    els.author.value = "";
-    render();
-    els.aiMsg.textContent = "已生成，可在左侧微调";
+    const r=await fetch(base+"/chat/completions",{method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
+      body:JSON.stringify({model,messages:[{role:"user",content:prompt}],temperature:1,max_tokens:120})});
+    if(!r.ok){let m=r.statusText;try{m=(await r.json()).error?.message||m;}catch(_){}throw new Error(m);}
+    const d=await r.json();
+    const text=(d.choices?.[0]?.message?.content||"").trim().replace(/^["“"]+|["”"]+$/g,"");
+    if(!text)throw new Error("返回内容为空");
+    els.quote.value=text;els.author.value="";render();
+    els.aiMsg.textContent="已生成，可在左侧微调";
   }catch(err){
-    els.aiMsg.className = "ai-msg err";
-    els.aiMsg.textContent = "出错：" + err.message + "（浏览器可能被 CORS 拦截）";
-  }finally{
-    els.aiBtn.disabled = false;
-  }
+    els.aiMsg.className="ai-msg err";els.aiMsg.textContent="出错："+err.message+"（浏览器可能被 CORS 拦截）";
+  }finally{els.aiBtn.disabled=false;}
 }
 
-els.randomBtn.onclick = pickQuote;
-els.exportBtn.onclick = exportPNG;
-els.copyBtn.onclick = copyPNG;
-els.aiBtn.onclick = aiGenerate;
-["input"].forEach(ev => {
-  els.quote.addEventListener(ev, render);
-  els.author.addEventListener(ev, render);
-  els.watermark.addEventListener(ev, render);
-});
-els.showDate.addEventListener("change", render);
+function loadImageFile(file,done){
+  if(!file)return;
+  const fr=new FileReader();
+  fr.onload=()=>{const img=new Image();img.onload=()=>done(img);img.src=fr.result;};
+  fr.readAsDataURL(file);
+}
 
-els.quote.value = QUOTES[0].t;
-els.author.value = QUOTES[0].a;
-buildChips();
-buildSwatches();
-render();
+els.randomBtn.onclick=pickQuote;
+els.exportBtn.onclick=exportPNG;
+els.copyBtn.onclick=copyPNG;
+els.batchBtn.onclick=batchGenerate;
+els.fillQuotesBtn.onclick=()=>{els.batchText.value=QUOTES.map(q=>q.t).join("\n");els.batchMsg.textContent=`已填入 ${QUOTES.length} 句金句`;};
+els.aiBtn.onclick=aiGenerate;
+
+els.quote.addEventListener("input",render);
+els.author.addEventListener("input",render);
+els.wmText.addEventListener("input",render);
+els.showDate.addEventListener("change",()=>{state.showDate=els.showDate.checked;render();});
+els.wmOn.addEventListener("change",()=>{state.wmOn=els.wmOn.checked;render();});
+els.wmPos.addEventListener("change",()=>{state.wmPos=els.wmPos.value;render();});
+els.verticalToggle.addEventListener("change",()=>{state.vertical=els.verticalToggle.checked;render();});
+els.fontSel.addEventListener("change",()=>{state.font=els.fontSel.value;render();});
+els.sizeRange.addEventListener("input",()=>{state.size=+els.sizeRange.value;els.sizeVal.textContent=state.size;render();});
+els.lsRange.addEventListener("input",()=>{state.ls=+els.lsRange.value;els.lsVal.textContent=state.ls;render();});
+els.lhRange.addEventListener("input",()=>{state.lh=+els.lhRange.value;els.lhVal.textContent=state.lh;render();});
+els.alignSeg.querySelectorAll(".btn").forEach(b=>b.onclick=()=>{state.align=b.dataset.a;syncControls();render();});
+els.bgFile.addEventListener("change",e=>{loadImageFile(e.target.files[0],img=>{state.bgImage=img;render();});});
+els.bgClear.onclick=()=>{state.bgImage=null;els.bgFile.value="";render();};
+els.wmFile.addEventListener("change",e=>{loadImageFile(e.target.files[0],img=>{state.wmImage=img;render();});});
+els.wmClear.onclick=()=>{state.wmImage=null;els.wmFile.value="";render();};
+
+els.quote.value=QUOTES[0].t;els.author.value=QUOTES[0].a;
+buildChips();buildSwatches();buildFontSel();syncControls();render();
 </script>
 </body>
 </html>
