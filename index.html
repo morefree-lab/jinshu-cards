@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>金句卡片工坊 · 日签生成器</title>
+<style>
+  :root{
+    --bg:#0f1115;
+    --panel:#171a21;
+    --panel2:#1e222b;
+    --line:#2a2f3a;
+    --text:#e8eaf0;
+    --muted:#8b93a7;
+    --accent:#ff8a5c;
+    --accent2:#ff5c8a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(255,92,138,.12), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(255,138,92,.10), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    min-height:100vh;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 24px 60px}
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+  h1{font-size:24px;font-weight:700;letter-spacing:.5px}
+  h1 span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .tag{color:var(--muted);font-size:13px}
+  .layout{display:grid;grid-template-columns:380px 1fr;gap:22px;align-items:start}
+  @media(max-width:900px){.layout{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
+  .panel h2{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:1px;margin-bottom:12px}
+  .field{margin-bottom:14px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    padding:7px 14px;border-radius:999px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--text);cursor:pointer;font-size:13px;
+    transition:.15s;
+  }
+  .chip:hover{border-color:#3a4252}
+  .chip.on{background:linear-gradient(90deg,var(--accent),var(--accent2));border-color:transparent;color:#fff;font-weight:600}
+  textarea,input[type=text]{
+    width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    color:var(--text);padding:10px 12px;font-size:14px;font-family:inherit;resize:vertical;
+  }
+  textarea:focus,input[type=text]:focus{outline:none;border-color:var(--accent)}
+  .row{display:flex;gap:8px}
+  .btn{
+    border:none;border-radius:10px;padding:10px 14px;font-size:14px;cursor:pointer;
+    background:var(--panel2);border:1px solid var(--line);color:var(--text);transition:.15s;
+  }
+  .btn:hover{border-color:#3a4252}
+  .btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border:none;font-weight:600}
+  .btn.primary:hover{filter:brightness(1.08)}
+  .btn.block{width:100%}
+  .swatches{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .swatch{
+    height:58px;border-radius:10px;cursor:pointer;position:relative;overflow:hidden;
+    border:2px solid transparent;display:flex;align-items:flex-end;padding:7px;
+  }
+  .swatch span{font-size:11px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.55)}
+  .swatch.on{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,138,92,.22)}
+  .check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer}
+  .check input{accent-color:var(--accent);width:16px;height:16px}
+  details{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:4px}
+  summary{cursor:pointer;font-size:13px;color:var(--muted);font-weight:600}
+  .ai-inner{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+  .ai-inner .hint{font-size:11px;color:#70788c;line-height:1.5}
+  .ai-msg{font-size:12px;min-height:16px;color:var(--muted)}
+  .ai-msg.err{color:#ff8a8a}
+  .stage{display:flex;justify-content:center;align-items:flex-start}
+  .cardbox{position:sticky;top:20px;display:flex;flex-direction:column;align-items:center;gap:12px}
+  #preview{
+    height:min(82vh,760px);width:auto;border-radius:16px;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);background:#fff;
+  }
+  .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  #toast{
+    position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);
+    background:#242936;border:1px solid var(--line);color:var(--text);
+    padding:10px 18px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>金句卡片<span>工坊</span></h1>
+    <div class="tag">点一下出图 · 一键导出 · 小红书 / 朋友圈规格</div>
+  </header>
+
+  <div class="layout">
+    <div class="panel">
+      <h2>内容</h2>
+      <div class="field">
+        <div class="chips" id="chips"></div>
+      </div>
+      <div class="field">
+        <textarea id="quote" rows="4" placeholder="写一句你想说的话，或点下面「换一句」"></textarea>
+      </div>
+      <div class="field">
+        <input type="text" id="author" placeholder="署名 / 出处（可留空）">
+      </div>
+      <div class="field row">
+        <button class="btn" id="randomBtn">🎲 换一句</button>
+        <label class="check"><input type="checkbox" id="showDate" checked>显示日期</label>
+      </div>
+
+      <h2 style="margin-top:18px">主题</h2>
+      <div class="swatches" id="swatches"></div>
+
+      <div class="field" style="margin-top:14px">
+        <input type="text" id="watermark" placeholder="水印（账号名/品牌，可留空）">
+      </div>
+
+      <div class="field row">
+        <button class="btn primary block" id="exportBtn">⬇ 导出 PNG</button>
+        <button class="btn block" id="copyBtn">复制到剪贴板</button>
+      </div>
+
+      <details>
+        <summary>✨ 进阶：接 AI 自动写文案（可选）</summary>
+        <div class="ai-inner">
+          <div class="hint">填入你自己的 OpenAI 兼容接口即可让 AI 帮你写金句。浏览器直连可能被 CORS 拦截，建议用支持 CORS 的网关或本地代理。</div>
+          <input type="text" id="aiBase" placeholder="Base URL，默认 https://api.openai.com/v1">
+          <input type="text" id="aiKey" placeholder="API Key（只存在你浏览器本地）">
+          <input type="text" id="aiModel" placeholder="模型，默认 gpt-4o-mini">
+          <input type="text" id="aiPrompt" placeholder="写一句关于「搞钱」的原创金句，25字内，有冲击力">
+          <button class="btn primary" id="aiBtn">AI 生成一句</button>
+          <div class="ai-msg" id="aiMsg"></div>
+        </div>
+      </details>
+    </div>
+
+    <div class="stage">
+      <div class="cardbox">
+        <canvas id="preview" width="1080" height="1440"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+const W = 1080, H = 1440, PAD = 120, MAXW = W - PAD*2, MAXLINES = 9;
+
+const QUOTES = [
+  {t:"搞钱第一步，是承认钱很重要。", a:"佚名", c:"搞钱"},
+  {t:"把一件事做到极致，钱会追着你跑。", a:"佚名", c:"搞钱"},
+  {t:"你缺的不是机会，是执行力。", a:"佚名", c:"搞钱"},
+  {t:"先完成，再完美。", a:"佚名", c:"搞钱"},
+  {t:"省下来的不是钱，赚到的才是。", a:"佚名", c:"搞钱"},
+  {t:"不要用战术上的勤奋，掩盖战略上的懒惰。", a:"佚名", c:"搞钱"},
+  {t:"现金流的尽头，是被动收入。", a:"佚名", c:"搞钱"},
+  {t:"风口上猪都能飞，但风停了摔死的也是猪。", a:"佚名", c:"搞钱"},
+  {t:"种一棵树最好的时间是十年前，其次是现在。", a:"谚语", c:"成长"},
+  {t:"你要悄悄努力，然后惊艳所有人。", a:"佚名", c:"成长"},
+  {t:"真正的成长，是敢于直面自己的不堪。", a:"佚名", c:"成长"},
+  {t:"慢一点没关系，但别停下来。", a:"佚名", c:"成长"},
+  {t:"熬过无人问津的日子，才有诗和远方。", a:"佚名", c:"成长"},
+  {t:"自律不是自虐，是对未来的自己温柔。", a:"佚名", c:"成长"},
+  {t:"学如逆水行舟，不进则退。", a:"《增广贤文》", c:"成长"},
+  {t:"不积跬步，无以至千里。", a:"荀子", c:"成长"},
+  {t:"天行健，君子以自强不息。", a:"《周易》", c:"成长"},
+  {t:"知人者智，自知者明。", a:"老子", c:"成长"},
+  {t:"路虽远，行则将至；事虽难，做则必成。", a:"《荀子》", c:"成长"},
+  {t:"长风破浪会有时，直挂云帆济沧海。", a:"李白", c:"成长"},
+  {t:"生活明朗，万物可爱。", a:"佚名", c:"生活"},
+  {t:"人间烟火气，最抚凡人心。", a:"佚名", c:"生活"},
+  {t:"治愈你的从来不是时间，而是你自己。", a:"佚名", c:"生活"},
+  {t:"今天也要好好吃饭。", a:"佚名", c:"生活"},
+  {t:"好好生活，慢慢相遇。", a:"佚名", c:"生活"},
+  {t:"日子常新，未来可期。", a:"佚名", c:"生活"},
+  {t:"平安喜乐，万事胜意。", a:"佚名", c:"生活"},
+  {t:"有人爱，有事做，有所期待。", a:"佚名", c:"生活"},
+  {t:"让专业成为你的护城河。", a:"佚名", c:"职场"},
+  {t:"汇报工作，结论先行。", a:"佚名", c:"职场"},
+  {t:"靠谱，是成年人最高级的修养。", a:"佚名", c:"职场"},
+  {t:"职场没有苦劳，只有功劳。", a:"佚名", c:"职场"},
+  {t:"别把平台当能力。", a:"佚名", c:"职场"},
+  {t:"学会说不，是对时间负责。", a:"佚名", c:"职场"},
+  {t:"解决问题，而不是制造问题。", a:"佚名", c:"职场"},
+  {t:"你的工资，是你解决问题能力的标价。", a:"佚名", c:"职场"}
+];
+
+const FONTS = {
+  sans:'"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif',
+  serif:'"SimSun","Songti SC","STSong",serif',
+  kai:'"KaiTi","STKaiti",serif',
+  mono:'Consolas,"Courier New",monospace'
+};
+
+const THEMES = [
+  {id:"minimal", name:"极简黑白", font:"sans", align:"center", decor:"dot",
+   bg:{type:"solid", color:"#fafafa"}, text:"#111111", sub:"#666666", accent:"#d64545"},
+  {id:"cream", name:"奶油暖阳", font:"kai", align:"center", decor:"quote",
+   bg:{type:"gradient", stops:[["#fdf6ec",0],["#f7e9d7",1]]}, text:"#7a4a1f", sub:"#a97b50", accent:"#d98e32"},
+  {id:"navy", name:"深海蓝", font:"sans", align:"center", decor:"line",
+   bg:{type:"gradient", stops:[["#0f1f3d",0],["#1c3a66",1]]}, text:"#f4f7fb", sub:"#9db4d6", accent:"#6ec6ff"},
+  {id:"sunset", name:"落日渐变", font:"sans", align:"center", decor:"dots",
+   bg:{type:"gradient", stops:[["#ff7e5f",0],["#feb47b",.5],["#ff6a88",1]]}, text:"#fff8f2", sub:"#ffe0cf", accent:"#ffffff"},
+  {id:"paper", name:"复古报纸", font:"serif", align:"left", decor:"frame",
+   bg:{type:"solid", color:"#f2ead8"}, text:"#2b2b2b", sub:"#6b5d45", accent:"#9c3d2e"},
+  {id:"neon", name:"荧光霓虹", font:"sans", align:"center", decor:"corner",
+   bg:{type:"gradient", stops:[["#0a0a0f",0],["#151526",1]]}, text:"#e0f2fe", sub:"#7dd3fc", accent:"#f472b6"}
+];
+
+const CATS = ["全部","搞钱","成长","生活","职场"];
+
+const $ = id => document.getElementById(id);
+const els = {
+  chips:$("chips"), swatches:$("swatches"), quote:$("quote"), author:$("author"),
+  randomBtn:$("randomBtn"), showDate:$("showDate"), watermark:$("watermark"),
+  exportBtn:$("exportBtn"), copyBtn:$("copyBtn"), canvas:$("preview"),
+  aiBase:$("aiBase"), aiKey:$("aiKey"), aiModel:$("aiModel"), aiPrompt:$("aiPrompt"),
+  aiBtn:$("aiBtn"), aiMsg:$("aiMsg")
+};
+
+let state = { cat:"全部", theme:0 };
+let toastTimer = null;
+
+function flash(msg){
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove("show"), 1600);
+}
+
+function hexA(hex, a){
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+}
+
+function fontSpec(theme, size, bold){
+  const base = FONTS[theme.font];
+  const weight = (theme.font === "sans" && bold) ? "700" : "400";
+  return `${weight} ${size}px ${base}`;
+}
+
+function wrap(ctx, text, theme, size){
+  ctx.font = fontSpec(theme, size, true);
+  const out = []; let line = "";
+  for(const ch of text){
+    const test = line + ch;
+    if(ctx.measureText(test).width > MAXW && line){
+      out.push(line); line = ch;
+    } else {
+      line = test;
+    }
+  }
+  if(line) out.push(line);
+  return out;
+}
+
+function drawCorner(ctx, x, y, len, sx, sy){
+  ctx.beginPath();
+  ctx.moveTo(x + len*sx, y);
+  ctx.lineTo(x, y);
+  ctx.lineTo(x, y + len*sy);
+  ctx.stroke();
+}
+
+function drawDecor(ctx, theme){
+  switch(theme.decor){
+    case "dot":
+      ctx.fillStyle = theme.accent;
+      ctx.beginPath(); ctx.arc(W/2, 180, 10, 0, Math.PI*2); ctx.fill();
+      break;
+    case "quote": {
+      ctx.fillStyle = hexA(theme.accent, .45);
+      ctx.font = "300px serif";
+      ctx.fillText("“", PAD-10, 330);
+      ctx.textAlign = "right";
+      ctx.fillText("”", W-PAD+10, H-290);
+      ctx.textAlign = "left";
+      break;
+    }
+    case "line":
+      ctx.fillStyle = theme.accent;
+      ctx.fillRect(W/2 - 70, 165, 140, 6);
+      break;
+    case "dots": {
+      const pts = [[90,210],[175,420],[W-100,250],[W-180,490],[100,H-310],[W-125,H-190]];
+      ctx.fillStyle = hexA(theme.sub, .85);
+      for(const [x,y] of pts){ ctx.beginPath(); ctx.arc(x,y,6,0,Math.PI*2); ctx.fill(); }
+      break;
+    }
+    case "frame":
+      ctx.strokeStyle = hexA(theme.text, .55); ctx.lineWidth = 3;
+      ctx.strokeRect(68,68,W-136,H-136);
+      ctx.strokeRect(86,86,W-172,H-172);
+      break;
+    case "corner": {
+      ctx.strokeStyle = theme.accent; ctx.lineWidth = 8; ctx.lineCap = "round";
+      const L = 66, m = 100;
+      drawCorner(ctx, m, m, L, 1, 1);
+      drawCorner(ctx, W-m, m, L, -1, 1);
+      drawCorner(ctx, m, H-m, L, 1, -1);
+      drawCorner(ctx, W-m, H-m, L, -1, -1);
+      break;
+    }
+  }
+}
+
+function render(){
+  const ctx = els.canvas.getContext("2d");
+  const theme = THEMES[state.theme];
+  ctx.clearRect(0,0,W,H);
+
+  if(theme.bg.type === "solid"){
+    ctx.fillStyle = theme.bg.color; ctx.fillRect(0,0,W,H);
+  } else {
+    const g = ctx.createLinearGradient(0,0,0,H);
+    for(const [col,pos] of theme.bg.stops) g.addColorStop(pos,col);
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+  }
+
+  drawDecor(ctx, theme);
+
+  let text = els.quote.value.trim() || "写一句你的话";
+  let size = 64, lines = [];
+  while(size >= 36){
+    lines = wrap(ctx, text, theme, size);
+    if(lines.length <= MAXLINES) break;
+    size -= 4;
+  }
+
+  const lineH = Math.round(size * 1.62);
+  const author = els.author.value.trim();
+  const authorH = author ? Math.round(size * 0.62) + 46 : 0;
+  const blockH = lines.length * lineH;
+  const totalH = blockH + authorH;
+  let y = (H - totalH) / 2;
+
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = theme.text;
+  ctx.font = fontSpec(theme, size, true);
+  const align = theme.align;
+  ctx.textAlign = align === "center" ? "center" : "left";
+  const x = align === "center" ? W/2 : PAD;
+  lines.forEach((ln, i) => {
+    ctx.fillText(ln, x, y + size + i*lineH);
+  });
+
+  if(author){
+    const ay = y + blockH + Math.round(size*0.62) + 22;
+    if(theme.decor === "line"){
+      ctx.fillStyle = theme.accent;
+      ctx.fillRect(align === "center" ? W/2 - 46 : PAD, ay - 42, 92, 4);
+    }
+    ctx.fillStyle = theme.sub;
+    ctx.font = fontSpec(theme, Math.round(size*0.58), false);
+    ctx.fillText("—— " + author, x, ay);
+  }
+
+  // footer
+  ctx.font = '400 26px "Microsoft YaHei","PingFang SC",sans-serif';
+  ctx.fillStyle = hexA(theme.sub, .85);
+  const now = new Date();
+  const p = n => String(n).padStart(2,"0");
+  const dateStr = `${now.getFullYear()}.${p(now.getMonth()+1)}.${p(now.getDate())}`;
+  ctx.textAlign = "left";
+  if(els.showDate.checked) ctx.fillText(dateStr, PAD, H - 66);
+  ctx.textAlign = "right";
+  if(state.cat !== "全部") ctx.fillText("#" + state.cat, W - PAD, H - 66);
+  const wm = els.watermark.value.trim();
+  if(wm){
+    ctx.textAlign = "center";
+    ctx.fillStyle = hexA(theme.sub, .7);
+    ctx.fillText(wm, W/2, H - 66);
+  }
+}
+
+function pickQuote(){
+  const pool = state.cat === "全部" ? QUOTES : QUOTES.filter(q => q.cat === state.cat);
+  const q = pool[Math.floor(Math.random()*pool.length)];
+  els.quote.value = q.t;
+  els.author.value = q.a;
+  render();
+}
+
+function buildChips(){
+  els.chips.innerHTML = "";
+  CATS.forEach(cat => {
+    const el = document.createElement("button");
+    el.className = "chip" + (cat === state.cat ? " on" : "");
+    el.textContent = cat;
+    el.onclick = () => {
+      state.cat = cat;
+      buildChips();
+      render();
+    };
+    els.chips.appendChild(el);
+  });
+}
+
+function buildSwatches(){
+  els.swatches.innerHTML = "";
+  THEMES.forEach((t, i) => {
+    const el = document.createElement("div");
+    el.className = "swatch" + (i === state.theme ? " on" : "");
+    if(t.bg.type === "solid"){
+      el.style.background = t.bg.color;
+    } else {
+      el.style.background = `linear-gradient(180deg, ${t.bg.stops.map(s=>s[0]).join(",")})`;
+    }
+    el.innerHTML = `<span>${t.name}</span>`;
+    el.onclick = () => {
+      state.theme = i;
+      buildSwatches();
+      render();
+    };
+    els.swatches.appendChild(el);
+  });
+}
+
+function exportPNG(){
+  els.canvas.toBlob(b => {
+    if(!b){ flash("导出失败"); return; }
+    const a = document.createElement("a");
+    const u = URL.createObjectURL(b);
+    a.href = u;
+    const now = new Date();
+    const p = n => String(n).padStart(2,"0");
+    a.download = `日签_${now.getFullYear()}${p(now.getMonth()+1)}${p(now.getDate())}_${THEMES[state.theme].name}.png`;
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(u), 1000);
+    flash("已导出 PNG");
+  }, "image/png");
+}
+
+async function copyPNG(){
+  try{
+    const blob = await new Promise(r => els.canvas.toBlob(r, "image/png"));
+    await navigator.clipboard.write([new ClipboardItem({"image/png": blob})]);
+    flash("已复制到剪贴板");
+  }catch(e){
+    flash("复制失败，请改用导出");
+  }
+}
+
+async function aiGenerate(){
+  const key = els.aiKey.value.trim();
+  if(!key){ els.aiMsg.textContent = "请先填入 API Key"; els.aiMsg.className = "ai-msg err"; return; }
+  const base = (els.aiBase.value.trim() || "https://api.openai.com/v1").replace(/\/+$/,"");
+  const model = els.aiModel.value.trim() || "gpt-4o-mini";
+  const prompt = els.aiPrompt.value.trim() || "写一句关于「搞钱」的原创金句，25字内，有冲击力";
+  els.aiMsg.className = "ai-msg";
+  els.aiMsg.textContent = "生成中…";
+  els.aiBtn.disabled = true;
+  try{
+    const r = await fetch(base + "/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+      body: JSON.stringify({ model, messages:[{role:"user", content: prompt}], temperature: 1.0, max_tokens: 120 })
+    });
+    if(!r.ok){
+      let msg = r.statusText;
+      try{ msg = (await r.json()).error?.message || msg; }catch(_){}
+      throw new Error(msg);
+    }
+    const d = await r.json();
+    const text = (d.choices?.[0]?.message?.content || "").trim().replace(/^["“"]+|["”"]+$/g,"");
+    if(!text){ throw new Error("返回内容为空"); }
+    els.quote.value = text;
+    els.author.value = "";
+    render();
+    els.aiMsg.textContent = "已生成，可在左侧微调";
+  }catch(err){
+    els.aiMsg.className = "ai-msg err";
+    els.aiMsg.textContent = "出错：" + err.message + "（浏览器可能被 CORS 拦截）";
+  }finally{
+    els.aiBtn.disabled = false;
+  }
+}
+
+els.randomBtn.onclick = pickQuote;
+els.exportBtn.onclick = exportPNG;
+els.copyBtn.onclick = copyPNG;
+els.aiBtn.onclick = aiGenerate;
+["input"].forEach(ev => {
+  els.quote.addEventListener(ev, render);
+  els.author.addEventListener(ev, render);
+  els.watermark.addEventListener(ev, render);
+});
+els.showDate.addEventListener("change", render);
+
+els.quote.value = QUOTES[0].t;
+els.author.value = QUOTES[0].a;
+buildChips();
+buildSwatches();
+render();
+</script>
+</body>
+</html>
