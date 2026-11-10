@@ -157,6 +157,8 @@ const els={
   diagOpts:$("diagOpts"),diagResult:$("diagResult"),diagCanvas:$("diagCanvas"),diagRetry:$("diagRetry"),
   diagDownload:$("diagDownload"),diagShare:$("diagShare"),diagHint:$("diagHint"),diagName:$("diagName"),
   gameBtn:$("gameBtn"),gameModal:$("gameModal"),gameClose:$("gameClose"),gameMenu:$("gameMenu"),gameStart:$("gameStart"),
+  gSound:$("gSound"),gEmbers:$("gEmbers"),gBattleIntro:$("gBattleIntro"),gIntroKicker:$("gIntroKicker"),
+  gIntroName:$("gIntroName"),gIntroSub:$("gIntroSub"),gCombo:$("gCombo"),gCrit:$("gCrit"),gKO:$("gKO"),
   gameBattle:$("gameBattle"),gHp:$("gHp"),gBlock:$("gBlock"),gCoins:$("gCoins"),gEnergy:$("gEnergy"),
   gEnemyName:$("gEnemyName"),gEnemyHp:$("gEnemyHp"),gIntent:$("gIntent"),gLog:$("gLog"),gHand:$("gHand"),
   gEnemyPortrait:$("gEnemyPortrait"),gEnemyHpFill:$("gEnemyHpFill"),gPlayerHpFill:$("gPlayerHpFill"),
@@ -164,6 +166,7 @@ const els={
   gPlayerBubble:$("gPlayerBubble"),gEnemyBubble:$("gEnemyBubble"),gHurtFlash:$("gHurtFlash"),
   gRelics:$("gRelics"),
   gEndTurn:$("gEndTurn"),gameReward:$("gameReward"),gRewards:$("gRewards"),gSkip:$("gSkip"),
+  gameEvent:$("gameEvent"),gEventTitle:$("gEventTitle"),gEventDesc:$("gEventDesc"),gEventChoices:$("gEventChoices"),
   gameEnd:$("gameEnd"),gameEndCanvas:$("gameEndCanvas"),gameAgain:$("gameAgain"),gameSave:$("gameSave")
 };
 
@@ -363,6 +366,53 @@ const RELICS=[
   {id:"coffee",name:"咖啡券",emoji:"☕",desc:"每回合多抽 1 张牌。"},
   {id:"piggy",name:"存钱罐",emoji:"🐷",desc:"每场战斗胜利额外获得 15 存款。"}
 ];
+const EVENTS=[
+  {title:"加班费",desc:"老板临时加了个需求，说做完有加班费。",choices:[
+    {text:"接，钱要紧",effect:()=>{G.player.coins+=25;G.player.hp-=8;},log:"你接下了加班，存款+25，精神值-8。"},
+    {text:"拒绝，命要紧",effect:()=>{G.player.hp=Math.min(G.player.maxHp,G.player.hp+8);},log:"你拒绝了加班，精神值+8。"},
+    {text:"装死",effect:()=>{if(Math.random()<.5){G.player.coins+=15;G.player.hp-=4;}else{G.player.hp=Math.min(G.player.maxHp,G.player.hp+5);}},log:"你选择装死，听天由命。"}
+  ]},
+  {title:"同事的奶茶",desc:"同事点了奶茶，问你要不要。",choices:[
+    {text:"喝，续命",effect:()=>{G.player.hp=Math.min(G.player.maxHp,G.player.hp+12);},log:"你喝了奶茶，精神值+12。"},
+    {text:"不喝，省钱",effect:()=>{G.player.coins+=12;},log:"你忍住了，存款+12。"},
+    {text:"帮同事干活换一杯",effect:()=>{G.player.coins+=8;G.player.hp-=3;},log:"你帮了点忙，存款+8，精神值-3。"}
+  ]},
+  {title:"电梯里的老板",desc:"电梯里遇到老板，他说「最近辛苦了」。",choices:[
+    {text:"谢谢老板",effect:()=>{G.player.hp=Math.min(G.player.maxHp,G.player.hp+6);},log:"老板笑了笑，精神值+6。"},
+    {text:"应该的",effect:()=>{G.player.coins+=10;},log:"老板很满意，存款+10。"},
+    {text:"沉默",effect:()=>{},log:"电梯里安静得可怕。"}
+  ]}
+];
+
+let audioCtx=null,soundOn=true;
+try{soundOn=localStorage.getItem("oneline_sound")!=="0";}catch(e){}
+function initAudio(){
+  try{
+    if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==="suspended")audioCtx.resume();
+  }catch(e){}
+}
+function tone(freq,dur,type="sine",vol=.06,slideTo){
+  if(!soundOn)return;
+  initAudio();if(!audioCtx)return;
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type=type;o.frequency.setValueAtTime(freq,audioCtx.currentTime);
+  if(slideTo)o.frequency.exponentialRampToValueAtTime(Math.max(20,slideTo),audioCtx.currentTime+dur);
+  g.gain.setValueAtTime(vol,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+dur);
+  o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+dur);
+}
+function playSfx(type){
+  if(!soundOn)return;
+  if(type==="click")tone(320,.06,"square",.025);
+  else if(type==="whoosh")tone(700,.18,"sawtooth",.035,160);
+  else if(type==="hit")tone(110,.22,"sine",.1,60);
+  else if(type==="heal")tone(440,.3,"sine",.05,660);
+  else if(type==="crit"){tone(880,.12,"square",.04);tone(140,.25,"sine",.1,70);}
+  else if(type==="win"){tone(523,.12,"triangle",.06);setTimeout(()=>tone(659,.12,"triangle",.06),120);setTimeout(()=>tone(784,.2,"triangle",.06),240);}
+  else if(type==="lose")tone(300,.5,"sine",.07,90);
+}
+function updateSoundBtn(){if(els.gSound)els.gSound.textContent=soundOn?"🔊":"🔇";}
 
 function dateKey(){
   const n=new Date();const p=x=>String(x).padStart(2,"0");
@@ -931,11 +981,12 @@ function shareDiag(){
   }
 }
 
-let G={player:null,deck:[],hand:[],draw:[],discard:[],enemy:null,encounter:0,turn:1,running:false,log:[],ending:null,busy:false,relics:[],deal:false};
+let G={player:null,deck:[],hand:[],draw:[],discard:[],enemy:null,encounter:0,turn:1,running:false,log:[],ending:null,busy:false,relics:[],deal:false,combo:0};
 function showGameView(name){
   els.gameMenu.style.display=name==="menu"?"flex":"none";
   els.gameBattle.style.display=name==="battle"?"flex":"none";
   els.gameReward.style.display=name==="reward"?"flex":"none";
+  els.gameEvent.style.display=name==="event"?"flex":"none";
   els.gameEnd.style.display=name==="end"?"flex":"none";
 }
 function openGame(){
@@ -945,7 +996,8 @@ function openGame(){
 function startGame(){
   G.player={hp:70,maxHp:70,energy:3,maxEnergy:3,block:0,coins:0};
   G.deck=GAME_START_DECK.map(id=>GAME_CARDS.find(c=>c.id===id));
-  G.encounter=0;G.log=[];G.running=true;G.ending=null;G.busy=false;G.relics=[];
+  G.encounter=0;G.log=[];G.running=true;G.ending=null;G.busy=false;G.relics=[];G.combo=0;
+  initAudio();updateSoundBtn();
   startBattle();
 }
 function startBattle(){
@@ -958,10 +1010,11 @@ function startBattle(){
   if(G.relics.some(r=>r.id==="badge"))G.player.energy+=1;
   logGame(`遭遇「${G.enemy.name}」：${G.enemy.flavor}`);
   drawCards(5);
-  G.deal=true;
+  G.deal=true;G.combo=0;
   showGameView("battle");
   renderGame();
-  showTurnBanner("你的回合");
+  showBattleIntro();
+  setTimeout(()=>showTurnBanner("你的回合"),1600);
 }
 function drawCards(n){
   for(let i=0;i<n;i++){
@@ -995,6 +1048,25 @@ function showTurnBanner(text){
   void b.offsetWidth;
   b.classList.add("show");
   setTimeout(()=>b.classList.remove("show"),1100);
+}
+function showBattleIntro(){
+  const b=els.gBattleIntro;
+  if(!b)return;
+  els.gIntroKicker.textContent=`ENCOUNTER ${G.encounter+1}`;
+  els.gIntroName.textContent=G.enemy.name;
+  els.gIntroSub.textContent=G.enemy.flavor;
+  b.classList.remove("show");
+  void b.offsetWidth;
+  b.classList.add("show");
+  setTimeout(()=>b.classList.remove("show"),1550);
+}
+function showCombo(){
+  if(!els.gCombo)return;
+  els.gCombo.textContent=`COMBO ×${G.combo}`;
+  els.gCombo.classList.remove("show");
+  void els.gCombo.offsetWidth;
+  els.gCombo.classList.add("show");
+  setTimeout(()=>els.gCombo.classList.remove("show"),900);
 }
 function showBubble(side,text){
   const el=side==="player"?els.gPlayerBubble:els.gEnemyBubble;
@@ -1030,6 +1102,7 @@ function impactAt(side){
     void board.offsetWidth;
     board.classList.add("shake-board");
   }
+  playSfx("hit");
 }
 function intentLabel(e){
   const it=e.intents[e.intentIndex],parts=it.split(":"),t=parts[0],v=+parts[1];
@@ -1082,6 +1155,12 @@ function playerDamage(base){
   G.enemy.hp-=d;
   logGame(`对 ${G.enemy.name} 造成 ${d} 点伤害`);
   floatGameText(`-${d}`,"#ff6b81","enemy");
+  if(d>=12&&els.gCrit){
+    els.gCrit.classList.remove("show");
+    void els.gCrit.offsetWidth;
+    els.gCrit.classList.add("show");
+    playSfx("crit");
+  }
   impactAt("enemy");
   const ebar=els.gEnemyHpFill.parentElement;
   if(ebar){ebar.classList.remove("damage");void ebar.offsetWidth;ebar.classList.add("damage");}
@@ -1091,6 +1170,7 @@ function playGameCard(i){
   const card=G.hand[i];
   if(!card||G.player.energy<card.cost)return;
   G.busy=true;
+  playSfx("whoosh");
   const el=els.gHand.children[i];
   if(el){
     el.classList.add("being-played");
@@ -1131,7 +1211,7 @@ function resolveCard(i){
     if(card.execute&&G.enemy.hp<G.enemy.maxHp/2)d+=card.execute;
     playerDamage(d);
   }
-  if(card.heal)G.player.hp=Math.min(G.player.maxHp,G.player.hp+card.heal);
+  if(card.heal){G.player.hp=Math.min(G.player.maxHp,G.player.hp+card.heal);playSfx("heal");}
   if(card.block)G.player.block+=card.block;
   if(card.coins)G.player.coins+=card.coins;
   if(card.energy)G.player.energy+=card.energy;
@@ -1140,6 +1220,8 @@ function resolveCard(i){
   if(card.vuln)G.enemy.vulnerable+=card.vuln;
   if(card.weak)G.enemy.weak+=card.weak;
   if(card.stun)G.enemy.stun+=card.stun;
+  G.combo++;
+  if(G.combo>=2)showCombo();
   if(G.enemy.hp<=0){winBattle();return;}
   if(G.player.hp<=0){showEnding(true);return;}
   renderGame();
@@ -1181,6 +1263,8 @@ function endTurn(){
     if(G.enemy.weak>0)G.enemy.weak--;
     if(G.enemy.vulnerable>0)G.enemy.vulnerable--;
     G.turn++;
+    G.combo=0;
+    if(els.gCombo)els.gCombo.classList.remove("show");
     G.player.block=0;
     if(G.relics.some(r=>r.id==="muyu"))G.player.block+=3;
     G.player.energy=G.player.maxEnergy;
@@ -1198,8 +1282,30 @@ function winBattle(){
   if(G.relics.some(r=>r.id==="piggy"))G.player.coins+=15;
   logGame(`击败「${G.enemy.name}」，获得 ${coins} 存款`);
   G.encounter++;
-  if(G.encounter>=GAME_ENEMIES.length)showEnding(false);
-  else showReward();
+  playSfx("win");
+  const board=els.gameBattle.querySelector(".game-board");
+  if(board)board.classList.add("ko-zoom");
+  if(els.gKO){els.gKO.classList.remove("show");void els.gKO.offsetWidth;els.gKO.classList.add("show");}
+  setTimeout(()=>{
+    if(board)board.classList.remove("ko-zoom");
+    if(els.gKO)els.gKO.classList.remove("show");
+    if(G.encounter>=GAME_ENEMIES.length)showEnding(false);
+    else showEvent();
+  },950);
+}
+function showEvent(){
+  const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)];
+  els.gEventTitle.textContent=ev.title;
+  els.gEventDesc.textContent=ev.desc;
+  els.gEventChoices.innerHTML="";
+  ev.choices.forEach(c=>{
+    const b=document.createElement("button");
+    b.className="event-choice";
+    b.textContent=c.text;
+    b.onclick=()=>{c.effect();logGame(c.log);showReward();};
+    els.gEventChoices.appendChild(b);
+  });
+  showGameView("event");
 }
 function showReward(){
   G.busy=false;
@@ -1224,6 +1330,7 @@ function showReward(){
 }
 function showEnding(defeated){
   G.running=false;G.busy=false;
+  if(defeated)playSfx("lose");
   const hp=Math.max(0,G.player.hp),coins=G.player.coins;
   let ending,line,grade;
   if(defeated){ending="精神值归零";line="你倒在了工位上，电脑还亮着。";grade="D";}
@@ -1405,6 +1512,8 @@ els.diagDownload.onclick=downloadDiag;
 els.diagShare.onclick=shareDiag;
 els.diagModal.addEventListener("click",e=>{if(e.target===els.diagModal)els.diagModal.classList.remove("show");});
 els.gameBtn.onclick=openGame;
+els.gSound.onclick=()=>{soundOn=!soundOn;try{localStorage.setItem("oneline_sound",soundOn?"1":"0");}catch(e){}updateSoundBtn();if(soundOn)playSfx("click");};
+updateSoundBtn();
 els.gameClose.onclick=()=>els.gameModal.classList.remove("show");
 els.gameStart.onclick=startGame;
 els.gEndTurn.onclick=endTurn;
@@ -1412,6 +1521,17 @@ els.gSkip.onclick=()=>{G.player.hp=Math.min(G.player.maxHp,G.player.hp+15);logGa
 els.gameAgain.onclick=startGame;
 els.gameSave.onclick=saveEnding;
 els.gameModal.addEventListener("click",e=>{if(e.target===els.gameModal)els.gameModal.classList.remove("show");});
+(function makeEmbers(){
+  const box=els.gEmbers;
+  if(!box)return;
+  for(let i=0;i<18;i++){
+    const e=document.createElement("i");
+    e.style.left=(Math.random()*100)+"%";
+    e.style.animationDuration=(5+Math.random()*6)+"s";
+    e.style.animationDelay=(-Math.random()*8)+"s";
+    box.appendChild(e);
+  }
+})();
 els.batchBtn.onclick=batchGenerate;
 els.fillQuotesBtn.onclick=()=>{els.batchText.value=QUOTES.map(q=>q.t).join("\n");els.batchMsg.textContent=`已填入 ${QUOTES.length} 句金句`;};
 els.aiBtn.onclick=aiGenerate;
@@ -1461,6 +1581,7 @@ try{
   if(q.get("gamebubble")==="1"){openGame();startGame();setTimeout(()=>showBubble("player","谁也别拦我，我今天就要发疯！"),300);setTimeout(()=>showBubble("enemy","这个需求，今天必须上线。"),900);}
   if(q.get("gamereward")==="1"){openGame();startGame();G.encounter=1;showReward();}
   if(q.get("gameplay")==="1"){openGame();startGame();setTimeout(()=>playGameCard(0),300);}
+  if(q.get("gameevent")==="1"){openGame();startGame();setTimeout(()=>showEvent(),200);}
   if(q.get("gameend")==="1"){openGame();G.player={hp:32,maxHp:70,energy:3,maxEnergy:3,block:0,coins:42};G.encounter=3;G.turn=8;showEnding(false);}
   const dr=q.get("diagresult");
   if(dr&&dr.length>=8){
