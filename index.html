@@ -144,6 +144,28 @@
   .mouth-tone:hover{border-color:var(--accent)}
   #mouthCanvas{width:100%;height:auto;border-radius:12px;background:#ededed}
   #fortuneCanvas{width:100%;height:auto;border-radius:12px;background:#120a24}
+  .game-box{max-width:min(96vw,1000px)}
+  .game-view{display:flex;flex-direction:column;gap:12px}
+  .game-title{font-size:26px;font-weight:800;text-align:center}
+  .game-sub{font-size:13px;color:var(--muted);text-align:center;line-height:1.6}
+  .game-top{display:flex;justify-content:space-between;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13px}
+  .game-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}
+  .game-stats b{color:var(--text)}
+  .game-enemy{text-align:right}
+  .game-enemy .name{font-size:16px;font-weight:700}
+  .game-intent{color:var(--accent);font-size:12px;margin-top:4px}
+  .game-log{height:110px;overflow:auto;background:#12151c;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;color:var(--muted);line-height:1.6}
+  .game-hand{display:flex;gap:8px;overflow-x:auto;padding:6px 2px 12px}
+  .game-card{flex:0 0 132px;width:132px;border-radius:12px;border:1px solid var(--line);background:linear-gradient(180deg,#232838,#1a1e29);padding:10px;cursor:pointer;text-align:left;color:var(--text);transition:.15s;position:relative}
+  .game-card:hover{transform:translateY(-4px);border-color:var(--accent)}
+  .game-card.disabled{opacity:.45;cursor:not-allowed}
+  .game-card .cost{position:absolute;top:8px;right:8px;background:#ff8a5c;color:#111;font-weight:800;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:13px}
+  .game-card .cname{font-weight:700;font-size:13px;margin-top:22px}
+  .game-card .cdesc{font-size:11px;color:var(--muted);line-height:1.5;margin-top:6px}
+  .game-card.attack{border-top:3px solid #ff6b81}
+  .game-card.skill{border-top:3px solid #6ec6ff}
+  .game-rewards{display:flex;gap:8px;overflow-x:auto}
+  #gameEndCanvas{display:block;margin:0 auto;max-width:100%;max-height:60vh;width:auto;height:auto;border-radius:12px}
 </style>
 </head>
 <body>
@@ -170,6 +192,7 @@
         </div>
       </div>
       <div class="promsg" id="proMsg"></div>
+      <button class="btn primary block" id="gameBtn" style="margin-bottom:10px">🃏 打工人求生指南</button>
       <button class="btn primary block" id="diagBtn" style="margin-bottom:14px">🩺 测测你的精神状态</button>
       <button class="btn block" id="mouthBtn" style="margin-bottom:14px">💬 嘴替生成器</button>
       <button class="btn block" id="fortuneBtn" style="margin-bottom:14px">🔮 赛博求签</button>
@@ -266,6 +289,48 @@
         <canvas id="preview" width="1080" height="1440"></canvas>
         <div class="hintbar">1080 × 1440 · 3:4 · 导出即用</div>
         <div class="hintbar"><a class="afdian" href="https://afdian.com/a/onelinecards" target="_blank" rel="noopener">支持 oneline. · 爱发电主页</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal" id="gameModal">
+  <div class="modal-box game-box">
+    <div class="modal-head"><span>🃏 打工人求生指南</span><button class="btn sm" id="gameClose">关闭</button></div>
+    <div class="game-view" id="gameMenu">
+      <div class="game-title">打工人求生指南</div>
+      <div class="game-sub">用卡牌撑过老板、甲方和亲戚，活着下班。<br>每回合抽 5 张牌，3 点能量。打出卡牌，点结束回合。</div>
+      <button class="btn primary" id="gameStart">开始上班</button>
+      <div class="filehint">牌组 10 张 · 3 场遭遇 · 每局都不一样</div>
+    </div>
+    <div class="game-view" id="gameBattle" style="display:none">
+      <div class="game-top">
+        <div class="game-stats">
+          <div>精神值 <b id="gHp">70/70</b></div>
+          <div>护盾 <b id="gBlock">0</b></div>
+          <div>存款 <b id="gCoins">0</b></div>
+          <div>能量 <b id="gEnergy">3/3</b></div>
+        </div>
+        <div class="game-enemy">
+          <div class="name" id="gEnemyName">老板</div>
+          <div id="gEnemyHp">40/40</div>
+          <div class="game-intent" id="gIntent">意图：攻击 8</div>
+        </div>
+      </div>
+      <div class="game-log" id="gLog"></div>
+      <div class="game-hand" id="gHand"></div>
+      <div class="modal-actions"><button class="btn primary" id="gEndTurn">结束回合</button></div>
+    </div>
+    <div class="game-view" id="gameReward" style="display:none">
+      <div class="game-title">战斗结束</div>
+      <div class="game-sub">选一张牌加入牌组，或者跳过回血</div>
+      <div class="game-rewards" id="gRewards"></div>
+      <button class="btn" id="gSkip">跳过，回复 15 点精神值</button>
+    </div>
+    <div class="game-view" id="gameEnd" style="display:none">
+      <canvas id="gameEndCanvas" width="1080" height="1440"></canvas>
+      <div class="modal-actions">
+        <button class="btn" id="gameAgain">再上一班</button>
+        <button class="btn primary" id="gameSave">保存战绩卡</button>
       </div>
     </div>
   </div>
@@ -513,7 +578,12 @@ const els={
   mouthCopy:$("mouthCopy"),mouthHint:$("mouthHint"),
   fortuneBtn:$("fortuneBtn"),fortuneModal:$("fortuneModal"),fortuneClose:$("fortuneClose"),fortuneStart:$("fortuneStart"),
   fortuneDraw:$("fortuneDraw"),fortuneResult:$("fortuneResult"),fortuneCanvas:$("fortuneCanvas"),
-  fortuneAgain:$("fortuneAgain"),fortuneSave:$("fortuneSave"),fortuneCopy:$("fortuneCopy"),fortuneHint:$("fortuneHint")
+  fortuneAgain:$("fortuneAgain"),fortuneSave:$("fortuneSave"),fortuneCopy:$("fortuneCopy"),fortuneHint:$("fortuneHint"),
+  gameBtn:$("gameBtn"),gameModal:$("gameModal"),gameClose:$("gameClose"),gameMenu:$("gameMenu"),gameStart:$("gameStart"),
+  gameBattle:$("gameBattle"),gHp:$("gHp"),gBlock:$("gBlock"),gCoins:$("gCoins"),gEnergy:$("gEnergy"),
+  gEnemyName:$("gEnemyName"),gEnemyHp:$("gEnemyHp"),gIntent:$("gIntent"),gLog:$("gLog"),gHand:$("gHand"),
+  gEndTurn:$("gEndTurn"),gameReward:$("gameReward"),gRewards:$("gRewards"),gSkip:$("gSkip"),
+  gameEnd:$("gameEnd"),gameEndCanvas:$("gameEndCanvas"),gameAgain:$("gameAgain"),gameSave:$("gameSave")
 };
 
 const state={cat:"全部",theme:0,font:"yahei",size:64,ls:0,lh:1.62,align:"center",vertical:false,showDate:true,wmOn:true,wmPos:"br",wmImage:null,bgImage:null,extra:"",posterQuotes:[]};
@@ -659,6 +729,35 @@ const FORTUNES=[
   {id:18,name:"断舍离",oracle:"删掉一个让你不舒服的人。",yi:"拉黑",ji:"心软",color:"极简黑",number:16,rarity:"SR",emoji:"🗑️"},
   {id:19,name:"锦鲤附体",oracle:"今天的好运不需要理由，接住就行。",yi:"许愿",ji:"怀疑自己",color:"锦鲤金",number:19,rarity:"SSR",emoji:"🐟"},
   {id:20,name:"慢慢来",oracle:"不用赢过谁，照顾好自己就够了。",yi:"散步",ji:"比较",color:"青草绿",number:20,rarity:"N",emoji:"🌿"}
+];
+
+const GAME_CARDS=[
+  {id:"c1",name:"嘴替出击",cost:1,type:"attack",desc:"造成 6 点伤害。",dmg:6,emoji:"🗣️"},
+  {id:"c2",name:"阴阳怪气",cost:1,type:"attack",desc:"造成 4 点伤害，施加 2 层易伤。",dmg:4,vuln:2,emoji:"😏"},
+  {id:"c3",name:"甩锅",cost:1,type:"attack",desc:"造成 5 点伤害，获得 5 点护盾。",dmg:5,block:5,emoji:"🍳"},
+  {id:"c4",name:"发疯",cost:2,type:"attack",desc:"造成 14 点伤害，失去 3 点精神值。",dmg:14,selfDmg:3,emoji:"🤯"},
+  {id:"c5",name:"辞职",cost:3,type:"attack",desc:"造成 24 点伤害，失去 8 点精神值。",dmg:24,selfDmg:8,emoji:"🚪"},
+  {id:"c6",name:"已读不回",cost:1,type:"skill",desc:"敌人跳过下一回合。",stun:1,emoji:"📵"},
+  {id:"c7",name:"画饼",cost:1,type:"skill",desc:"敌人获得 2 层虚弱。",weak:2,emoji:"🥞"},
+  {id:"c8",name:"摸鱼",cost:1,type:"skill",desc:"回复 6 点精神值，获得 4 点护盾。",heal:6,block:4,emoji:"🐟"},
+  {id:"c9",name:"咖啡续命",cost:0,type:"skill",desc:"获得 2 点能量，抽 1 张牌。",energy:2,draw:1,emoji:"☕"},
+  {id:"c10",name:"带薪拉屎",cost:1,type:"skill",desc:"回复 8 点精神值，获得 5 存款。",heal:8,coins:5,emoji:"🚽"},
+  {id:"c11",name:"电子木鱼",cost:1,type:"skill",desc:"获得 8 点护盾，回复 2 点精神值。",block:8,heal:2,emoji:"🪵"},
+  {id:"c12",name:"深呼吸",cost:1,type:"skill",desc:"获得 10 点护盾。",block:10,emoji:"🌬️"},
+  {id:"c13",name:"装死",cost:2,type:"skill",desc:"获得 16 点护盾。",block:16,emoji:"💀"},
+  {id:"c14",name:"反向PUA",cost:1,type:"skill",desc:"敌人获得 3 层虚弱。",weak:3,emoji:"🪞"},
+  {id:"c15",name:"充电",cost:1,type:"skill",desc:"回复 10 点精神值。",heal:10,emoji:"🔋"},
+  {id:"c16",name:"存钱",cost:1,type:"skill",desc:"获得 15 存款。",coins:15,emoji:"🏦"},
+  {id:"c17",name:"摸鱼哲学",cost:0,type:"skill",desc:"抽 2 张牌。",draw:2,emoji:"🧘"},
+  {id:"c18",name:"精神状态良好",cost:2,type:"skill",desc:"回复 12 点精神值，获得 6 点护盾。",heal:12,block:6,emoji:"🙂"},
+  {id:"c19",name:"破防",cost:1,type:"attack",desc:"造成 8 点伤害；敌人低于半血时额外 4 点。",dmg:8,execute:4,emoji:"💥"},
+  {id:"c20",name:"带薪摸鱼",cost:2,type:"skill",desc:"回复 10 点精神值，获得 10 存款。",heal:10,coins:10,emoji:"🛋️"}
+];
+const GAME_START_DECK=["c1","c1","c1","c1","c8","c8","c9","c3","c2","c12"];
+const GAME_ENEMIES=[
+  {name:"老板",emoji:"👔",hp:40,intents:["attack:8","buff:2","attack:12","attack:10"],flavor:"画饼中……"},
+  {name:"甲方",emoji:"📋",hp:50,intents:["attack:9","attack:13","attack:7","attack:11"],flavor:"再改一版……"},
+  {name:"亲戚",emoji:"🧧",hp:60,intents:["attack:7","heal:6","attack:12","attack:10"],flavor:"怎么还不结婚……"}
 ];
 
 function dateKey(){
@@ -1586,6 +1685,220 @@ function copyFortune(){
   }else{flash("请手动复制："+text);}
 }
 
+let G={player:null,deck:[],hand:[],draw:[],discard:[],enemy:null,encounter:0,turn:1,running:false,log:[],ending:null};
+function showGameView(name){
+  els.gameMenu.style.display=name==="menu"?"flex":"none";
+  els.gameBattle.style.display=name==="battle"?"flex":"none";
+  els.gameReward.style.display=name==="reward"?"flex":"none";
+  els.gameEnd.style.display=name==="end"?"flex":"none";
+}
+function openGame(){
+  showGameView("menu");
+  els.gameModal.classList.add("show");
+}
+function startGame(){
+  G.player={hp:70,maxHp:70,energy:3,maxEnergy:3,block:0,coins:0};
+  G.deck=GAME_START_DECK.map(id=>GAME_CARDS.find(c=>c.id===id));
+  G.encounter=0;G.log=[];G.running=true;G.ending=null;
+  startBattle();
+}
+function startBattle(){
+  const base=GAME_ENEMIES[G.encounter];
+  G.enemy={name:base.name,emoji:base.emoji,hp:base.hp,maxHp:base.hp,strength:0,weak:0,vulnerable:0,stun:0,intentIndex:0,intents:base.intents.slice(),flavor:base.flavor};
+  G.hand=[];G.draw=shuffleArr(G.deck.slice());G.discard=[];G.turn=1;
+  G.player.block=0;G.player.energy=G.player.maxEnergy;G.running=true;
+  logGame(`遭遇「${G.enemy.name}」：${G.enemy.flavor}`);
+  drawCards(5);
+  showGameView("battle");
+  renderGame();
+}
+function drawCards(n){
+  for(let i=0;i<n;i++){
+    if(!G.draw.length){G.draw=shuffleArr(G.discard);G.discard=[];}
+    if(!G.draw.length)break;
+    G.hand.push(G.draw.pop());
+  }
+}
+function logGame(s){
+  G.log.push(s);
+  if(G.log.length>8)G.log.shift();
+  if(els.gLog)els.gLog.innerHTML=G.log.map(x=>`<div>· ${x}</div>`).join("");
+}
+function intentLabel(e){
+  const it=e.intents[e.intentIndex],parts=it.split(":"),t=parts[0],v=+parts[1];
+  if(t==="attack")return `攻击 ${v+e.strength}`;
+  if(t==="buff")return `加攻 +${v}`;
+  if(t==="heal")return `回血 ${v}`;
+  return it;
+}
+function renderGame(){
+  els.gHp.textContent=`${Math.max(0,G.player.hp)}/${G.player.maxHp}`;
+  els.gBlock.textContent=G.player.block;
+  els.gCoins.textContent=G.player.coins;
+  els.gEnergy.textContent=`${G.player.energy}/${G.player.maxEnergy}`;
+  els.gEnemyName.textContent=`${G.enemy.emoji} ${G.enemy.name}`;
+  els.gEnemyHp.textContent=`${Math.max(0,G.enemy.hp)}/${G.enemy.maxHp}`;
+  els.gIntent.textContent="意图："+intentLabel(G.enemy);
+  els.gHand.innerHTML="";
+  G.hand.forEach((card,i)=>{
+    const b=document.createElement("button");
+    b.className="game-card "+card.type+(G.player.energy<card.cost?" disabled":"");
+    b.innerHTML=`<span class="cost">${card.cost}</span><div class="cname">${card.emoji} ${card.name}</div><div class="cdesc">${card.desc}</div>`;
+    b.onclick=()=>playGameCard(i);
+    els.gHand.appendChild(b);
+  });
+}
+function playerDamage(base){
+  let d=base;
+  if(G.enemy.vulnerable>0)d=Math.round(d*1.5);
+  G.enemy.hp-=d;
+  logGame(`对 ${G.enemy.name} 造成 ${d} 点伤害`);
+}
+function playGameCard(i){
+  if(!G.running)return;
+  const card=G.hand[i];
+  if(!card||G.player.energy<card.cost)return;
+  G.player.energy-=card.cost;
+  G.hand.splice(i,1);
+  G.discard.push(card);
+  logGame(`打出「${card.name}」`);
+  if(card.dmg){
+    let d=card.dmg;
+    if(card.execute&&G.enemy.hp<G.enemy.maxHp/2)d+=card.execute;
+    playerDamage(d);
+  }
+  if(card.heal)G.player.hp=Math.min(G.player.maxHp,G.player.hp+card.heal);
+  if(card.block)G.player.block+=card.block;
+  if(card.coins)G.player.coins+=card.coins;
+  if(card.energy)G.player.energy+=card.energy;
+  if(card.draw)drawCards(card.draw);
+  if(card.selfDmg)G.player.hp-=card.selfDmg;
+  if(card.vuln)G.enemy.vulnerable+=card.vuln;
+  if(card.weak)G.enemy.weak+=card.weak;
+  if(card.stun)G.enemy.stun+=card.stun;
+  if(G.enemy.hp<=0){winBattle();return;}
+  if(G.player.hp<=0){showEnding(true);return;}
+  renderGame();
+}
+function enemyAct(){
+  const e=G.enemy;
+  if(e.stun>0){e.stun--;logGame(`${e.name} 被「已读不回」，跳过了回合`);return;}
+  const it=e.intents[e.intentIndex],parts=it.split(":"),t=parts[0],n=+parts[1];
+  if(t==="attack"){
+    let d=n+e.strength;
+    if(e.weak>0)d=Math.round(d*0.75);
+    const blocked=Math.min(G.player.block,d);
+    G.player.block-=blocked;
+    const dmg=Math.max(0,d-blocked);
+    G.player.hp-=dmg;
+    logGame(`${e.name} 攻击 ${d}，护盾挡下 ${blocked}，你受到 ${dmg} 点伤害`);
+  }else if(t==="buff"){e.strength+=n;logGame(`${e.name} 加攻 +${n}`);}
+  else if(t==="heal"){e.hp=Math.min(e.maxHp,e.hp+n);logGame(`${e.name} 回复 ${n} 点`);}
+  e.intentIndex=(e.intentIndex+1)%e.intents.length;
+}
+function endTurn(){
+  if(!G.running)return;
+  G.discard.push(...G.hand);G.hand=[];
+  logGame("—— 敌方回合 ——");
+  enemyAct();
+  if(G.player.hp<=0){showEnding(true);return;}
+  if(G.enemy.weak>0)G.enemy.weak--;
+  if(G.enemy.vulnerable>0)G.enemy.vulnerable--;
+  G.turn++;
+  G.player.block=0;
+  G.player.energy=G.player.maxEnergy;
+  drawCards(5);
+  renderGame();
+}
+function winBattle(){
+  G.running=false;
+  const coins=10+G.encounter*5;
+  G.player.coins+=coins;
+  logGame(`击败「${G.enemy.name}」，获得 ${coins} 存款`);
+  G.encounter++;
+  if(G.encounter>=GAME_ENEMIES.length)showEnding(false);
+  else showReward();
+}
+function showReward(){
+  showGameView("reward");
+  els.gRewards.innerHTML="";
+  shuffleArr(GAME_CARDS).slice(0,3).forEach(card=>{
+    const b=document.createElement("button");
+    b.className="game-card "+card.type;
+    b.innerHTML=`<span class="cost">${card.cost}</span><div class="cname">${card.emoji} ${card.name}</div><div class="cdesc">${card.desc}</div>`;
+    b.onclick=()=>{G.deck.push(card);logGame(`获得新卡「${card.name}」`);startBattle();};
+    els.gRewards.appendChild(b);
+  });
+}
+function showEnding(defeated){
+  G.running=false;
+  const hp=Math.max(0,G.player.hp),coins=G.player.coins;
+  let ending,line,grade;
+  if(defeated){ending="精神值归零";line="你倒在了工位上，电脑还亮着。";grade="D";}
+  else if(coins>=60){ending="辞职创业";line="你带着存款跑了。世界那么大，你想去看看。";grade="S";}
+  else if(hp>=45){ending="升职加薪";line="你活下来了，甚至还升了职。老板说：明年继续。";grade="A";}
+  else if(hp<=15){ending="带薪躺平";line="你没能升职，但你成功地在工位上躺平了。";grade="B";}
+  else{ending="苟到下班";line="今天也平安地下班了，明天继续。";grade="B";}
+  G.ending={ending,line,grade};
+  drawEndingCard(els.gameEndCanvas,ending,line,grade);
+  showGameView("end");
+}
+function drawEndingCard(cv,ending,line,grade){
+  const ctx=cv.getContext("2d"),W2=1080,H2=1440;
+  ctx.clearRect(0,0,W2,H2);
+  const g=ctx.createLinearGradient(0,0,0,H2);
+  g.addColorStop(0,"#0f0f18");g.addColorStop(.6,"#1b1428");g.addColorStop(1,"#0b0b12");
+  ctx.fillStyle=g;ctx.fillRect(0,0,W2,H2);
+  for(let i=0;i<160;i++){
+    ctx.fillStyle=`rgba(255,255,255,${(0.04+Math.random()*0.2).toFixed(2)})`;
+    ctx.beginPath();ctx.arc(Math.random()*W2,Math.random()*H2,Math.random()*1.5+.4,0,Math.PI*2);ctx.fill();
+  }
+  ctx.strokeStyle="rgba(245,215,110,.5)";ctx.lineWidth=3;
+  roundRect(ctx,50,50,W2-100,H2-100,28);ctx.stroke();
+  ctx.strokeStyle="rgba(183,139,255,.3)";ctx.lineWidth=1.5;
+  roundRect(ctx,66,66,W2-132,H2-132,22);ctx.stroke();
+  ctx.textAlign="center";
+  ctx.fillStyle="#f5d76e";ctx.font='700 24px "Microsoft YaHei",sans-serif';
+  ctx.fillText("ONELINE · WORKLOG",W2/2,130);
+  ctx.fillStyle="#fff";ctx.font='700 50px "Microsoft YaHei",sans-serif';
+  ctx.fillText("打工人求生战绩",W2/2,214);
+  ctx.strokeStyle="rgba(245,215,110,.35)";ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(240,260);ctx.lineTo(W2-240,260);ctx.stroke();
+  ctx.beginPath();ctx.arc(W2/2,420,110,0,Math.PI*2);
+  ctx.strokeStyle="rgba(245,215,110,.8)";ctx.lineWidth=5;ctx.stroke();
+  ctx.beginPath();ctx.arc(W2/2,420,95,0,Math.PI*2);
+  ctx.strokeStyle="rgba(183,139,255,.5)";ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle="#f5d76e";ctx.font='700 96px "Microsoft YaHei",sans-serif';
+  ctx.fillText(grade,W2/2,455);
+  ctx.fillStyle="#fff";ctx.font='700 54px "Microsoft YaHei",sans-serif';
+  ctx.fillText(ending,W2/2,650);
+  ctx.fillStyle="rgba(255,255,255,.85)";ctx.font='400 34px "Microsoft YaHei",sans-serif';
+  const lines=wrapSquare(ctx,line,"yahei",34,0,W2-240);
+  let ly=730;
+  for(const ln of lines){ctx.fillText(ln,W2/2,ly);ly+=50;}
+  const stats=[
+    ["精神值",`${Math.max(0,G.player.hp)} / ${G.player.maxHp}`],
+    ["存款",`${G.player.coins}`],
+    ["击败",`${Math.min(G.encounter,3)} / 3`],
+    ["坚持回合",`${G.turn}`]
+  ];
+  ctx.font='400 36px "Microsoft YaHei",sans-serif';
+  stats.forEach((s,i)=>{
+    const y=920+i*80;
+    ctx.textAlign="left";ctx.fillStyle="rgba(255,255,255,.55)";ctx.fillText(s[0],260,y);
+    ctx.textAlign="right";ctx.fillStyle="#fff";ctx.fillText(s[1],W2-260,y);
+  });
+  ctx.textAlign="center";ctx.fillStyle="rgba(255,255,255,.45)";ctx.font='400 22px "Microsoft YaHei",sans-serif';
+  ctx.fillText("oneline. · 打工人求生指南 · 仅供娱乐",W2/2,1350);
+}
+function saveEnding(){
+  els.gameEndCanvas.toBlob(b=>{
+    if(!b){flash("导出失败");return;}
+    downloadBlob(b,`oneline_worklog_${stamp()}.png`);
+    flash("战绩卡已保存");
+  },"image/png");
+}
+
 async function batchGenerate(){
   if(!isPro()){promptUpgrade("批量生成是 Pro 功能，升级后一次生成整套卡片并打包下载");return;}
   const lines=els.batchText.value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
@@ -1667,6 +1980,14 @@ els.fortuneAgain.onclick=drawFortune;
 els.fortuneSave.onclick=downloadFortune;
 els.fortuneCopy.onclick=copyFortune;
 els.fortuneModal.addEventListener("click",e=>{if(e.target===els.fortuneModal)els.fortuneModal.classList.remove("show");});
+els.gameBtn.onclick=openGame;
+els.gameClose.onclick=()=>els.gameModal.classList.remove("show");
+els.gameStart.onclick=startGame;
+els.gEndTurn.onclick=endTurn;
+els.gSkip.onclick=()=>{G.player.hp=Math.min(G.player.maxHp,G.player.hp+15);logGame("跳过奖励，回复 15 点精神值");startBattle();};
+els.gameAgain.onclick=startGame;
+els.gameSave.onclick=saveEnding;
+els.gameModal.addEventListener("click",e=>{if(e.target===els.gameModal)els.gameModal.classList.remove("show");});
 els.batchBtn.onclick=batchGenerate;
 els.fillQuotesBtn.onclick=()=>{els.batchText.value=QUOTES.map(q=>q.t).join("\n");els.batchMsg.textContent=`已填入 ${QUOTES.length} 句金句`;};
 els.aiBtn.onclick=aiGenerate;
@@ -1715,6 +2036,9 @@ try{
   if(q.get("mouth")==="1"){openMouth();}
   if(q.get("fortune")==="1"){openFortune();}
   if(q.get("fortunedraw")==="1"){openFortune();drawFortune();}
+  if(q.get("game")==="1"){openGame();}
+  if(q.get("gamebattle")==="1"){openGame();startGame();}
+  if(q.get("gameend")==="1"){openGame();G.player={hp:32,maxHp:70,energy:3,maxEnergy:3,block:0,coins:42};G.encounter=3;G.turn=8;showEnding(false);}
   const mr=q.get("mouthresult"),mt=q.get("tone");
   if(mr!==null&&mt&&MOUTH_SCENARIOS[+mr]&&MOUTH_TONES.includes(mt)){
     mouthState.scn=+mr;chooseMouthTone(mt);els.mouthModal.classList.add("show");
