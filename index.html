@@ -100,6 +100,10 @@
   .buylink{display:inline-block;margin-top:8px;text-decoration:none}
   .promsg{font-size:12px;color:var(--muted);min-height:16px;margin:-6px 0 12px}
   .promsg.ok{color:#7ce0a8}
+  .dailyInfo{font-size:12px;color:var(--muted);line-height:1.7;margin-top:8px}
+  .dailyInfo b{color:var(--text)}
+  .dailyInfo .grade{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:4px}
+  .dailyInfo .dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;margin-right:4px}
   .filehint{font-size:11px;color:#70788c;line-height:1.5;margin-top:6px}
   details{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:4px}
   summary{cursor:pointer;font-size:13px;color:var(--muted);font-weight:600}
@@ -152,6 +156,15 @@
         <label class="check"><input type="checkbox" id="showDate" checked>显示日期</label>
       </div>
 
+      <details style="margin-bottom:14px">
+        <summary>🪄 每日一签 / 今日运势</summary>
+        <div class="ai-inner">
+          <input type="text" id="dailyName" placeholder="输入名字或昵称（可留空）">
+          <button class="btn primary" id="dailyBtn">生成今日一签</button>
+          <div class="dailyInfo" id="dailyInfo"></div>
+        </div>
+      </details>
+
       <h2 style="margin-top:18px">主题</h2>
       <div class="swatches" id="swatches"></div>
 
@@ -194,6 +207,9 @@
       <div class="field row">
         <button class="btn primary" id="exportBtn" style="flex:1">⬇ 导出 PNG</button>
         <button class="btn" id="copyBtn" style="flex:1">复制到剪贴板</button>
+      </div>
+      <div class="field row">
+        <button class="btn" id="gridBtn" style="flex:1">🀄 九宫格切图（Pro）</button>
       </div>
 
       <h2 style="margin-top:18px">批量生成</h2>
@@ -376,10 +392,11 @@ const els={
   exportBtn:$("exportBtn"),copyBtn:$("copyBtn"),batchText:$("batchText"),fillQuotesBtn:$("fillQuotesBtn"),
   batchBtn:$("batchBtn"),batchMsg:$("batchMsg"),canvas:$("preview"),
   aiBase:$("aiBase"),aiKey:$("aiKey"),aiModel:$("aiModel"),aiPrompt:$("aiPrompt"),aiBtn:$("aiBtn"),aiMsg:$("aiMsg"),
-  codeInput:$("codeInput"),activateBtn:$("activateBtn"),buyBtn:$("buyBtn"),proTitle:$("proTitle"),proDesc:$("proDesc"),proMsg:$("proMsg")
+  codeInput:$("codeInput"),activateBtn:$("activateBtn"),buyBtn:$("buyBtn"),proTitle:$("proTitle"),proDesc:$("proDesc"),proMsg:$("proMsg"),
+  dailyName:$("dailyName"),dailyBtn:$("dailyBtn"),dailyInfo:$("dailyInfo"),gridBtn:$("gridBtn")
 };
 
-const state={cat:"全部",theme:0,font:"yahei",size:64,ls:0,lh:1.62,align:"center",vertical:false,showDate:true,wmOn:true,wmPos:"br",wmImage:null,bgImage:null};
+const state={cat:"全部",theme:0,font:"yahei",size:64,ls:0,lh:1.62,align:"center",vertical:false,showDate:true,wmOn:true,wmPos:"br",wmImage:null,bgImage:null,extra:""};
 let toastTimer=null;
 
 function flash(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),1800);}
@@ -399,6 +416,62 @@ function promptUpgrade(msg){
   setProMsg(msg||"这是 Pro 功能，升级后解锁");
   els.codeInput.focus();
   document.querySelector(".probar").scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+const DAILY_SIGNS=[
+  "今天适合把一件小事，认真做完。",
+  "你担心的事，大多不会发生。",
+  "先照顾好自己的情绪，再处理别人的期待。",
+  "慢一点，也是在往前走。",
+  "今天的你，比昨天更靠近想要的生活。",
+  "把注意力放回自己身上，答案就出来了。",
+  "做不完的事，明天再做也来得及。",
+  "你不需要向所有人证明自己。",
+  "允许自己休息，也是一种努力。",
+  "今天会遇到一件让你开心的小事。",
+  "别急着下结论，好事往往在后头。",
+  "把想说的话，好好说出口。",
+  "你正在成为更从容的自己。",
+  "今天适合清理一件拖了很久的事。",
+  "值得的人，会主动走向你。",
+  "把日子过成自己喜欢的样子。",
+  "先行动，再等灵感。",
+  "今天的运气，藏在你的耐心里。",
+  "不必事事完美，完成就好。",
+  "给自己留一点空白，灵感会来。",
+  "你走过的路，都算数。",
+  "今天适合开始，不适合犹豫。",
+  "把复杂的事，拆成一小步一小步。",
+  "你比自己以为的更有力量。"
+];
+const YI=["见面","早睡","复盘","存钱","运动","读书","独处","表白","整理房间","给朋友发消息","喝一杯热的","把话说开","散步","学点新东西","投资自己"];
+const JI=["熬夜","内耗","翻旧账","冲动消费","拖延","想太多","和烂人纠缠","空腹喝咖啡","情绪化决定","过度解释"];
+const LUCKY_COLORS=[["珊瑚橙","#ff8a5c"],["深海蓝","#2b4a7a"],["抹茶绿","#7aa77a"],["雾霾紫","#8a7aa7"],["奶油白","#f7efe2"],["正红","#c0392b"],["黑金","#e3c26d"],["薄荷绿","#2fa578"]];
+
+function dateKey(){
+  const n=new Date();const p=x=>String(x).padStart(2,"0");
+  return `${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}`;
+}
+function dailySign(){
+  const name=els.dailyName.value.trim()||"有缘人";
+  try{localStorage.setItem("oneline_name",els.dailyName.value.trim());}catch(e){}
+  const h=fnv1a(name+"|"+dateKey());
+  const sign=DAILY_SIGNS[h%DAILY_SIGNS.length];
+  const g=h%10;
+  const grade=g<3?"上上签":g<7?"上签":"中签";
+  const yi=YI[(h>>>5)%YI.length];
+  const ji=JI[(h>>>9)%JI.length];
+  const col=LUCKY_COLORS[(h>>>13)%LUCKY_COLORS.length];
+  const num=(h%9)+1;
+  const stars=3+(h%3);
+  state.extra=`宜 ${yi} · 忌 ${ji} · 幸运色 ${col[0]} · 数字 ${num}`;
+  els.quote.value=sign;
+  els.author.value=grade;
+  els.dailyInfo.innerHTML=`<div class="grade">${grade} · 运势 ${"★".repeat(stars)}${"☆".repeat(5-stars)}</div>`+
+    `<div>宜 <b>${yi}</b>　忌 <b>${ji}</b></div>`+
+    `<div><span class="dot" style="background:${col[1]}"></span>幸运色 ${col[0]}　·　幸运数字 ${num}</div>`;
+  render();
+  flash("今日一签已生成");
 }
 
 function setFont(ctx,key,size,bold){
@@ -460,16 +533,42 @@ function drawDecor(ctx,theme){
   }
 }
 
+const NO_START="，。、；：！？）》」』】…—.,;:!?)]}";
+const NO_END="（《「『【([{";
+function measureStr(ctx,s,font,size,ls){
+  setFont(ctx,font,size,true);
+  let w=0;
+  for(let i=0;i<s.length;i++){w+=chW(ctx,s[i]);if(i<s.length-1)w+=ls;}
+  return w;
+}
 function wrapH(ctx,text,font,size,ls){
   setFont(ctx,font,size,true);
-  const out=[];let line="",w=0;
+  const out=[];let line="";
   for(const ch of text){
-    const cw=chW(ctx,ch);
-    const add=(line?ls:0)+cw;
-    if(line&&w+add>MAXW){out.push(line);line=ch;w=cw;}
-    else{line+=ch;w+=add;}
+    const cand=line+ch;
+    if(line&&measureStr(ctx,cand,font,size,ls)>MAXW){
+      if(NO_START.includes(ch)&&line.length>1){
+        out.push(line.slice(0,-1));
+        line=line.slice(-1)+ch;
+      }else if(NO_END.includes(line.slice(-1))&&line.length>1){
+        out.push(line.slice(0,-1));
+        line=line.slice(-1)+ch;
+      }else{
+        out.push(line);
+        line=ch;
+      }
+    }else{
+      line=cand;
+    }
   }
   if(line)out.push(line);
+  if(out.length>=2&&out[out.length-1].length<=2){
+    const last=out.pop();
+    const prev=out[out.length-1];
+    const move=Math.min(3,Math.max(0,prev.length-1));
+    out[out.length-1]=prev.slice(0,prev.length-move);
+    out.push(prev.slice(prev.length-move)+last);
+  }
   return out;
 }
 function lineWidth(ctx,line,font,size,ls){
@@ -494,13 +593,16 @@ function drawHorizontal(ctx,text,font,size,ls,lh,theme,o){
     let cx=x;
     for(const ch of ln){ctx.fillText(ch,cx,y+size+i*lineH);cx+=chW(ctx,ch)+ls;}
   });
+  let endY=y+lines.length*lineH;
   if(o.author){
     const ay=y+lines.length*lineH+Math.round(size*.58)+22;
     ctx.fillStyle=theme.sub;setFont(ctx,font,Math.round(size*.56),false);
     ctx.textAlign=o.align==="left"?"left":o.align==="right"?"right":"center";
     const ax=o.align==="left"?PAD:o.align==="right"?W-PAD:W/2;
     ctx.fillText("—— "+o.author,ax,ay);
+    endY=ay+16;
   }
+  return endY;
 }
 
 function drawVertical(ctx,text,font,size,ls,lh,theme,o){
@@ -526,6 +628,7 @@ function drawVertical(ctx,text,font,size,ls,lh,theme,o){
     ctx.fillStyle=theme.sub;setFont(ctx,font,Math.round(size*.52),false);ctx.textAlign="center";
     ctx.fillText("—— "+o.author,W/2,H-PAD-150);
   }
+  return H-PAD-120;
 }
 
 function drawFooter(ctx,theme,o){
@@ -569,8 +672,15 @@ function drawCard(cv,o){
   drawBG(ctx,theme,o.bgImage);
   drawDecor(ctx,theme);
   const text=o.text||"写一句你的话";
-  if(o.vertical)drawVertical(ctx,text,o.font,o.size,o.ls,o.lh,theme,o);
-  else drawHorizontal(ctx,text,o.font,o.size,o.ls,o.lh,theme,o);
+  let bottom;
+  if(o.vertical)bottom=drawVertical(ctx,text,o.font,o.size,o.ls,o.lh,theme,o);
+  else bottom=drawHorizontal(ctx,text,o.font,o.size,o.ls,o.lh,theme,o);
+  if(o.extra){
+    ctx.font='400 30px "Microsoft YaHei","PingFang SC",sans-serif';
+    ctx.fillStyle=hexA(theme.sub,.95);
+    ctx.textAlign="center";
+    ctx.fillText(o.extra,W/2,Math.min(H-160,bottom+86));
+  }
   drawFooter(ctx,theme,o);
   drawWatermark(ctx,theme,o);
 }
@@ -585,7 +695,8 @@ function buildRenderOpts(textOverride,authorOverride){
     wmOn:isPro()?state.wmOn:true,
     wmPos:state.wmPos,
     wmImage:isPro()?state.wmImage:null,
-    bgImage:isPro()?state.bgImage:null
+    bgImage:isPro()?state.bgImage:null,
+    extra:state.extra
   };
 }
 
@@ -602,6 +713,7 @@ function applyTheme(i){
 function pickQuote(){
   const pool=state.cat==="全部"?QUOTES:QUOTES.filter(q=>q.cat===state.cat);
   const q=pool[Math.floor(Math.random()*pool.length)];
+  state.extra="";
   els.quote.value=q.t;els.author.value=q.a;render();
 }
 
@@ -718,6 +830,92 @@ function buildZip(entries){
   return new Blob(parts,{type:"application/zip"});
 }
 
+function wrapSquare(ctx,text,font,size,ls,maxW){
+  setFont(ctx,font,size,true);
+  const out=[];let line="";
+  for(const ch of text){
+    const cand=line+ch;
+    if(line&&measureStr(ctx,cand,font,size,ls)>maxW){
+      if(NO_START.includes(ch)&&line.length>1){
+        out.push(line.slice(0,-1));
+        line=line.slice(-1)+ch;
+      }else if(NO_END.includes(line.slice(-1))&&line.length>1){
+        out.push(line.slice(0,-1));
+        line=line.slice(-1)+ch;
+      }else{
+        out.push(line);
+        line=ch;
+      }
+    }else{
+      line=cand;
+    }
+  }
+  if(line)out.push(line);
+  if(out.length>=2&&out[out.length-1].length<=2){
+    const last=out.pop();
+    const prev=out[out.length-1];
+    const move=Math.min(3,Math.max(0,prev.length-1));
+    out[out.length-1]=prev.slice(0,prev.length-move);
+    out.push(prev.slice(prev.length-move)+last);
+  }
+  return out;
+}
+function drawSquareCard(cv,o){
+  const S=1080,pad=110,maxW=S-pad*2;
+  const ctx=cv.getContext("2d");
+  const theme=o.theme;
+  ctx.clearRect(0,0,S,S);
+  if(o.bgImage){
+    const cw=o.bgImage.width,chh=o.bgImage.height,sc=Math.max(S/cw,S/chh);
+    ctx.drawImage(o.bgImage,(S-cw*sc)/2,(S-chh*sc)/2,cw*sc,chh*sc);
+    ctx.fillStyle=theme.dark?"rgba(0,0,0,.46)":"rgba(255,255,255,.56)";
+    ctx.fillRect(0,0,S,S);
+  }else if(theme.bg.type==="solid"){ctx.fillStyle=theme.bg.color;ctx.fillRect(0,0,S,S);}
+  else{const g=ctx.createLinearGradient(0,0,0,S);for(const [c,p] of theme.bg.stops)g.addColorStop(p,c);ctx.fillStyle=g;ctx.fillRect(0,0,S,S);}
+  if(theme.decor==="line"){ctx.fillStyle=theme.accent;ctx.fillRect(S/2-60,120,120,6);}
+  else{ctx.fillStyle=theme.accent;ctx.beginPath();ctx.arc(S/2,130,9,0,Math.PI*2);ctx.fill();}
+  const text=o.text||"写一句你的话";
+  let fs=Math.min(o.size||64,72),lines=[];
+  while(fs>=34){
+    lines=wrapSquare(ctx,text,o.font,fs,o.ls,maxW);
+    if(lines.length<=7)break;
+    fs-=4;
+  }
+  const lineH=Math.round(fs*o.lh);
+  const authorH=o.author?Math.round(fs*.56)+40:0;
+  const totalH=lines.length*lineH+authorH;
+  const y=(S-totalH)/2-10;
+  ctx.fillStyle=theme.text;ctx.textBaseline="alphabetic";ctx.textAlign="left";
+  lines.forEach((ln,i)=>{
+    const lw=lineWidth(ctx,ln,o.font,fs,o.ls);
+    let cx=(S-lw)/2;
+    for(const ch of ln){ctx.fillText(ch,cx,y+fs+i*lineH);cx+=chW(ctx,ch)+o.ls;}
+  });
+  if(o.author){
+    ctx.fillStyle=theme.sub;setFont(ctx,o.font,Math.round(fs*.54),false);ctx.textAlign="center";
+    ctx.fillText("—— "+o.author,S/2,y+lines.length*lineH+Math.round(fs*.54)+18);
+  }
+  ctx.font='400 24px "Microsoft YaHei","PingFang SC",sans-serif';
+  ctx.fillStyle=hexA(theme.sub,.85);
+  const now=new Date();const p=n=>String(n).padStart(2,"0");
+  ctx.textAlign="left";ctx.fillText(`${now.getFullYear()}.${p(now.getMonth()+1)}.${p(now.getDate())}`,pad,S-56);
+  if(o.wmOn&&o.wmText){ctx.textAlign="right";ctx.fillText(o.wmText,S-pad,S-56);}
+}
+async function nineGrid(){
+  if(!isPro()){promptUpgrade("九宫格切图是 Pro 功能，升级后可一键打包 9 张切图");return;}
+  const sq=document.createElement("canvas");sq.width=1080;sq.height=1080;
+  drawSquareCard(sq,buildRenderOpts());
+  const tile=360,entries=[];
+  for(let r=0;r<3;r++)for(let c=0;c<3;c++){
+    const t=document.createElement("canvas");t.width=tile;t.height=tile;
+    t.getContext("2d").drawImage(sq,c*tile,r*tile,tile,tile,0,0,tile,tile);
+    const blob=await new Promise(res=>t.toBlob(res,"image/png"));
+    entries.push({name:`oneline_grid_${r*3+c+1}.png`,data:new Uint8Array(await blob.arrayBuffer())});
+  }
+  downloadBlob(buildZip(entries),`oneline_grid_${stamp()}.zip`);
+  flash("九宫格已打包下载");
+}
+
 async function batchGenerate(){
   if(!isPro()){promptUpgrade("批量生成是 Pro 功能，升级后一次生成整套卡片并打包下载");return;}
   const lines=els.batchText.value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
@@ -772,6 +970,8 @@ function loadImageFile(file,done){
 els.randomBtn.onclick=pickQuote;
 els.exportBtn.onclick=exportPNG;
 els.copyBtn.onclick=copyPNG;
+els.gridBtn.onclick=nineGrid;
+els.dailyBtn.onclick=dailySign;
 els.batchBtn.onclick=batchGenerate;
 els.fillQuotesBtn.onclick=()=>{els.batchText.value=QUOTES.map(q=>q.t).join("\n");els.batchMsg.textContent=`已填入 ${QUOTES.length} 句金句`;};
 els.aiBtn.onclick=aiGenerate;
@@ -786,7 +986,7 @@ els.buyBtn.onclick=()=>{
   else{setProMsg("购买链接暂未配置，请联系站长获取激活码","");}
 };
 
-els.quote.addEventListener("input",render);
+els.quote.addEventListener("input",()=>{state.extra="";render();});
 els.author.addEventListener("input",render);
 els.wmText.addEventListener("input",render);
 els.showDate.addEventListener("change",()=>{state.showDate=els.showDate.checked;render();});
@@ -807,7 +1007,9 @@ els.wmFile.addEventListener("change",e=>{loadImageFile(e.target.files[0],img=>{s
 els.wmClear.onclick=()=>{state.wmImage=null;els.wmFile.value="";render();};
 
 els.quote.value=QUOTES[0].t;els.author.value=QUOTES[0].a;
+try{const saved=localStorage.getItem("oneline_name");if(saved)els.dailyName.value=saved;}catch(e){}
 buildChips();buildSwatches();buildFontSel();syncControls();refreshLockUI();render();
+try{const q=new URLSearchParams(location.search);if(q.get("daily")==="1"){els.dailyName.value=q.get("name")||els.dailyName.value;dailySign();}}catch(e){}
 
 (function makeStars(){
   const bg=document.getElementById("bg");
