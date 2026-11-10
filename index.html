@@ -196,27 +196,77 @@
   .diag-opt{text-align:left;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);cursor:pointer;font-size:14px;line-height:1.4}
   .diag-opt:hover{border-color:var(--accent)}
   #diagCanvas{width:100%;height:auto;border-radius:12px;background:#fff}
-  .game-box{max-width:min(96vw,1000px)}
+  .game-hub{margin:8px 0 26px}
+  .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .section-kicker{font-size:11px;letter-spacing:3px;color:var(--accent);font-weight:800}
+  .section-head h2{font-size:22px;font-weight:900;margin-top:2px}
+  .section-sub{font-size:12px;color:var(--muted)}
+  .game-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:12px}
+  .game-feature{position:relative;border-radius:18px;border:1px solid rgba(255,255,255,.1);padding:16px;cursor:pointer;overflow:hidden;min-height:180px;background:linear-gradient(135deg,#1d2233,#141722);transition:.2s;text-align:left;color:var(--text)}
+  .game-feature:hover{transform:translateY(-3px);border-color:rgba(245,215,110,.4);box-shadow:0 18px 40px rgba(0,0,0,.45)}
+  .game-feature.hero{background:radial-gradient(500px 240px at 80% 20%,rgba(255,92,138,.18),transparent 65%),linear-gradient(135deg,#241a2b,#141722)}
+  .game-feature .gf-kicker{font-size:10px;letter-spacing:2px;color:var(--accent);font-weight:800}
+  .game-feature .gf-title{font-size:22px;font-weight:900;margin-top:6px}
+  .game-feature.hero .gf-title{font-size:28px}
+  .game-feature .gf-desc{font-size:12px;color:var(--muted);line-height:1.6;margin-top:8px;max-width:300px}
+  .game-feature .gf-art{position:absolute;right:12px;bottom:10px;font-size:64px;opacity:.25;pointer-events:none}
+  .game-feature .gf-cta{display:inline-block;margin-top:14px;font-size:12px;font-weight:700;padding:8px 16px;border-radius:999px;background:linear-gradient(90deg,#ff8a5c,#ff5c8a);color:#fff}
+  .editor-head{display:flex;align-items:baseline;gap:10px;margin:0 0 12px}
+  .editor-head h2{font-size:18px;font-weight:900}
+  .editor-head .tag{font-size:12px;color:var(--muted)}
+  @media(max-width:900px){.game-grid{grid-template-columns:1fr}.game-feature{min-height:150px}}
+  .game-box{max-width:min(96vw,1040px)}
   .game-view{display:flex;flex-direction:column;gap:12px}
-  .game-title{font-size:26px;font-weight:800;text-align:center}
+  .game-title{font-size:28px;font-weight:900;text-align:center;letter-spacing:1px}
   .game-sub{font-size:13px;color:var(--muted);text-align:center;line-height:1.6}
-  .game-top{display:flex;justify-content:space-between;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13px}
-  .game-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}
-  .game-stats b{color:var(--text)}
-  .game-enemy{text-align:right}
-  .game-enemy .name{font-size:16px;font-weight:700}
-  .game-intent{color:var(--accent);font-size:12px;margin-top:4px}
-  .game-log{height:110px;overflow:auto;background:#12151c;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;color:var(--muted);line-height:1.6}
-  .game-hand{display:flex;gap:8px;overflow-x:auto;padding:6px 2px 12px}
-  .game-card{flex:0 0 132px;width:132px;border-radius:12px;border:1px solid var(--line);background:linear-gradient(180deg,#232838,#1a1e29);padding:10px;cursor:pointer;text-align:left;color:var(--text);transition:.15s;position:relative}
-  .game-card:hover{transform:translateY(-4px);border-color:var(--accent)}
-  .game-card.disabled{opacity:.45;cursor:not-allowed}
-  .game-card .cost{position:absolute;top:8px;right:8px;background:#ff8a5c;color:#111;font-weight:800;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:13px}
-  .game-card .cname{font-weight:700;font-size:13px;margin-top:22px}
-  .game-card .cdesc{font-size:11px;color:var(--muted);line-height:1.5;margin-top:6px}
-  .game-card.attack{border-top:3px solid #ff6b81}
-  .game-card.skill{border-top:3px solid #6ec6ff}
-  .game-rewards{display:flex;gap:8px;overflow-x:auto}
+  .game-board{position:relative;border-radius:20px;padding:14px;background:
+    radial-gradient(600px 300px at 50% 0%, rgba(183,139,255,.18), transparent 70%),
+    radial-gradient(500px 300px at 10% 100%, rgba(255,138,92,.12), transparent 70%),
+    linear-gradient(180deg,#171a2b,#0f1018 60%,#141020);
+    border:1px solid rgba(255,255,255,.1);overflow:hidden;box-shadow:inset 0 0 60px rgba(0,0,0,.5)}
+  .game-board::before{content:"";position:absolute;inset:7px;border-radius:14px;border:1px solid rgba(245,215,110,.12);pointer-events:none}
+  .turn-banner{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) scale(.8);opacity:0;font-size:34px;font-weight:900;letter-spacing:6px;color:#f5d76e;text-shadow:0 4px 30px rgba(245,215,110,.5);pointer-events:none;z-index:20;transition:.35s}
+  .turn-banner.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  .float-layer{position:absolute;inset:0;pointer-events:none;z-index:15;overflow:hidden}
+  .gfloat{position:absolute;font-size:34px;font-weight:900;text-shadow:0 4px 18px rgba(0,0,0,.6);animation:gfloatUp .9s ease-out forwards}
+  @keyframes gfloatUp{0%{opacity:0;transform:translateY(10px) scale(.8)}20%{opacity:1;transform:translateY(0) scale(1.2)}100%{opacity:0;transform:translateY(-46px) scale(1)}}
+  .enemy-hud{display:flex;gap:14px;align-items:center;padding:10px 14px;border-radius:16px;background:linear-gradient(180deg,rgba(40,28,60,.9),rgba(22,18,34,.9));border:1px solid rgba(245,215,110,.18);position:relative;z-index:5}
+  .enemy-portrait{width:76px;height:76px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#4a3a6a,#221a33);border:2px solid rgba(245,215,110,.5);display:flex;align-items:center;justify-content:center;font-size:42px;box-shadow:0 0 30px rgba(183,139,255,.25);flex:0 0 76px;transition:.2s}
+  .enemy-portrait.attacking{animation:enemyLunge .42s}
+  @keyframes enemyLunge{0%,100%{transform:translateY(0)}40%{transform:translateY(16px) scale(1.1)}}
+  .enemy-meta{flex:1;min-width:0}
+  .enemy-name{display:flex;justify-content:space-between;align-items:baseline;font-size:18px;font-weight:900}
+  .enemy-level{font-size:11px;color:var(--muted)}
+  .game-hp{position:relative;height:16px;border-radius:8px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.08);overflow:hidden;margin-top:6px}
+  .game-hp i{display:block;height:100%;border-radius:8px;transition:width .5s ease;background:linear-gradient(90deg,#ff6b81,#ff9f43)}
+  .game-hp span{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:700;color:#fff;text-shadow:0 1px 3px #000}
+  .game-hp.player i{background:linear-gradient(90deg,#7ce0a8,#2fa578)}
+  .intent-chip{display:inline-block;margin-top:8px;font-size:11px;padding:4px 10px;border-radius:999px;background:rgba(255,138,92,.12);color:#ffb08a;border:1px solid rgba(255,138,92,.35)}
+  .battle-log{height:82px;overflow:auto;background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:8px 10px;font-size:11px;color:rgba(255,255,255,.55);line-height:1.6;position:relative;z-index:5}
+  .player-hud{display:flex;gap:12px;align-items:center;padding:10px 14px;border-radius:16px;background:linear-gradient(180deg,rgba(24,35,48,.92),rgba(16,22,32,.92));border:1px solid rgba(110,198,255,.2);position:relative;z-index:5}
+  .player-portrait{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#2f4a6a,#16202e);border:2px solid rgba(110,198,255,.5);display:flex;align-items:center;justify-content:center;font-size:36px;box-shadow:0 0 24px rgba(110,198,255,.2);flex:0 0 64px}
+  .player-meta{flex:1;min-width:0}
+  .player-line{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:rgba(255,255,255,.7)}
+  .player-line b{color:#fff}
+  .energy-line{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.6);margin-top:6px}
+  .energy-gems{display:inline-flex;gap:4px}
+  .energy-gems i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.12);display:inline-block}
+  .energy-gems i.on{background:#ff8a5c;box-shadow:0 0 8px rgba(255,138,92,.8)}
+  .game-hand{display:flex;gap:8px;overflow-x:auto;padding:8px 2px 10px;position:relative;z-index:5}
+  .game-card{flex:0 0 138px;width:138px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,#2b3247,#191d2a);padding:10px;cursor:pointer;text-align:left;color:var(--text);transition:transform .18s,box-shadow .18s,border-color .18s;position:relative;overflow:hidden}
+  .game-card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(255,255,255,.08),transparent 60%);pointer-events:none}
+  .game-card:hover{transform:translateY(-8px) scale(1.03);border-color:rgba(245,215,110,.6);box-shadow:0 10px 30px rgba(0,0,0,.5),0 0 20px rgba(245,215,110,.15)}
+  .game-card.disabled{opacity:.42;cursor:not-allowed;transform:none}
+  .game-card.playing{animation:cardPlay .28s ease-out}
+  @keyframes cardPlay{0%{transform:translateY(0) scale(1)}50%{transform:translateY(-30px) scale(1.12);box-shadow:0 0 30px rgba(245,215,110,.5)}100%{transform:translateY(-10px) scale(1.05)}}
+  .game-card .cost{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe0a8,#ff8a5c 60%,#c0392b);color:#1a1208;font-weight:900;border:1px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;font-size:13px;z-index:2}
+  .game-card .cicon{font-size:30px;margin-top:20px;text-align:center}
+  .game-card .cname{font-weight:900;font-size:13px;margin-top:6px;text-align:center;letter-spacing:.5px}
+  .game-card .cdesc{font-size:11px;color:rgba(255,255,255,.6);line-height:1.45;margin-top:6px;text-align:center}
+  .game-card.attack{border-color:rgba(255,107,129,.35);background:linear-gradient(180deg,#3a2233,#1e1622)}
+  .game-card.skill{border-color:rgba(110,198,255,.35);background:linear-gradient(180deg,#1f2e44,#141a26)}
+  .board-bottom{display:flex;justify-content:center;padding-top:2px;position:relative;z-index:5}
+  .game-rewards{display:flex;gap:10px;overflow-x:auto;padding:4px 0}
   #gameEndCanvas{display:block;margin:0 auto;max-width:100%;max-height:60vh;width:auto;height:auto;border-radius:12px}
 </style>
 </head>
@@ -266,6 +316,37 @@
     <div class="tag" style="display:flex;align-items:center;gap:10px">金句卡片工坊 · 单张导出 · 批量打包 · 小红书 / 朋友圈规格 <button class="btn sm" id="backCover">← 封面</button></div>
   </header>
 
+  <section class="game-hub">
+    <div class="section-head">
+      <div><div class="section-kicker">PLAY</div><h2>游戏娱乐</h2></div>
+      <div class="section-sub">玩一局，顺手做张卡</div>
+    </div>
+    <div class="game-grid">
+      <div class="game-feature hero" id="gameBtn" role="button" tabindex="0">
+        <div class="gf-kicker">CARD ROGUELIKE</div>
+        <div class="gf-title">打工人求生指南</div>
+        <div class="gf-desc">抽牌、看意图、打出连招，撑过老板、甲方和亲戚，活着下班。</div>
+        <div class="gf-cta">开始上班 →</div>
+        <div class="gf-art">🃏</div>
+      </div>
+      <div class="game-feature" id="diagBtn" role="button" tabindex="0">
+        <div class="gf-kicker">QUIZ</div>
+        <div class="gf-title">精神状态诊断书</div>
+        <div class="gf-desc">8 道题，30 秒，测测你最近的精神状态。</div>
+        <div class="gf-cta">开始检测 →</div>
+        <div class="gf-art">🩺</div>
+      </div>
+      <div class="game-feature" id="dailyHub" role="button" tabindex="0">
+        <div class="gf-kicker">DAILY</div>
+        <div class="gf-title">每日一签</div>
+        <div class="gf-desc">今天的签文、宜忌和幸运色，免费抽一张。</div>
+        <div class="gf-cta">抽今日签 →</div>
+        <div class="gf-art">🪄</div>
+      </div>
+    </div>
+  </section>
+  <div class="editor-head"><h2>卡片工坊</h2><span class="tag">自由编辑 · 高级模式</span></div>
+
   <div class="layout">
     <div class="panel">
       <div class="probar">
@@ -282,8 +363,6 @@
         </div>
       </div>
       <div class="promsg" id="proMsg"></div>
-      <button class="btn primary block" id="gameBtn" style="margin-bottom:10px">🃏 打工人求生指南</button>
-      <button class="btn primary block" id="diagBtn" style="margin-bottom:14px">🩺 测测你的精神状态</button>
 
       <h2>内容</h2>
       <div class="field"><div class="chips" id="chips"></div></div>
@@ -294,7 +373,7 @@
         <label class="check"><input type="checkbox" id="showDate" checked>显示日期</label>
       </div>
 
-      <details style="margin-bottom:14px">
+      <details id="dailyDetails" style="margin-bottom:14px">
         <summary>🪄 每日一签 / 今日运势</summary>
         <div class="ai-inner">
           <input type="text" id="dailyName" placeholder="输入名字或昵称（可留空）">
@@ -388,22 +467,29 @@
       <div class="filehint">牌组 10 张 · 3 场遭遇 · 每局都不一样</div>
     </div>
     <div class="game-view" id="gameBattle" style="display:none">
-      <div class="game-top">
-        <div class="game-stats">
-          <div>精神值 <b id="gHp">70/70</b></div>
-          <div>护盾 <b id="gBlock">0</b></div>
-          <div>存款 <b id="gCoins">0</b></div>
-          <div>能量 <b id="gEnergy">3/3</b></div>
+      <div class="game-board">
+        <div class="turn-banner" id="gTurnBanner">你的回合</div>
+        <div class="float-layer" id="gFloatLayer"></div>
+        <div class="enemy-hud">
+          <div class="enemy-portrait" id="gEnemyPortrait">👔</div>
+          <div class="enemy-meta">
+            <div class="enemy-name"><span id="gEnemyName">老板</span><span class="enemy-level">Lv.99</span></div>
+            <div class="game-hp"><i id="gEnemyHpFill" style="width:100%"></i><span id="gEnemyHp">40/40</span></div>
+            <div class="intent-chip" id="gIntent">意图：攻击 8</div>
+          </div>
         </div>
-        <div class="game-enemy">
-          <div class="name" id="gEnemyName">老板</div>
-          <div id="gEnemyHp">40/40</div>
-          <div class="game-intent" id="gIntent">意图：攻击 8</div>
+        <div class="battle-log" id="gLog"></div>
+        <div class="player-hud">
+          <div class="player-portrait">🧑‍💻</div>
+          <div class="player-meta">
+            <div class="player-line"><span>精神值 <b id="gHp">70/70</b></span><span>护盾 <b id="gBlock">0</b></span><span>存款 <b id="gCoins">0</b></span></div>
+            <div class="game-hp player"><i id="gPlayerHpFill" style="width:100%"></i></div>
+            <div class="energy-line">能量 <b id="gEnergy">3/3</b><span class="energy-gems" id="gEnergyGems"><i class="on"></i><i class="on"></i><i class="on"></i></span></div>
+          </div>
         </div>
+        <div class="game-hand" id="gHand"></div>
+        <div class="board-bottom"><button class="btn primary" id="gEndTurn">结束回合</button></div>
       </div>
-      <div class="game-log" id="gLog"></div>
-      <div class="game-hand" id="gHand"></div>
-      <div class="modal-actions"><button class="btn primary" id="gEndTurn">结束回合</button></div>
     </div>
     <div class="game-view" id="gameReward" style="display:none">
       <div class="game-title">战斗结束</div>
@@ -590,6 +676,7 @@ const els={
   coverBoss:$("coverBoss"),coverPlayer:$("coverPlayer"),coverBossFill:$("coverBossFill"),
   coverPlayerFill:$("coverPlayerFill"),coverDmgBoss:$("coverDmgBoss"),coverDmgPlayer:$("coverDmgPlayer"),
   coverPlayCard:$("coverPlayCard"),coverIntent:$("coverIntent"),
+  dailyHub:$("dailyHub"),dailyDetails:$("dailyDetails"),
   chips:$("chips"),swatches:$("swatches"),quote:$("quote"),author:$("author"),randomBtn:$("randomBtn"),
   showDate:$("showDate"),fontSel:$("fontSel"),sizeRange:$("sizeRange"),sizeVal:$("sizeVal"),
   lsRange:$("lsRange"),lsVal:$("lsVal"),lhRange:$("lhRange"),lhVal:$("lhVal"),
@@ -607,6 +694,8 @@ const els={
   gameBtn:$("gameBtn"),gameModal:$("gameModal"),gameClose:$("gameClose"),gameMenu:$("gameMenu"),gameStart:$("gameStart"),
   gameBattle:$("gameBattle"),gHp:$("gHp"),gBlock:$("gBlock"),gCoins:$("gCoins"),gEnergy:$("gEnergy"),
   gEnemyName:$("gEnemyName"),gEnemyHp:$("gEnemyHp"),gIntent:$("gIntent"),gLog:$("gLog"),gHand:$("gHand"),
+  gEnemyPortrait:$("gEnemyPortrait"),gEnemyHpFill:$("gEnemyHpFill"),gPlayerHpFill:$("gPlayerHpFill"),
+  gTurnBanner:$("gTurnBanner"),gFloatLayer:$("gFloatLayer"),gEnergyGems:$("gEnergyGems"),
   gEndTurn:$("gEndTurn"),gameReward:$("gameReward"),gRewards:$("gRewards"),gSkip:$("gSkip"),
   gameEnd:$("gameEnd"),gameEndCanvas:$("gameEndCanvas"),gameAgain:$("gameAgain"),gameSave:$("gameSave")
 };
@@ -694,7 +783,7 @@ const DIAG_RESULTS=[
 ];
 
 const GAME_CARDS=[
-  {id:"c1",name:"嘴替出击",cost:1,type:"attack",desc:"造成 6 点伤害。",dmg:6,emoji:"🗣️"},
+  {id:"c1",name:"嘴替出击",cost:1,type:"attack",desc:"造成 6 点伤害。",dmg:6,emoji:"💬"},
   {id:"c2",name:"阴阳怪气",cost:1,type:"attack",desc:"造成 4 点伤害，施加 2 层易伤。",dmg:4,vuln:2,emoji:"😏"},
   {id:"c3",name:"甩锅",cost:1,type:"attack",desc:"造成 5 点伤害，获得 5 点护盾。",dmg:5,block:5,emoji:"🍳"},
   {id:"c4",name:"发疯",cost:2,type:"attack",desc:"造成 14 点伤害，失去 3 点精神值。",dmg:14,selfDmg:3,emoji:"🤯"},
@@ -1289,7 +1378,7 @@ function shareDiag(){
   }
 }
 
-let G={player:null,deck:[],hand:[],draw:[],discard:[],enemy:null,encounter:0,turn:1,running:false,log:[],ending:null};
+let G={player:null,deck:[],hand:[],draw:[],discard:[],enemy:null,encounter:0,turn:1,running:false,log:[],ending:null,busy:false};
 function showGameView(name){
   els.gameMenu.style.display=name==="menu"?"flex":"none";
   els.gameBattle.style.display=name==="battle"?"flex":"none";
@@ -1303,18 +1392,19 @@ function openGame(){
 function startGame(){
   G.player={hp:70,maxHp:70,energy:3,maxEnergy:3,block:0,coins:0};
   G.deck=GAME_START_DECK.map(id=>GAME_CARDS.find(c=>c.id===id));
-  G.encounter=0;G.log=[];G.running=true;G.ending=null;
+  G.encounter=0;G.log=[];G.running=true;G.ending=null;G.busy=false;
   startBattle();
 }
 function startBattle(){
   const base=GAME_ENEMIES[G.encounter];
   G.enemy={name:base.name,emoji:base.emoji,hp:base.hp,maxHp:base.hp,strength:0,weak:0,vulnerable:0,stun:0,intentIndex:0,intents:base.intents.slice(),flavor:base.flavor};
   G.hand=[];G.draw=shuffleArr(G.deck.slice());G.discard=[];G.turn=1;
-  G.player.block=0;G.player.energy=G.player.maxEnergy;G.running=true;
+  G.player.block=0;G.player.energy=G.player.maxEnergy;G.running=true;G.busy=false;
   logGame(`遭遇「${G.enemy.name}」：${G.enemy.flavor}`);
   drawCards(5);
   showGameView("battle");
   renderGame();
+  showTurnBanner("你的回合");
 }
 function drawCards(n){
   for(let i=0;i<n;i++){
@@ -1328,6 +1418,27 @@ function logGame(s){
   if(G.log.length>8)G.log.shift();
   if(els.gLog)els.gLog.innerHTML=G.log.map(x=>`<div>· ${x}</div>`).join("");
 }
+function floatGameText(text,color,side){
+  const layer=els.gFloatLayer;
+  if(!layer)return;
+  const el=document.createElement("div");
+  el.className="gfloat";
+  el.textContent=text;
+  el.style.color=color;
+  el.style.left=side==="enemy"?"58%":"34%";
+  el.style.top=side==="enemy"?"24%":"62%";
+  layer.appendChild(el);
+  setTimeout(()=>el.remove(),900);
+}
+function showTurnBanner(text){
+  const b=els.gTurnBanner;
+  if(!b)return;
+  b.textContent=text;
+  b.classList.remove("show");
+  void b.offsetWidth;
+  b.classList.add("show");
+  setTimeout(()=>b.classList.remove("show"),1100);
+}
 function intentLabel(e){
   const it=e.intents[e.intentIndex],parts=it.split(":"),t=parts[0],v=+parts[1];
   if(t==="attack")return `攻击 ${v+e.strength}`;
@@ -1340,14 +1451,25 @@ function renderGame(){
   els.gBlock.textContent=G.player.block;
   els.gCoins.textContent=G.player.coins;
   els.gEnergy.textContent=`${G.player.energy}/${G.player.maxEnergy}`;
-  els.gEnemyName.textContent=`${G.enemy.emoji} ${G.enemy.name}`;
+  els.gEnemyName.textContent=G.enemy.name;
   els.gEnemyHp.textContent=`${Math.max(0,G.enemy.hp)}/${G.enemy.maxHp}`;
+  els.gEnemyHpFill.style.width=`${Math.max(0,G.enemy.hp)/G.enemy.maxHp*100}%`;
+  els.gPlayerHpFill.style.width=`${Math.max(0,G.player.hp)/G.player.maxHp*100}%`;
+  els.gEnemyPortrait.textContent=G.enemy.emoji;
   els.gIntent.textContent="意图："+intentLabel(G.enemy);
+  if(els.gEnergyGems){
+    els.gEnergyGems.innerHTML="";
+    for(let i=0;i<G.player.maxEnergy;i++){
+      const d=document.createElement("i");
+      if(i<G.player.energy)d.className="on";
+      els.gEnergyGems.appendChild(d);
+    }
+  }
   els.gHand.innerHTML="";
   G.hand.forEach((card,i)=>{
     const b=document.createElement("button");
     b.className="game-card "+card.type+(G.player.energy<card.cost?" disabled":"");
-    b.innerHTML=`<span class="cost">${card.cost}</span><div class="cname">${card.emoji} ${card.name}</div><div class="cdesc">${card.desc}</div>`;
+    b.innerHTML=`<span class="cost">${card.cost}</span><div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
     b.onclick=()=>playGameCard(i);
     els.gHand.appendChild(b);
   });
@@ -1357,11 +1479,21 @@ function playerDamage(base){
   if(G.enemy.vulnerable>0)d=Math.round(d*1.5);
   G.enemy.hp-=d;
   logGame(`对 ${G.enemy.name} 造成 ${d} 点伤害`);
+  floatGameText(`-${d}`,"#ff6b81","enemy");
 }
 function playGameCard(i){
-  if(!G.running)return;
+  if(!G.running||G.busy)return;
   const card=G.hand[i];
   if(!card||G.player.energy<card.cost)return;
+  G.busy=true;
+  const el=els.gHand.children[i];
+  if(el)el.classList.add("playing");
+  setTimeout(()=>{G.busy=false;resolveCard(i);},260);
+}
+function resolveCard(i){
+  if(!G.running)return;
+  const card=G.hand[i];
+  if(!card)return;
   G.player.energy-=card.cost;
   G.hand.splice(i,1);
   G.discard.push(card);
@@ -1389,6 +1521,8 @@ function enemyAct(){
   if(e.stun>0){e.stun--;logGame(`${e.name} 被「已读不回」，跳过了回合`);return;}
   const it=e.intents[e.intentIndex],parts=it.split(":"),t=parts[0],n=+parts[1];
   if(t==="attack"){
+    els.gEnemyPortrait.classList.add("attacking");
+    setTimeout(()=>els.gEnemyPortrait.classList.remove("attacking"),420);
     let d=n+e.strength;
     if(e.weak>0)d=Math.round(d*0.75);
     const blocked=Math.min(G.player.block,d);
@@ -1396,23 +1530,30 @@ function enemyAct(){
     const dmg=Math.max(0,d-blocked);
     G.player.hp-=dmg;
     logGame(`${e.name} 攻击 ${d}，护盾挡下 ${blocked}，你受到 ${dmg} 点伤害`);
+    floatGameText(`-${dmg}`,"#ff8a5c","player");
   }else if(t==="buff"){e.strength+=n;logGame(`${e.name} 加攻 +${n}`);}
   else if(t==="heal"){e.hp=Math.min(e.maxHp,e.hp+n);logGame(`${e.name} 回复 ${n} 点`);}
   e.intentIndex=(e.intentIndex+1)%e.intents.length;
 }
 function endTurn(){
-  if(!G.running)return;
+  if(!G.running||G.busy)return;
+  G.busy=true;
   G.discard.push(...G.hand);G.hand=[];
+  showTurnBanner("敌方回合");
   logGame("—— 敌方回合 ——");
-  enemyAct();
-  if(G.player.hp<=0){showEnding(true);return;}
-  if(G.enemy.weak>0)G.enemy.weak--;
-  if(G.enemy.vulnerable>0)G.enemy.vulnerable--;
-  G.turn++;
-  G.player.block=0;
-  G.player.energy=G.player.maxEnergy;
-  drawCards(5);
-  renderGame();
+  setTimeout(()=>{
+    enemyAct();
+    if(G.player.hp<=0){G.busy=false;showEnding(true);return;}
+    if(G.enemy.weak>0)G.enemy.weak--;
+    if(G.enemy.vulnerable>0)G.enemy.vulnerable--;
+    G.turn++;
+    G.player.block=0;
+    G.player.energy=G.player.maxEnergy;
+    drawCards(5);
+    G.busy=false;
+    renderGame();
+    showTurnBanner("你的回合");
+  },420);
 }
 function winBattle(){
   G.running=false;
@@ -1424,6 +1565,7 @@ function winBattle(){
   else showReward();
 }
 function showReward(){
+  G.busy=false;
   showGameView("reward");
   els.gRewards.innerHTML="";
   shuffleArr(GAME_CARDS).slice(0,3).forEach(card=>{
@@ -1435,7 +1577,7 @@ function showReward(){
   });
 }
 function showEnding(defeated){
-  G.running=false;
+  G.running=false;G.busy=false;
   const hp=Math.max(0,G.player.hp),coins=G.player.coins;
   let ending,line,grade;
   if(defeated){ending="精神值归零";line="你倒在了工位上，电脑还亮着。";grade="D";}
@@ -1603,6 +1745,8 @@ function showApp(){
 els.randomBtn.onclick=pickQuote;
 els.enterApp.onclick=showApp;
 els.backCover.onclick=showCover;
+els.dailyHub.onclick=()=>{els.dailyDetails.open=true;els.dailyDetails.scrollIntoView({behavior:"smooth",block:"center"});};
+[els.gameBtn,els.diagBtn,els.dailyHub].forEach(el=>el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();el.click();}}));
 window.addEventListener("hashchange",()=>{if(location.hash==="#play")showApp();else if(location.hash==="#cover")showCover();});
 els.exportBtn.onclick=exportPNG;
 els.copyBtn.onclick=copyPNG;
