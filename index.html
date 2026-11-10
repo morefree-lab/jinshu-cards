@@ -195,7 +195,7 @@
 </div>
 <div class="modal" id="gameModal">
   <div class="modal-box game-box">
-    <div class="modal-head"><span>🃏 打工人求生指南</span><button class="btn sm" id="gameClose">关闭</button></div>
+    <div class="modal-head"><span>🃏 打工人求生指南</span><div style="display:flex;gap:6px"><button class="btn sm" id="gSound">🔊</button><button class="btn sm" id="gameClose">关闭</button></div></div>
     <div class="game-view" id="gameMenu">
       <div class="game-title">打工人求生指南</div>
       <div class="game-sub">用卡牌撑过老板、甲方和亲戚，活着下班。<br>每回合抽 5 张牌，3 点能量。打出卡牌，点结束回合。</div>
@@ -204,6 +204,11 @@
     </div>
     <div class="game-view" id="gameBattle" style="display:none">
       <div class="game-board">
+        <div class="embers" id="gEmbers"></div>
+        <div class="battle-intro" id="gBattleIntro"><div class="bi-kicker" id="gIntroKicker">ENCOUNTER 1</div><div class="bi-name" id="gIntroName">老板</div><div class="bi-sub" id="gIntroSub">画饼中……</div></div>
+        <div class="combo" id="gCombo">COMBO ×2</div>
+        <div class="crit" id="gCrit">CRIT!</div>
+        <div class="ko-overlay" id="gKO"><span>KO</span></div>
         <div class="turn-banner" id="gTurnBanner">你的回合</div>
         <div class="float-layer" id="gFloatLayer"></div>
         <div class="speech player" id="gPlayerBubble"></div>
@@ -236,6 +241,11 @@
       <div class="game-sub">选一张牌加入牌组，或者跳过回血</div>
       <div class="game-rewards" id="gRewards"></div>
       <button class="btn" id="gSkip">跳过，回复 15 点精神值</button>
+    </div>
+    <div class="game-view" id="gameEvent" style="display:none">
+      <div class="game-title" id="gEventTitle"></div>
+      <div class="game-sub" id="gEventDesc"></div>
+      <div class="event-choices" id="gEventChoices"></div>
     </div>
     <div class="game-view" id="gameEnd" style="display:none">
       <canvas id="gameEndCanvas" width="1080" height="1440"></canvas>
