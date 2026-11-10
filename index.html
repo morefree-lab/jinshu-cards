@@ -120,6 +120,68 @@
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .afdian{color:var(--accent);text-decoration:none}
   .afdian:hover{text-decoration:underline}
+  #coverView{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 24px}
+  .cover-inner{max-width:1180px;width:100%;display:grid;grid-template-columns:0.9fr 1.1fr;gap:36px;align-items:center}
+  .cover-brand{font-size:14px;letter-spacing:7px;color:var(--muted);font-weight:700}
+  .cover-title{font-size:clamp(54px,6.5vw,92px);line-height:1.02;font-weight:900;letter-spacing:-3px;margin-top:18px}
+  .cover-title span{background:linear-gradient(90deg,#ff8a5c,#ff5c8a);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .cover-sub{font-size:18px;color:var(--muted);margin:20px 0 30px;letter-spacing:1px}
+  .cover-cta{font-size:18px;font-weight:800;padding:18px 44px;border-radius:999px;border:none;cursor:pointer;color:#fff;background:linear-gradient(90deg,#ff8a5c,#ff5c8a);box-shadow:0 15px 40px rgba(255,92,138,.3);transition:.2s}
+  .cover-cta:hover{transform:translateY(-2px);filter:brightness(1.06)}
+  .cover-hint{font-size:12px;color:#6f7688;margin-top:14px;letter-spacing:1px}
+  .cover-stage{position:relative;height:620px;border-radius:28px;background:radial-gradient(700px 420px at 50% 18%, rgba(255,138,92,.13), transparent 65%),linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.08);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+  .boss-zone{position:absolute;top:26px;left:50%;transform:translateX(-50%);width:340px;display:flex;gap:12px;align-items:center;padding:14px;border-radius:18px;background:rgba(18,22,31,.88);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px);z-index:5}
+  .boss-zone.hit{animation:shakeBoss .35s}
+  .boss-avatar{width:64px;height:64px;border-radius:50%;background:#2a3145;display:flex;align-items:center;justify-content:center;font-size:34px;flex:0 0 64px}
+  .boss-info{flex:1;min-width:0}
+  .boss-name{font-size:16px;font-weight:800;display:flex;justify-content:space-between;align-items:baseline}
+  .boss-level{color:var(--muted);font-size:11px;font-weight:600}
+  .hpbar{height:10px;border-radius:5px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:6px}
+  .hpbar i{display:block;height:100%;border-radius:5px;transition:width .55s ease}
+  .boss-hp i{background:linear-gradient(90deg,#ff6b81,#ff9f43)}
+  .intent{display:inline-block;margin-top:8px;font-size:11px;padding:3px 8px;border-radius:999px;background:rgba(255,138,92,.14);color:#ff8a5c;border:1px solid rgba(255,138,92,.3)}
+  .intent.danger{animation:pulse .5s}
+  .stage-floor{position:absolute;left:6%;right:6%;bottom:176px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent)}
+  .cover-caption{position:absolute;left:50%;bottom:176px;transform:translateX(-50%);font-size:11px;letter-spacing:3px;color:rgba(255,255,255,.4);white-space:nowrap}
+  .hand{position:absolute;right:18px;bottom:24px;display:flex;align-items:flex-end;padding-top:40px}
+  .ccard{width:86px;height:124px;border-radius:12px;background:linear-gradient(180deg,#2a3042,#1b1f2b);border:1px solid rgba(255,255,255,.12);box-shadow:0 12px 24px rgba(0,0,0,.45);margin-left:-15px;position:relative;padding:8px;transition:transform .55s cubic-bezier(.2,.8,.2,1),box-shadow .3s;transform-origin:bottom center;transform:rotate(var(--r)) translateY(var(--y))}
+  .ccard:first-child{margin-left:0}
+  .ccard .ccost{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:#ff8a5c;color:#111;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .ccard .cicon{font-size:24px;margin-top:18px}
+  .ccard .cname{font-size:11px;font-weight:700;margin-top:5px;line-height:1.25}
+  .ccard.playing{transform:translate(-120px,-190px) rotate(-4deg) scale(1.18);box-shadow:0 0 40px rgba(255,138,92,.6);z-index:20}
+  .player-zone{position:absolute;left:18px;bottom:24px;width:182px;padding:12px;border-radius:16px;background:rgba(18,22,31,.88);border:1px solid rgba(255,255,255,.1);z-index:5}
+  .player-zone.hit{animation:shake .35s}
+  .player-head{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700}
+  .player-avatar{width:28px;height:28px;border-radius:50%;background:#2a3145;display:flex;align-items:center;justify-content:center;font-size:16px}
+  .player-hp i{background:linear-gradient(90deg,#7ce0a8,#2fa578)}
+  .energy{display:flex;gap:5px;margin-top:8px}
+  .energy b{width:10px;height:10px;border-radius:50%;background:#ff8a5c;box-shadow:0 0 10px rgba(255,138,92,.7)}
+  .float-dmg{position:absolute;font-size:42px;font-weight:900;color:#ff6b81;text-shadow:0 4px 20px rgba(255,107,129,.6);opacity:0;transition:opacity .15s,transform .4s;pointer-events:none;z-index:10}
+  .float-dmg.show{opacity:1;transform:translateY(-30px) scale(1.15)}
+  .boss-dmg{top:94px;right:40px}
+  .player-dmg{bottom:120px;left:70px}
+  @keyframes shakeBoss{0%,100%{transform:translateX(-50%)}25%{transform:translateX(calc(-50% - 7px))}75%{transform:translateX(calc(-50% + 7px))}}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+  @media(max-width:900px){
+    #coverView{padding:24px 16px}
+    .cover-inner{grid-template-columns:1fr;gap:22px}
+    .cover-title{font-size:54px;letter-spacing:-2px}
+    .cover-sub{margin:14px 0 22px}
+    .cover-stage{height:500px}
+    .boss-zone{width:290px;top:18px}
+    .player-zone{top:110px;bottom:auto;left:16px;width:170px}
+    .hand{right:12px;bottom:18px}
+    .ccard{width:62px;height:90px;margin-left:-11px;padding:6px}
+    .ccard .ccost{width:17px;height:17px;font-size:10px}
+    .ccard .cicon{font-size:18px;margin-top:14px}
+    .ccard .cname{font-size:9px}
+    .cover-caption{bottom:140px}
+    .stage-floor{bottom:140px}
+    .boss-dmg{top:80px;right:20px}
+    .player-dmg{top:170px;left:40px;bottom:auto}
+  }
   .modal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:20px}
   .modal.show{display:flex}
   .modal-box{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;max-width:min(92vw,760px);width:100%;display:flex;flex-direction:column;gap:12px;max-height:92vh;overflow:auto}
@@ -160,10 +222,48 @@
 </head>
 <body>
 <div class="bg" id="bg"></div>
+<div id="coverView">
+  <div class="cover-inner">
+    <div class="cover-left">
+      <div class="cover-brand">O N E L I N E .</div>
+      <h1 class="cover-title">打工人<br><span>求生指南</span></h1>
+      <p class="cover-sub">抽牌，出牌，活着下班。</p>
+      <button class="cover-cta" id="enterApp">开始上班 <span>→</span></button>
+      <div class="cover-hint">免费游玩 · 无需注册 · 一局 10 分钟</div>
+    </div>
+    <div class="cover-stage">
+      <div class="boss-zone" id="coverBoss">
+        <div class="boss-avatar">👔</div>
+        <div class="boss-info">
+          <div class="boss-name"><span>老板</span><span class="boss-level">Lv.99</span></div>
+          <div class="hpbar boss-hp"><i id="coverBossFill" style="width:64%"></i></div>
+          <div class="intent" id="coverIntent">意图：加需求 12</div>
+        </div>
+      </div>
+      <div class="stage-floor"></div>
+      <div class="cover-caption">抽牌 · 看意图 · 出牌 · 活着下班</div>
+      <div class="player-zone" id="coverPlayer">
+        <div class="player-head"><span class="player-avatar">🧑‍💻</span><span>精神值 <b id="coverPlayerText">70/70</b></span></div>
+        <div class="hpbar player-hp"><i id="coverPlayerFill" style="width:100%"></i></div>
+        <div class="energy"><b></b><b></b><b></b></div>
+      </div>
+      <div class="hand">
+        <div class="ccard" style="--r:-20deg;--y:8px"><span class="ccost">1</span><div class="cicon">🐟</div><div class="cname">摸鱼</div></div>
+        <div class="ccard" style="--r:-10deg;--y:0"><span class="ccost">1</span><div class="cicon">🗣️</div><div class="cname">嘴替出击</div></div>
+        <div class="ccard" id="coverPlayCard" style="--r:0deg;--y:-6px"><span class="ccost">2</span><div class="cicon">🤯</div><div class="cname">发疯</div></div>
+        <div class="ccard" style="--r:10deg;--y:0"><span class="ccost">1</span><div class="cicon">🌬️</div><div class="cname">深呼吸</div></div>
+        <div class="ccard" style="--r:20deg;--y:8px"><span class="ccost">0</span><div class="cicon">☕</div><div class="cname">咖啡续命</div></div>
+      </div>
+      <div class="float-dmg boss-dmg" id="coverDmgBoss">-14</div>
+      <div class="float-dmg player-dmg" id="coverDmgPlayer">-12</div>
+    </div>
+  </div>
+</div>
+<div id="appView" style="display:none">
 <div class="wrap">
   <header>
     <div class="logo">oneline<em>.</em></div>
-    <div class="tag">金句卡片工坊 · 单张导出 · 批量打包 · 小红书 / 朋友圈规格</div>
+    <div class="tag" style="display:flex;align-items:center;gap:10px">金句卡片工坊 · 单张导出 · 批量打包 · 小红书 / 朋友圈规格 <button class="btn sm" id="backCover">← 封面</button></div>
   </header>
 
   <div class="layout">
@@ -276,6 +376,7 @@
       </div>
     </div>
   </div>
+</div>
 </div>
 <div class="modal" id="gameModal">
   <div class="modal-box game-box">
@@ -485,6 +586,10 @@ const CATS=["全部","搞钱","成长","生活","职场","早安","晚安","情�
 
 const $=id=>document.getElementById(id);
 const els={
+  enterApp:$("enterApp"),backCover:$("backCover"),coverView:$("coverView"),appView:$("appView"),
+  coverBoss:$("coverBoss"),coverPlayer:$("coverPlayer"),coverBossFill:$("coverBossFill"),
+  coverPlayerFill:$("coverPlayerFill"),coverDmgBoss:$("coverDmgBoss"),coverDmgPlayer:$("coverDmgPlayer"),
+  coverPlayCard:$("coverPlayCard"),coverIntent:$("coverIntent"),
   chips:$("chips"),swatches:$("swatches"),quote:$("quote"),author:$("author"),randomBtn:$("randomBtn"),
   showDate:$("showDate"),fontSel:$("fontSel"),sizeRange:$("sizeRange"),sizeVal:$("sizeVal"),
   lsRange:$("lsRange"),lsVal:$("lsVal"),lhRange:$("lhRange"),lhVal:$("lhVal"),
@@ -1449,7 +1554,56 @@ function loadImageFile(file,done){
   fr.readAsDataURL(file);
 }
 
+let coverTimer=null,coverGen=0;
+function stopCoverLoop(){
+  coverGen++;
+  if(coverTimer){clearTimeout(coverTimer);coverTimer=null;}
+}
+function startCoverLoop(){
+  stopCoverLoop();
+  const gen=coverGen;
+  const step=(fn,ms)=>setTimeout(()=>{if(gen===coverGen)fn();},ms);
+  function reset(){
+    els.coverBossFill.style.width="64%";
+    els.coverPlayerFill.style.width="100%";
+    els.coverPlayCard.classList.remove("playing");
+    els.coverDmgBoss.classList.remove("show");
+    els.coverDmgPlayer.classList.remove("show");
+    els.coverBoss.classList.remove("hit");
+    els.coverPlayer.classList.remove("hit");
+    els.coverIntent.classList.remove("danger");
+  }
+  function loop(){
+    if(gen!==coverGen)return;
+    reset();
+    step(()=>els.coverPlayCard.classList.add("playing"),700);
+    step(()=>{els.coverDmgBoss.classList.add("show");els.coverBoss.classList.add("hit");els.coverBossFill.style.width="36%";},1300);
+    step(()=>els.coverBoss.classList.remove("hit"),1750);
+    step(()=>{els.coverDmgPlayer.classList.add("show");els.coverPlayer.classList.add("hit");els.coverPlayerFill.style.width="78%";els.coverIntent.classList.add("danger");},2450);
+    step(()=>els.coverPlayer.classList.remove("hit"),2900);
+    step(()=>{els.coverDmgBoss.classList.remove("show");els.coverDmgPlayer.classList.remove("show");els.coverIntent.classList.remove("danger");},3300);
+    coverTimer=setTimeout(loop,4400);
+  }
+  loop();
+}
+function showCover(){
+  els.coverView.style.display="flex";
+  els.appView.style.display="none";
+  startCoverLoop();
+  try{history.replaceState(null,"","#cover");}catch(e){}
+}
+function showApp(){
+  stopCoverLoop();
+  els.coverView.style.display="none";
+  els.appView.style.display="block";
+  try{history.replaceState(null,"","#play");}catch(e){}
+  render();
+}
+
 els.randomBtn.onclick=pickQuote;
+els.enterApp.onclick=showApp;
+els.backCover.onclick=showCover;
+window.addEventListener("hashchange",()=>{if(location.hash==="#play")showApp();else if(location.hash==="#cover")showCover();});
 els.exportBtn.onclick=exportPNG;
 els.copyBtn.onclick=copyPNG;
 els.dailyBtn.onclick=dailySign;
@@ -1520,6 +1674,8 @@ try{
     const arr=[...dr].slice(0,8).map(Number).filter(n=>n>=0&&n<=3);
     if(arr.length===8){diagState={answers:arr,index:8};els.diagName.value=q.get("name")||"";finishDiag();els.diagModal.classList.add("show");}
   }
+  const direct=location.hash==="#play"||["daily","diag","diagq","diagresult","game","gamebattle","gameend","app"].some(k=>q.has(k));
+  if(direct)showApp();else showCover();
 }catch(e){}
 
 (function makeStars(){
