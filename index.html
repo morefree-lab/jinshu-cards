@@ -267,6 +267,19 @@
   .game-card.skill{border-color:rgba(110,198,255,.35);background:linear-gradient(180deg,#1f2e44,#141a26)}
   .board-bottom{display:flex;justify-content:center;padding-top:2px;position:relative;z-index:5}
   .game-rewards{display:flex;gap:10px;overflow-x:auto;padding:4px 0}
+  .portrait-slot{overflow:hidden;padding:0!important;background:transparent!important}
+  .portrait-slot svg{width:100%;height:100%;display:block}
+  .enemy-portrait svg,.player-portrait svg{animation:breathe 3.4s ease-in-out infinite;transform-origin:50% 80%}
+  @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+  .speech{position:absolute;max-width:230px;font-size:12px;line-height:1.5;padding:10px 12px;border-radius:12px;background:rgba(18,22,32,.96);border:1px solid rgba(255,255,255,.16);color:#fff;z-index:18;opacity:0;transform:translateY(6px) scale(.96);transition:.22s;pointer-events:none}
+  .speech.show{opacity:1;transform:translateY(0) scale(1)}
+  .speech::after{content:"";position:absolute;width:10px;height:10px;background:inherit;border-right:1px solid rgba(255,255,255,.16);border-bottom:1px solid rgba(255,255,255,.16);transform:rotate(45deg)}
+  .speech.player{left:200px;bottom:210px;border-color:rgba(110,198,255,.35)}
+  .speech.player::after{left:-6px;bottom:14px;transform:rotate(135deg)}
+  .speech.enemy{right:64px;top:104px;border-color:rgba(255,138,92,.35)}
+  .speech.enemy::after{right:-6px;bottom:14px;transform:rotate(-45deg)}
+  .hurt-flash{position:absolute;inset:0;background:radial-gradient(circle,rgba(255,60,80,.32),transparent 70%);opacity:0;pointer-events:none;z-index:12;transition:.12s}
+  .hurt-flash.on{opacity:1}
   #gameEndCanvas{display:block;margin:0 auto;max-width:100%;max-height:60vh;width:auto;height:auto;border-radius:12px}
 </style>
 </head>
@@ -283,7 +296,7 @@
     </div>
     <div class="cover-stage">
       <div class="boss-zone" id="coverBoss">
-        <div class="boss-avatar">👔</div>
+        <div class="boss-avatar portrait-slot" data-portrait="boss">👔</div>
         <div class="boss-info">
           <div class="boss-name"><span>老板</span><span class="boss-level">Lv.99</span></div>
           <div class="hpbar boss-hp"><i id="coverBossFill" style="width:64%"></i></div>
@@ -293,7 +306,7 @@
       <div class="stage-floor"></div>
       <div class="cover-caption">抽牌 · 看意图 · 出牌 · 活着下班</div>
       <div class="player-zone" id="coverPlayer">
-        <div class="player-head"><span class="player-avatar">🧑‍💻</span><span>精神值 <b id="coverPlayerText">70/70</b></span></div>
+        <div class="player-head"><span class="player-avatar portrait-slot" data-portrait="player">🧑‍💻</span><span>精神值 <b id="coverPlayerText">70/70</b></span></div>
         <div class="hpbar player-hp"><i id="coverPlayerFill" style="width:100%"></i></div>
         <div class="energy"><b></b><b></b><b></b></div>
       </div>
@@ -470,8 +483,11 @@
       <div class="game-board">
         <div class="turn-banner" id="gTurnBanner">你的回合</div>
         <div class="float-layer" id="gFloatLayer"></div>
+        <div class="speech player" id="gPlayerBubble"></div>
+        <div class="speech enemy" id="gEnemyBubble"></div>
+        <div class="hurt-flash" id="gHurtFlash"></div>
         <div class="enemy-hud">
-          <div class="enemy-portrait" id="gEnemyPortrait">👔</div>
+          <div class="enemy-portrait portrait-slot" id="gEnemyPortrait" data-portrait="boss">👔</div>
           <div class="enemy-meta">
             <div class="enemy-name"><span id="gEnemyName">老板</span><span class="enemy-level">Lv.99</span></div>
             <div class="game-hp"><i id="gEnemyHpFill" style="width:100%"></i><span id="gEnemyHp">40/40</span></div>
@@ -480,7 +496,7 @@
         </div>
         <div class="battle-log" id="gLog"></div>
         <div class="player-hud">
-          <div class="player-portrait">🧑‍💻</div>
+          <div class="player-portrait portrait-slot" data-portrait="player">🧑‍💻</div>
           <div class="player-meta">
             <div class="player-line"><span>精神值 <b id="gHp">70/70</b></span><span>护盾 <b id="gBlock">0</b></span><span>存款 <b id="gCoins">0</b></span></div>
             <div class="game-hp player"><i id="gPlayerHpFill" style="width:100%"></i></div>
@@ -696,6 +712,7 @@ const els={
   gEnemyName:$("gEnemyName"),gEnemyHp:$("gEnemyHp"),gIntent:$("gIntent"),gLog:$("gLog"),gHand:$("gHand"),
   gEnemyPortrait:$("gEnemyPortrait"),gEnemyHpFill:$("gEnemyHpFill"),gPlayerHpFill:$("gPlayerHpFill"),
   gTurnBanner:$("gTurnBanner"),gFloatLayer:$("gFloatLayer"),gEnergyGems:$("gEnergyGems"),
+  gPlayerBubble:$("gPlayerBubble"),gEnemyBubble:$("gEnemyBubble"),gHurtFlash:$("gHurtFlash"),
   gEndTurn:$("gEndTurn"),gameReward:$("gameReward"),gRewards:$("gRewards"),gSkip:$("gSkip"),
   gameEnd:$("gameEnd"),gameEndCanvas:$("gameEndCanvas"),gameAgain:$("gameAgain"),gameSave:$("gameSave")
 };
@@ -806,10 +823,89 @@ const GAME_CARDS=[
 ];
 const GAME_START_DECK=["c1","c1","c1","c1","c8","c8","c9","c3","c2","c12"];
 const GAME_ENEMIES=[
-  {name:"老板",emoji:"👔",hp:40,intents:["attack:8","buff:2","attack:12","attack:10"],flavor:"画饼中……"},
-  {name:"甲方",emoji:"📋",hp:50,intents:["attack:9","attack:13","attack:7","attack:11"],flavor:"再改一版……"},
-  {name:"亲戚",emoji:"🧧",hp:60,intents:["attack:7","heal:6","attack:12","attack:10"],flavor:"怎么还不结婚……"}
+  {name:"老板",emoji:"👔",tie:"#c0392b",hp:40,intents:["attack:8","buff:2","attack:12","attack:10"],flavor:"画饼中……"},
+  {name:"甲方",emoji:"📋",tie:"#3b6ea5",hp:50,intents:["attack:9","attack:13","attack:7","attack:11"],flavor:"再改一版……"},
+  {name:"亲戚",emoji:"🧧",tie:"#d9a441",hp:60,intents:["attack:7","heal:6","attack:12","attack:10"],flavor:"怎么还不结婚……"}
 ];
+
+const BOSS_SVG=`<svg viewBox="0 0 200 200" class="portrait-svg" aria-hidden="true">
+<defs>
+<radialGradient id="bossBg" cx="50%" cy="30%" r="75%"><stop offset="0%" stop-color="#5a2436"/><stop offset="100%" stop-color="#160e1c"/></radialGradient>
+<linearGradient id="bossSuit" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2b2b36"/><stop offset="100%" stop-color="#101016"/></linearGradient>
+</defs>
+<rect width="200" height="200" fill="url(#bossBg)"/>
+<path d="M34 200 Q40 152 72 140 L100 132 L128 140 Q160 152 166 200 Z" fill="url(#bossSuit)"/>
+<path d="M78 136 L100 154 L122 136 L116 200 L84 200 Z" fill="#f1eee6"/>
+<path d="M96 150 L104 150 L109 168 L100 192 L91 168 Z" fill="var(--tie,#c0392b)"/>
+<rect x="89" y="112" width="22" height="26" rx="9" fill="#d8a078"/>
+<path d="M61 74 Q61 42 100 40 Q139 42 139 74 L137 98 Q133 126 100 132 Q67 126 63 98 Z" fill="#f0c39b"/>
+<ellipse cx="60" cy="92" rx="7" ry="11" fill="#dfa77d"/><ellipse cx="140" cy="92" rx="7" ry="11" fill="#dfa77d"/>
+<path d="M57 78 Q50 38 100 30 Q150 38 143 78 Q133 54 100 50 Q67 54 57 78 Z" fill="#17141a"/>
+<path d="M62 58 Q84 40 118 44 Q140 48 144 64 Q124 52 100 52 Q78 52 62 58 Z" fill="#2b2430" opacity=".75"/>
+<path d="M74 76 L92 72" stroke="#17141a" stroke-width="4" stroke-linecap="round"/>
+<path d="M108 72 L126 76" stroke="#17141a" stroke-width="4" stroke-linecap="round"/>
+<g fill="none" stroke="#d9b45a" stroke-width="2.4"><rect x="70" y="80" width="26" height="17" rx="6"/><rect x="104" y="80" width="26" height="17" rx="6"/><path d="M96 88 L104 88"/><path d="M70 86 L61 84"/><path d="M130 86 L139 84"/></g>
+<ellipse cx="83" cy="89" rx="4" ry="3" fill="#351b1b"/><ellipse cx="117" cy="89" rx="4" ry="3" fill="#351b1b"/>
+<circle cx="84.5" cy="88" r="1.1" fill="#fff"/><circle cx="118.5" cy="88" r="1.1" fill="#fff"/>
+<path d="M100 92 L98 103 L103 103" fill="none" stroke="#c98a63" stroke-width="2" stroke-linecap="round"/>
+<path d="M88 111 Q100 119 116 108" fill="none" stroke="#7a3b35" stroke-width="3" stroke-linecap="round"/>
+<path d="M64 101 Q74 113 87 115" fill="none" stroke="#d79b73" stroke-width="3" opacity=".55"/>
+</svg>`;
+
+const PLAYER_SVG=`<svg viewBox="0 0 200 200" class="portrait-svg" aria-hidden="true">
+<defs>
+<radialGradient id="playerBg" cx="50%" cy="30%" r="75%"><stop offset="0%" stop-color="#21475a"/><stop offset="100%" stop-color="#0c1620"/></radialGradient>
+<linearGradient id="hoodie" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2e4d68"/><stop offset="100%" stop-color="#152130"/></linearGradient>
+</defs>
+<rect width="200" height="200" fill="url(#playerBg)"/>
+<path d="M34 200 Q40 152 72 140 L100 132 L128 140 Q160 152 166 200 Z" fill="url(#hoodie)"/>
+<path d="M72 140 Q100 162 128 140 Q124 172 100 178 Q76 172 72 140 Z" fill="#22384f"/>
+<path d="M88 160 L84 190" stroke="#9fc7e0" stroke-width="3" stroke-linecap="round"/><path d="M112 160 L116 190" stroke="#9fc7e0" stroke-width="3" stroke-linecap="round"/>
+<rect x="89" y="112" width="22" height="26" rx="9" fill="#e7b38c"/>
+<path d="M60 74 Q60 42 100 40 Q140 42 140 74 L138 100 Q134 128 100 134 Q66 128 62 100 Z" fill="#f3c9a4"/>
+<ellipse cx="60" cy="92" rx="7" ry="11" fill="#e3aa81"/><ellipse cx="140" cy="92" rx="7" ry="11" fill="#e3aa81"/>
+<path d="M55 82 Q46 34 100 30 Q154 34 145 82 Q137 58 118 50 Q112 66 100 50 Q86 66 78 50 Q62 60 55 82 Z" fill="#241c26"/>
+<path d="M66 62 Q84 42 106 46 Q128 48 141 66 Q120 54 100 54 Q80 54 66 62 Z" fill="#3a2c3c" opacity=".75"/>
+<path d="M74 79 Q84 75 92 79" fill="none" stroke="#241c26" stroke-width="3" stroke-linecap="round"/><path d="M108 79 Q116 75 126 79" fill="none" stroke="#241c26" stroke-width="3" stroke-linecap="round"/>
+<ellipse cx="82" cy="93" rx="6" ry="7" fill="#2a1d22"/><ellipse cx="118" cy="93" rx="6" ry="7" fill="#2a1d22"/>
+<circle cx="84" cy="91" r="1.8" fill="#fff"/><circle cx="120" cy="91" r="1.8" fill="#fff"/>
+<path d="M76 103 Q82 106 88 103" fill="none" stroke="#b06a7a" stroke-width="2" opacity=".5"/><path d="M112 103 Q118 106 124 103" fill="none" stroke="#b06a7a" stroke-width="2" opacity=".5"/>
+<ellipse cx="71" cy="107" rx="7" ry="3.5" fill="#e88a9a" opacity=".4"/><ellipse cx="129" cy="107" rx="7" ry="3.5" fill="#e88a9a" opacity=".4"/>
+<path d="M92 119 Q100 115 108 119" fill="none" stroke="#8a4a4a" stroke-width="3" stroke-linecap="round"/>
+<g transform="translate(138,158)"><rect width="24" height="28" rx="4" fill="#f2ead8"/><path d="M24 7 Q35 7 35 17 Q35 25 24 25" fill="none" stroke="#f2ead8" stroke-width="4"/><rect width="24" height="6" fill="#c0392b"/></g>
+</svg>`;
+
+document.querySelectorAll(".portrait-slot").forEach(el=>{
+  el.innerHTML=el.dataset.portrait==="boss"?BOSS_SVG:PLAYER_SVG;
+});
+
+const CARD_LINES={
+  c1:"这锅，我不背。",
+  c2:"您说得都对，但我就是不听。",
+  c3:"这活儿，真不归我。",
+  c4:"谁也别拦我，我今天就要发疯！",
+  c5:"世界那么大，我想去看看。",
+  c6:"已读，不回，勿扰。",
+  c7:"这饼，我先给您画回去。",
+  c8:"带薪摸鱼，天经地义。",
+  c9:"再撑一下，咖啡还没凉。",
+  c10:"带薪如厕，人生高光。",
+  c11:"功德+1，烦恼-1。",
+  c12:"吸气，呼气，别跟钱过不去。",
+  c13:"我已经死了，有事烧纸。",
+  c14:"您这格局，确实需要打开。",
+  c15:"充会儿电，再战。",
+  c16:"钱要存，班要上，人要疯。",
+  c17:"只要我摸得够久，工作就追不上我。",
+  c18:"精神状态良好，只是有点想死。",
+  c19:"别说了，我破防了。",
+  c20:"工资照拿，鱼照摸。"
+};
+const ENEMY_LINES={
+  "老板":{attack:"这个需求，今天必须上线。",buff:"年轻人，要有格局。",heal:"公司不会亏待你的。",stun:"？？？"},
+  "甲方":{attack:"再改一版，马上就好。",buff:"感觉不对，再找找。",heal:"预算还没批下来。",stun:"你先等等。"},
+  "亲戚":{attack:"怎么还不结婚？",buff:"我都是为你好。",heal:"你看别人家孩子。",stun:"哎呀，我不说了。"}
+};
 
 function dateKey(){
   const n=new Date();const p=x=>String(x).padStart(2,"0");
@@ -1397,7 +1493,7 @@ function startGame(){
 }
 function startBattle(){
   const base=GAME_ENEMIES[G.encounter];
-  G.enemy={name:base.name,emoji:base.emoji,hp:base.hp,maxHp:base.hp,strength:0,weak:0,vulnerable:0,stun:0,intentIndex:0,intents:base.intents.slice(),flavor:base.flavor};
+  G.enemy={name:base.name,emoji:base.emoji,tie:base.tie,hp:base.hp,maxHp:base.hp,strength:0,weak:0,vulnerable:0,stun:0,intentIndex:0,intents:base.intents.slice(),flavor:base.flavor};
   G.hand=[];G.draw=shuffleArr(G.deck.slice());G.discard=[];G.turn=1;
   G.player.block=0;G.player.energy=G.player.maxEnergy;G.running=true;G.busy=false;
   logGame(`遭遇「${G.enemy.name}」：${G.enemy.flavor}`);
@@ -1439,6 +1535,14 @@ function showTurnBanner(text){
   b.classList.add("show");
   setTimeout(()=>b.classList.remove("show"),1100);
 }
+function showBubble(side,text){
+  const el=side==="player"?els.gPlayerBubble:els.gEnemyBubble;
+  if(!el)return;
+  el.textContent=text;
+  el.classList.add("show");
+  clearTimeout(el._bubbleTimer);
+  el._bubbleTimer=setTimeout(()=>el.classList.remove("show"),1800);
+}
 function intentLabel(e){
   const it=e.intents[e.intentIndex],parts=it.split(":"),t=parts[0],v=+parts[1];
   if(t==="attack")return `攻击 ${v+e.strength}`;
@@ -1455,7 +1559,7 @@ function renderGame(){
   els.gEnemyHp.textContent=`${Math.max(0,G.enemy.hp)}/${G.enemy.maxHp}`;
   els.gEnemyHpFill.style.width=`${Math.max(0,G.enemy.hp)/G.enemy.maxHp*100}%`;
   els.gPlayerHpFill.style.width=`${Math.max(0,G.player.hp)/G.player.maxHp*100}%`;
-  els.gEnemyPortrait.textContent=G.enemy.emoji;
+  els.gEnemyPortrait.style.setProperty("--tie",G.enemy.tie||"#c0392b");
   els.gIntent.textContent="意图："+intentLabel(G.enemy);
   if(els.gEnergyGems){
     els.gEnergyGems.innerHTML="";
@@ -1498,6 +1602,7 @@ function resolveCard(i){
   G.hand.splice(i,1);
   G.discard.push(card);
   logGame(`打出「${card.name}」`);
+  showBubble("player",CARD_LINES[card.id]||"……");
   if(card.dmg){
     let d=card.dmg;
     if(card.execute&&G.enemy.hp<G.enemy.maxHp/2)d+=card.execute;
@@ -1518,7 +1623,7 @@ function resolveCard(i){
 }
 function enemyAct(){
   const e=G.enemy;
-  if(e.stun>0){e.stun--;logGame(`${e.name} 被「已读不回」，跳过了回合`);return;}
+  if(e.stun>0){e.stun--;logGame(`${e.name} 被「已读不回」，跳过了回合`);showBubble("enemy",ENEMY_LINES[e.name]?.stun||"？？？");return;}
   const it=e.intents[e.intentIndex],parts=it.split(":"),t=parts[0],n=+parts[1];
   if(t==="attack"){
     els.gEnemyPortrait.classList.add("attacking");
@@ -1531,8 +1636,11 @@ function enemyAct(){
     G.player.hp-=dmg;
     logGame(`${e.name} 攻击 ${d}，护盾挡下 ${blocked}，你受到 ${dmg} 点伤害`);
     floatGameText(`-${dmg}`,"#ff8a5c","player");
-  }else if(t==="buff"){e.strength+=n;logGame(`${e.name} 加攻 +${n}`);}
-  else if(t==="heal"){e.hp=Math.min(e.maxHp,e.hp+n);logGame(`${e.name} 回复 ${n} 点`);}
+    showBubble("enemy",ENEMY_LINES[e.name]?.attack||"……");
+    els.gHurtFlash.classList.add("on");
+    setTimeout(()=>els.gHurtFlash.classList.remove("on"),180);
+  }else if(t==="buff"){e.strength+=n;logGame(`${e.name} 加攻 +${n}`);showBubble("enemy",ENEMY_LINES[e.name]?.buff||"……");}
+  else if(t==="heal"){e.hp=Math.min(e.maxHp,e.hp+n);logGame(`${e.name} 回复 ${n} 点`);showBubble("enemy",ENEMY_LINES[e.name]?.heal||"……");}
   e.intentIndex=(e.intentIndex+1)%e.intents.length;
 }
 function endTurn(){
@@ -1812,6 +1920,7 @@ try{
   if(q.get("diagq")==="1"){openDiag();startDiag();}
   if(q.get("game")==="1"){openGame();}
   if(q.get("gamebattle")==="1"){openGame();startGame();}
+  if(q.get("gamebubble")==="1"){openGame();startGame();setTimeout(()=>showBubble("player","谁也别拦我，我今天就要发疯！"),300);setTimeout(()=>showBubble("enemy","这个需求，今天必须上线。"),900);}
   if(q.get("gameend")==="1"){openGame();G.player={hp:32,maxHp:70,energy:3,maxEnergy:3,block:0,coins:42};G.encounter=3;G.turn=8;showEnding(false);}
   const dr=q.get("diagresult");
   if(dr&&dr.length>=8){
