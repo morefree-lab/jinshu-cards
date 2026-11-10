@@ -81,12 +81,25 @@
   .swatch span{font-size:10px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.65)}
   .swatch.light span{color:#3a3a3a;text-shadow:0 1px 2px rgba(255,255,255,.7)}
   .swatch.on{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,138,92,.22)}
+  .swatch.locked{opacity:.42}
+  .swatch.locked::after{content:"PRO";position:absolute;top:4px;right:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px}
   .slider-row{display:grid;grid-template-columns:64px 1fr 40px;align-items:center;gap:10px;margin-bottom:10px}
   .slider-row label{font-size:13px;color:var(--muted)}
   .slider-row output{font-size:13px;color:var(--text);text-align:right;font-variant-numeric:tabular-nums}
   input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer}
   .check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer}
   .check input{accent-color:var(--accent);width:16px;height:16px}
+  .probar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+    background:linear-gradient(90deg,rgba(255,138,92,.12),rgba(255,92,138,.10));border:1px solid rgba(255,138,92,.28);
+    border-radius:12px;padding:12px;margin-bottom:14px}
+  .protitle{font-size:15px;font-weight:700}
+  .protitle.on{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .prodesc{font-size:11px;color:var(--muted);margin-top:2px}
+  .coderow{display:flex;gap:6px;width:100%;margin-top:8px}
+  .coderow input{flex:1;font-size:12px}
+  .buylink{display:inline-block;margin-top:8px;text-decoration:none}
+  .promsg{font-size:12px;color:var(--muted);min-height:16px;margin:-6px 0 12px}
+  .promsg.ok{color:#7ce0a8}
   .filehint{font-size:11px;color:#70788c;line-height:1.5;margin-top:6px}
   details{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:4px}
   summary{cursor:pointer;font-size:13px;color:var(--muted);font-weight:600}
@@ -113,6 +126,21 @@
 
   <div class="layout">
     <div class="panel">
+      <div class="probar">
+        <div>
+          <div class="protitle" id="proTitle">免费版</div>
+          <div class="prodesc" id="proDesc">解锁全部 22 套主题 · 批量打包 · 去水印 · 自定义二维码</div>
+        </div>
+        <div style="flex:1;min-width:180px">
+          <div class="coderow">
+            <input type="text" id="codeInput" placeholder="输入激活码，如 ONL-XXXX-XXXX">
+            <button class="btn primary sm" id="activateBtn">激活</button>
+          </div>
+          <a class="btn sm buylink" id="buyBtn" target="_blank" rel="noopener">去购买激活码</a>
+        </div>
+      </div>
+      <div class="promsg" id="proMsg"></div>
+
       <h2>内容</h2>
       <div class="field"><div class="chips" id="chips"></div></div>
       <div class="field"><textarea id="quote" rows="3" placeholder="写一句你想说的话，或点「换一句」"></textarea></div>
@@ -344,7 +372,8 @@ const els={
   wmText:$("wmText"),wmOn:$("wmOn"),wmPos:$("wmPos"),wmFile:$("wmFile"),wmClear:$("wmClear"),
   exportBtn:$("exportBtn"),copyBtn:$("copyBtn"),batchText:$("batchText"),fillQuotesBtn:$("fillQuotesBtn"),
   batchBtn:$("batchBtn"),batchMsg:$("batchMsg"),canvas:$("preview"),
-  aiBase:$("aiBase"),aiKey:$("aiKey"),aiModel:$("aiModel"),aiPrompt:$("aiPrompt"),aiBtn:$("aiBtn"),aiMsg:$("aiMsg")
+  aiBase:$("aiBase"),aiKey:$("aiKey"),aiModel:$("aiModel"),aiPrompt:$("aiPrompt"),aiBtn:$("aiBtn"),aiMsg:$("aiMsg"),
+  codeInput:$("codeInput"),activateBtn:$("activateBtn"),buyBtn:$("buyBtn"),proTitle:$("proTitle"),proDesc:$("proDesc"),proMsg:$("proMsg")
 };
 
 const state={cat:"全部",theme:0,font:"yahei",size:64,ls:0,lh:1.62,align:"center",vertical:false,showDate:true,wmOn:true,wmPos:"br",wmImage:null,bgImage:null};
@@ -352,6 +381,22 @@ let toastTimer=null;
 
 function flash(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),1800);}
 function hexA(hex,a){const n=parseInt(hex.slice(1),16);return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;}
+
+const PURCHASE_URL="";
+const FREE_THEME_COUNT=6;
+const CODE_CHARSET="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const SECRET="ONELINE2026_7F3A9C1B";
+function fnv1a(str){let h=0x811c9dc5;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0;}return h>>>0;}
+function codeSig(id){const a=fnv1a(SECRET+id);const b=fnv1a(SECRET+id+":"+a.toString(16));let n=b>>>0,s="";for(let i=0;i<6;i++){s=CODE_CHARSET[n%32]+s;n=Math.floor(n/32);}return s;}
+function verifyCode(raw){const c=(raw||"").trim().toUpperCase().replace(/\s+/g,"");const m=c.match(/^ONL-([A-Z2-9]{8})-([A-Z2-9]{6})$/);if(!m)return false;return codeSig(m[1])===m[2];}
+function isPro(){try{return localStorage.getItem("oneline_pro")==="1";}catch(e){return false;}}
+function setPro(v){try{localStorage.setItem("oneline_pro",v?"1":"0");}catch(e){}}
+function setProMsg(msg,ok){els.proMsg.textContent=msg;els.proMsg.className="promsg"+(ok?" ok":"");}
+function promptUpgrade(msg){
+  setProMsg(msg||"这是 Pro 功能，升级后解锁");
+  els.codeInput.focus();
+  document.querySelector(".probar").scrollIntoView({behavior:"smooth",block:"center"});
+}
 
 function setFont(ctx,key,size,bold){
   const base=FONTS[key]||FONTS.yahei;
@@ -533,8 +578,11 @@ function buildRenderOpts(textOverride,authorOverride){
     author:authorOverride!==undefined?authorOverride:els.author.value.trim(),
     theme:THEMES[state.theme],font:state.font,size:state.size,ls:state.ls,lh:state.lh,
     align:state.align,vertical:state.vertical,showDate:state.showDate,cat:state.cat,
-    wmText:els.wmText.value.trim(),wmOn:state.wmOn,wmPos:state.wmPos,
-    wmImage:state.wmImage,bgImage:state.bgImage
+    wmText:isPro()?els.wmText.value.trim():"oneline.",
+    wmOn:isPro()?state.wmOn:true,
+    wmPos:state.wmPos,
+    wmImage:isPro()?state.wmImage:null,
+    bgImage:isPro()?state.bgImage:null
   };
 }
 
@@ -572,11 +620,12 @@ function swatchBG(t){
 function buildSwatches(){
   els.swatches.innerHTML="";
   THEMES.forEach((t,i)=>{
+    const locked=i>=FREE_THEME_COUNT&&!isPro();
     const el=document.createElement("div");
-    el.className="swatch"+(i===state.theme?" on":"")+(t.dark?"":" light");
+    el.className="swatch"+(i===state.theme?" on":"")+(t.dark?"":" light")+(locked?" locked":"");
     el.style.background=swatchBG(t);
-    el.innerHTML=`<span>${t.name}</span>`;
-    el.onclick=()=>applyTheme(i);
+    el.innerHTML=`<span>${locked?"🔒 "+t.name:t.name}</span>`;
+    el.onclick=()=>{if(locked){promptUpgrade("「"+t.name+"」是 Pro 主题，升级后解锁全部 22 套");return;}applyTheme(i);};
     els.swatches.appendChild(el);
   });
 }
@@ -596,6 +645,24 @@ function syncControls(){
   els.lhRange.value=state.lh;els.lhVal.textContent=state.lh;
   els.verticalToggle.checked=state.vertical;
   [...els.alignSeg.querySelectorAll(".btn")].forEach(b=>b.classList.toggle("on",b.dataset.a===state.align));
+}
+
+function refreshLockUI(){
+  const pro=isPro();
+  els.proTitle.textContent=pro?"Pro 已解锁":"免费版";
+  els.proTitle.classList.toggle("on",pro);
+  els.proDesc.textContent=pro?"全部功能已开放，感谢支持":"解锁全部 22 套主题 · 批量打包 · 去水印 · 自定义二维码";
+  els.codeInput.style.display=pro?"none":"";
+  els.activateBtn.style.display=pro?"none":"";
+  els.buyBtn.style.display=pro?"none":"";
+  els.buyBtn.textContent=PURCHASE_URL?"去购买激活码":"购买链接待配置";
+  els.wmOn.disabled=!pro;
+  els.wmText.disabled=!pro;
+  els.wmFile.disabled=!pro;
+  els.wmClear.disabled=!pro;
+  els.bgFile.disabled=!pro;
+  els.bgClear.disabled=!pro;
+  if(!pro){els.wmOn.checked=true;}
 }
 
 function exportPNG(){
@@ -649,6 +716,7 @@ function buildZip(entries){
 }
 
 async function batchGenerate(){
+  if(!isPro()){promptUpgrade("批量生成是 Pro 功能，升级后一次生成整套卡片并打包下载");return;}
   const lines=els.batchText.value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
   if(!lines.length){els.batchMsg.textContent="请先在文本框里粘贴文案（每行一句）";return;}
   if(lines.length>200){els.batchMsg.textContent="一次最多 200 句，请分批";return;}
@@ -704,12 +772,25 @@ els.copyBtn.onclick=copyPNG;
 els.batchBtn.onclick=batchGenerate;
 els.fillQuotesBtn.onclick=()=>{els.batchText.value=QUOTES.map(q=>q.t).join("\n");els.batchMsg.textContent=`已填入 ${QUOTES.length} 句金句`;};
 els.aiBtn.onclick=aiGenerate;
+els.activateBtn.onclick=()=>{
+  const code=els.codeInput.value.trim();
+  if(!code){setProMsg("请输入激活码","");return;}
+  if(verifyCode(code)){setPro(true);refreshLockUI();buildSwatches();render();setProMsg("已解锁 Pro，感谢支持！","ok");flash("已解锁 Pro");}
+  else{setProMsg("激活码无效，请检查后重试","");}
+};
+els.buyBtn.onclick=()=>{
+  if(PURCHASE_URL){window.open(PURCHASE_URL,"_blank","noopener");}
+  else{setProMsg("购买链接暂未配置，请联系站长获取激活码","");}
+};
 
 els.quote.addEventListener("input",render);
 els.author.addEventListener("input",render);
 els.wmText.addEventListener("input",render);
 els.showDate.addEventListener("change",()=>{state.showDate=els.showDate.checked;render();});
-els.wmOn.addEventListener("change",()=>{state.wmOn=els.wmOn.checked;render();});
+els.wmOn.addEventListener("change",()=>{
+  if(!isPro()){els.wmOn.checked=true;promptUpgrade("去水印是 Pro 功能");return;}
+  state.wmOn=els.wmOn.checked;render();
+});
 els.wmPos.addEventListener("change",()=>{state.wmPos=els.wmPos.value;render();});
 els.verticalToggle.addEventListener("change",()=>{state.vertical=els.verticalToggle.checked;render();});
 els.fontSel.addEventListener("change",()=>{state.font=els.fontSel.value;render();});
@@ -723,7 +804,7 @@ els.wmFile.addEventListener("change",e=>{loadImageFile(e.target.files[0],img=>{s
 els.wmClear.onclick=()=>{state.wmImage=null;els.wmFile.value="";render();};
 
 els.quote.value=QUOTES[0].t;els.author.value=QUOTES[0].a;
-buildChips();buildSwatches();buildFontSel();syncControls();render();
+buildChips();buildSwatches();buildFontSel();syncControls();refreshLockUI();render();
 
 (function makeStars(){
   const bg=document.getElementById("bg");
