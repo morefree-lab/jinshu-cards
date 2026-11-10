@@ -143,6 +143,7 @@
   .mouth-tone{padding:16px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);cursor:pointer;font-size:15px}
   .mouth-tone:hover{border-color:var(--accent)}
   #mouthCanvas{width:100%;height:auto;border-radius:12px;background:#ededed}
+  #fortuneCanvas{width:100%;height:auto;border-radius:12px;background:#120a24}
 </style>
 </head>
 <body>
@@ -171,6 +172,7 @@
       <div class="promsg" id="proMsg"></div>
       <button class="btn primary block" id="diagBtn" style="margin-bottom:14px">🩺 测测你的精神状态</button>
       <button class="btn block" id="mouthBtn" style="margin-bottom:14px">💬 嘴替生成器</button>
+      <button class="btn block" id="fortuneBtn" style="margin-bottom:14px">🔮 赛博求签</button>
 
       <h2>内容</h2>
       <div class="field"><div class="chips" id="chips"></div></div>
@@ -265,6 +267,25 @@
         <div class="hintbar">1080 × 1440 · 3:4 · 导出即用</div>
         <div class="hintbar"><a class="afdian" href="https://afdian.com/a/onelinecards" target="_blank" rel="noopener">支持 oneline. · 爱发电主页</a></div>
       </div>
+    </div>
+  </div>
+</div>
+<div class="modal" id="fortuneModal">
+  <div class="modal-box">
+    <div class="modal-head"><span>🔮 赛博求签</span><button class="btn sm" id="fortuneClose">关闭</button></div>
+    <div class="diag-view" id="fortuneStart">
+      <div class="diag-big">今日欧气，抽一张</div>
+      <div class="diag-sub">每日首抽必出 SR 以上。<br>抽到的签会自动收进你的收集册。</div>
+      <button class="btn primary" id="fortuneDraw">抽一张</button>
+    </div>
+    <div class="diag-view" id="fortuneResult" style="display:none">
+      <canvas id="fortuneCanvas" width="1080" height="1440"></canvas>
+      <div class="modal-actions">
+        <button class="btn" id="fortuneAgain">再抽一次</button>
+        <button class="btn primary" id="fortuneSave">保存签卡</button>
+        <button class="btn" id="fortuneCopy">复制今日签</button>
+      </div>
+      <div class="filehint" id="fortuneHint" style="text-align:center"></div>
     </div>
   </div>
 </div>
@@ -489,7 +510,10 @@ const els={
   mouthBtn:$("mouthBtn"),mouthModal:$("mouthModal"),mouthClose:$("mouthClose"),mouthPick:$("mouthPick"),
   mouthScenarios:$("mouthScenarios"),mouthToneView:$("mouthToneView"),mouthCtx:$("mouthCtx"),mouthTones:$("mouthTones"),
   mouthResult:$("mouthResult"),mouthCanvas:$("mouthCanvas"),mouthBack:$("mouthBack"),mouthDownload:$("mouthDownload"),
-  mouthCopy:$("mouthCopy"),mouthHint:$("mouthHint")
+  mouthCopy:$("mouthCopy"),mouthHint:$("mouthHint"),
+  fortuneBtn:$("fortuneBtn"),fortuneModal:$("fortuneModal"),fortuneClose:$("fortuneClose"),fortuneStart:$("fortuneStart"),
+  fortuneDraw:$("fortuneDraw"),fortuneResult:$("fortuneResult"),fortuneCanvas:$("fortuneCanvas"),
+  fortuneAgain:$("fortuneAgain"),fortuneSave:$("fortuneSave"),fortuneCopy:$("fortuneCopy"),fortuneHint:$("fortuneHint")
 };
 
 const state={cat:"全部",theme:0,font:"yahei",size:64,ls:0,lh:1.62,align:"center",vertical:false,showDate:true,wmOn:true,wmPos:"br",wmImage:null,bgImage:null,extra:"",posterQuotes:[]};
@@ -612,6 +636,29 @@ const MOUTH_SCENARIOS=[
     "高情商":"我最近也有点安排，可能帮不上，抱歉哈。",
     "抽象":"借钱可以，先给我写一份 800 字还款计划。"
   }}
+];
+
+const FORTUNES=[
+  {id:1,name:"摸鱼得金",oracle:"今天适合带薪发呆，灵感会在摸鱼时降临。",yi:"摸鱼",ji:"主动加班",color:"荧光绿",number:7,rarity:"SSR",emoji:"🐟"},
+  {id:2,name:"已读乱回",oracle:"把不想回的消息，交给明天的自己。",yi:"已读不回",ji:"深夜解释",color:"雾霾蓝",number:3,rarity:"SR",emoji:"💬"},
+  {id:3,name:"天选打工人",oracle:"你今天的班味格外迷人，老板看了都想给你加活。",yi:"准时下班",ji:"立flag",color:"工牌灰",number:9,rarity:"N",emoji:"💼"},
+  {id:4,name:"财运加载中",oracle:"今天适合搞钱，不适合搞对象。",yi:"收款",ji:"冲动消费",color:"锦鲤红",number:8,rarity:"SSR",emoji:"💸"},
+  {id:5,name:"社交电量不足",oracle:"今天的社交额度，只够回一个「嗯」。",yi:"独处",ji:"参加团建",color:"薄荷绿",number:1,rarity:"SR",emoji:"🔋"},
+  {id:6,name:"恋爱脑待机",oracle:"今天适合先爱自己，再爱别人。",yi:"自拍",ji:"翻聊天记录",color:"少女粉",number:6,rarity:"SR",emoji:"💘"},
+  {id:7,name:"灵感爆炸",oracle:"今天脑子转得比风扇快，适合做点大事。",yi:"创作",ji:"自我怀疑",color:"电光紫",number:5,rarity:"SSR",emoji:"💡"},
+  {id:8,name:"水逆退散",oracle:"把烂人烂事，一键归档。",yi:"清理",ji:"回头",color:"深海蓝",number:4,rarity:"SR",emoji:"🌊"},
+  {id:9,name:"早睡冠军",oracle:"今晚的你会感谢现在放下手机的你。",yi:"早睡",ji:"再刷五分钟",color:"月光白",number:10,rarity:"N",emoji:"🌙"},
+  {id:10,name:"电子木鱼",oracle:"功德+1，烦恼-1。",yi:"敲木鱼",ji:"内耗",color:"原木色",number:0,rarity:"SR",emoji:"🪵"},
+  {id:11,name:"天选干饭人",oracle:"今天吃什么都不会踩雷。",yi:"干饭",ji:"空腹开会",color:"米饭白",number:2,rarity:"N",emoji:"🍚"},
+  {id:12,name:"逆风翻盘",oracle:"把拖延很久的事，一口气做完。",yi:"开始",ji:"等状态",color:"烈焰橙",number:11,rarity:"SSR",emoji:"🚀"},
+  {id:13,name:"人间清醒",oracle:"少想一点，多做一点。",yi:"行动",ji:"脑补",color:"理智蓝",number:12,rarity:"SR",emoji:"🧠"},
+  {id:14,name:"小猫护体",oracle:"今天会遇到一只猫，或者一个像猫一样的人。",yi:"撸猫",ji:"硬撑",color:"奶油色",number:13,rarity:"N",emoji:"🐱"},
+  {id:15,name:"偏财入账",oracle:"今天可能有意外之财，记得先存起来。",yi:"查余额",ji:"全花掉",color:"正红",number:18,rarity:"SSR",emoji:"🧧"},
+  {id:16,name:"情绪稳定",oracle:"天塌下来，也先吃完饭再说。",yi:"按时吃饭",ji:"空腹emo",color:"暖橙色",number:14,rarity:"SR",emoji:"🍜"},
+  {id:17,name:"颜值在线",oracle:"今天随便穿都好看，记得多拍两张。",yi:"自拍",ji:"容貌焦虑",color:"香槟金",number:15,rarity:"N",emoji:"✨"},
+  {id:18,name:"断舍离",oracle:"删掉一个让你不舒服的人。",yi:"拉黑",ji:"心软",color:"极简黑",number:16,rarity:"SR",emoji:"🗑️"},
+  {id:19,name:"锦鲤附体",oracle:"今天的好运不需要理由，接住就行。",yi:"许愿",ji:"怀疑自己",color:"锦鲤金",number:19,rarity:"SSR",emoji:"🐟"},
+  {id:20,name:"慢慢来",oracle:"不用赢过谁，照顾好自己就够了。",yi:"散步",ji:"比较",color:"青草绿",number:20,rarity:"N",emoji:"🌿"}
 ];
 
 function dateKey(){
@@ -1444,6 +1491,101 @@ function copyMouth(){
   }else{flash("请手动复制："+reply);}
 }
 
+let fortuneState={last:null};
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+function showFortuneView(name){
+  els.fortuneStart.style.display=name==="start"?"flex":"none";
+  els.fortuneResult.style.display=name==="result"?"flex":"none";
+}
+function openFortune(){
+  showFortuneView("start");
+  els.fortuneModal.classList.add("show");
+}
+function drawFortune(){
+  [els.fortuneDraw,els.fortuneAgain].forEach(b=>b.disabled=true);
+  setTimeout(()=>{
+    const today=dateKey();
+    let count=+(lsGet("oneline_fortune_count")||0);
+    if(lsGet("oneline_fortune_day")!==today){count=0;lsSet("oneline_fortune_day",today);}
+    count++;
+    lsSet("oneline_fortune_count",String(count));
+    const pool=count===1?FORTUNES.filter(f=>f.rarity!=="N"):FORTUNES;
+    const f=pool[Math.floor(Math.random()*pool.length)];
+    fortuneState.last=f;
+    let col=[];
+    try{col=JSON.parse(lsGet("oneline_fortune_collection")||"[]");}catch(e){col=[];}
+    if(!col.includes(f.id))col.push(f.id);
+    lsSet("oneline_fortune_collection",JSON.stringify(col));
+    drawFortuneCardCanvas(els.fortuneCanvas,f,count,col.length);
+    showFortuneView("result");
+    els.fortuneHint.textContent=`今日第 ${count} 抽 · 已收集 ${col.length}/${FORTUNES.length}`;
+    [els.fortuneDraw,els.fortuneAgain].forEach(b=>b.disabled=false);
+  },650);
+}
+function drawFortuneCardCanvas(cv,f,count,colCount){
+  const ctx=cv.getContext("2d"),W=1080,H=1440;
+  ctx.clearRect(0,0,W,H);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,"#160b2e");g.addColorStop(.55,"#241245");g.addColorStop(1,"#0d0718");
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  for(let i=0;i<180;i++){
+    ctx.fillStyle=`rgba(255,255,255,${(0.05+Math.random()*0.35).toFixed(2)})`;
+    const r=Math.random()*1.8+0.4;
+    ctx.beginPath();ctx.arc(Math.random()*W,Math.random()*H,r,0,Math.PI*2);ctx.fill();
+  }
+  const rg=ctx.createRadialGradient(W/2,430,20,W/2,430,320);
+  rg.addColorStop(0,"rgba(183,139,255,.38)");rg.addColorStop(1,"rgba(183,139,255,0)");
+  ctx.fillStyle=rg;ctx.fillRect(0,90,W,720);
+  ctx.strokeStyle="rgba(245,215,110,.55)";ctx.lineWidth=3;
+  roundRect(ctx,50,50,W-100,H-100,28);ctx.stroke();
+  ctx.strokeStyle="rgba(183,139,255,.35)";ctx.lineWidth=1.5;
+  roundRect(ctx,66,66,W-132,H-132,22);ctx.stroke();
+  ctx.textAlign="center";
+  ctx.fillStyle="rgba(245,215,110,.9)";ctx.font='700 24px "Microsoft YaHei",sans-serif';
+  ctx.fillText("ONELINE ORACLE",W/2,128);
+  ctx.fillStyle="rgba(255,255,255,.6)";ctx.font='400 20px "Microsoft YaHei",sans-serif';
+  ctx.fillText("赛博求签 · 仅供娱乐",W/2,166);
+  ctx.beginPath();ctx.arc(W/2,420,130,0,Math.PI*2);
+  ctx.fillStyle="rgba(255,255,255,.06)";ctx.fill();
+  ctx.strokeStyle="rgba(245,215,110,.5)";ctx.lineWidth=2;ctx.stroke();
+  ctx.font='170px "Segoe UI Emoji","Apple Color Emoji",sans-serif';
+  ctx.textBaseline="middle";ctx.fillStyle="#fff";
+  ctx.fillText(f.emoji,W/2,432);ctx.textBaseline="alphabetic";
+  ctx.fillStyle=f.rarity==="SSR"?"#f5d76e":f.rarity==="SR"?"#b78bff":"rgba(255,255,255,.7)";
+  ctx.font='700 54px "Microsoft YaHei",sans-serif';ctx.fillText(f.rarity,W/2,650);
+  ctx.fillStyle="#fff";ctx.font='700 46px "Microsoft YaHei",sans-serif';ctx.fillText(f.name,W/2,722);
+  ctx.fillStyle="rgba(255,255,255,.85)";ctx.font='400 36px "Microsoft YaHei",sans-serif';
+  const lines=wrapSquare(ctx,f.oracle,"yahei",36,0,W-260);
+  let oy=806;
+  for(const ln of lines){ctx.fillText(ln,W/2,oy);oy+=52;}
+  const pillY=Math.max(960,oy+28);
+  ctx.fillStyle="rgba(0,0,0,.35)";roundRect(ctx,180,pillY,720,76,38);ctx.fill();
+  ctx.fillStyle="#7ce0a8";ctx.font='600 30px "Microsoft YaHei",sans-serif';
+  ctx.fillText(`宜 ${f.yi}　·　忌 ${f.ji}`,W/2,pillY+49);
+  ctx.fillStyle="rgba(255,255,255,.7)";ctx.font='400 28px "Microsoft YaHei",sans-serif';
+  ctx.fillText(`幸运色 ${f.color}　·　幸运数字 ${f.number}`,W/2,pillY+140);
+  ctx.fillStyle="rgba(255,255,255,.5)";ctx.font='400 24px "Microsoft YaHei",sans-serif';
+  ctx.fillText(`今日第 ${count} 抽　·　已收集 ${colCount}/${FORTUNES.length}`,W/2,H-150);
+  ctx.fillStyle="rgba(255,255,255,.45)";ctx.font='400 22px "Microsoft YaHei",sans-serif';
+  ctx.fillText("oneline. · 赛博求签",W/2,H-90);
+}
+function downloadFortune(){
+  els.fortuneCanvas.toBlob(b=>{
+    if(!b){flash("导出失败");return;}
+    downloadBlob(b,`oneline_fortune_${stamp()}.png`);
+    flash("签卡已保存");
+  },"image/png");
+}
+function copyFortune(){
+  const f=fortuneState.last;
+  if(!f){flash("先抽一张吧");return;}
+  const text=`${f.rarity} · ${f.name}\n${f.oracle}\n宜 ${f.yi}　忌 ${f.ji}\n—— oneline. 赛博求签`;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>flash("今日签已复制")).catch(()=>flash("复制失败"));
+  }else{flash("请手动复制："+text);}
+}
+
 async function batchGenerate(){
   if(!isPro()){promptUpgrade("批量生成是 Pro 功能，升级后一次生成整套卡片并打包下载");return;}
   const lines=els.batchText.value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
@@ -1518,6 +1660,13 @@ els.mouthBack.onclick=()=>{showMouthView("pick");buildMouthScenarios();};
 els.mouthDownload.onclick=downloadMouth;
 els.mouthCopy.onclick=copyMouth;
 els.mouthModal.addEventListener("click",e=>{if(e.target===els.mouthModal)els.mouthModal.classList.remove("show");});
+els.fortuneBtn.onclick=openFortune;
+els.fortuneClose.onclick=()=>els.fortuneModal.classList.remove("show");
+els.fortuneDraw.onclick=drawFortune;
+els.fortuneAgain.onclick=drawFortune;
+els.fortuneSave.onclick=downloadFortune;
+els.fortuneCopy.onclick=copyFortune;
+els.fortuneModal.addEventListener("click",e=>{if(e.target===els.fortuneModal)els.fortuneModal.classList.remove("show");});
 els.batchBtn.onclick=batchGenerate;
 els.fillQuotesBtn.onclick=()=>{els.batchText.value=QUOTES.map(q=>q.t).join("\n");els.batchMsg.textContent=`已填入 ${QUOTES.length} 句金句`;};
 els.aiBtn.onclick=aiGenerate;
@@ -1564,6 +1713,8 @@ try{
   if(q.get("diag")==="1"){els.diagName.value=q.get("name")||"";openDiag();}
   if(q.get("diagq")==="1"){openDiag();startDiag();}
   if(q.get("mouth")==="1"){openMouth();}
+  if(q.get("fortune")==="1"){openFortune();}
+  if(q.get("fortunedraw")==="1"){openFortune();drawFortune();}
   const mr=q.get("mouthresult"),mt=q.get("tone");
   if(mr!==null&&mt&&MOUTH_SCENARIOS[+mr]&&MOUTH_TONES.includes(mt)){
     mouthState.scn=+mr;chooseMouthTone(mt);els.mouthModal.classList.add("show");
