@@ -135,6 +135,14 @@
   .diag-opt{text-align:left;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);cursor:pointer;font-size:14px;line-height:1.4}
   .diag-opt:hover{border-color:var(--accent)}
   #diagCanvas{width:100%;height:auto;border-radius:12px;background:#fff}
+  .mouth-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .mouth-scn{padding:14px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);cursor:pointer;font-size:14px;text-align:left;line-height:1.4}
+  .mouth-scn:hover{border-color:var(--accent)}
+  .mouth-scn small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+  .mouth-tones{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .mouth-tone{padding:16px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);cursor:pointer;font-size:15px}
+  .mouth-tone:hover{border-color:var(--accent)}
+  #mouthCanvas{width:100%;height:auto;border-radius:12px;background:#ededed}
 </style>
 </head>
 <body>
@@ -162,6 +170,7 @@
       </div>
       <div class="promsg" id="proMsg"></div>
       <button class="btn primary block" id="diagBtn" style="margin-bottom:14px">🩺 测测你的精神状态</button>
+      <button class="btn block" id="mouthBtn" style="margin-bottom:14px">💬 嘴替生成器</button>
 
       <h2>内容</h2>
       <div class="field"><div class="chips" id="chips"></div></div>
@@ -256,6 +265,30 @@
         <div class="hintbar">1080 × 1440 · 3:4 · 导出即用</div>
         <div class="hintbar"><a class="afdian" href="https://afdian.com/a/onelinecards" target="_blank" rel="noopener">支持 oneline. · 爱发电主页</a></div>
       </div>
+    </div>
+  </div>
+</div>
+<div class="modal" id="mouthModal">
+  <div class="modal-box">
+    <div class="modal-head"><span>💬 嘴替生成器</span><button class="btn sm" id="mouthClose">关闭</button></div>
+    <div class="diag-view" id="mouthPick">
+      <div class="diag-big">今天想替谁说话？</div>
+      <div class="diag-sub">选一个场景，再选一种语气。</div>
+      <div class="mouth-grid" id="mouthScenarios"></div>
+    </div>
+    <div class="diag-view" id="mouthToneView" style="display:none">
+      <div class="diag-progress" id="mouthCtx"></div>
+      <div class="diag-q">选一种语气</div>
+      <div class="mouth-tones" id="mouthTones"></div>
+    </div>
+    <div class="diag-view" id="mouthResult" style="display:none">
+      <canvas id="mouthCanvas" width="1080" height="1440"></canvas>
+      <div class="modal-actions">
+        <button class="btn" id="mouthBack">换个场景</button>
+        <button class="btn primary" id="mouthDownload">保存嘴替卡</button>
+        <button class="btn" id="mouthCopy">复制文案</button>
+      </div>
+      <div class="filehint" id="mouthHint" style="text-align:center"></div>
     </div>
   </div>
 </div>
@@ -452,7 +485,11 @@ const els={
   diagBtn:$("diagBtn"),diagModal:$("diagModal"),diagClose:$("diagClose"),diagStart:$("diagStart"),
   diagStartBtn:$("diagStartBtn"),diagQuiz:$("diagQuiz"),diagProgress:$("diagProgress"),diagQ:$("diagQ"),
   diagOpts:$("diagOpts"),diagResult:$("diagResult"),diagCanvas:$("diagCanvas"),diagRetry:$("diagRetry"),
-  diagDownload:$("diagDownload"),diagShare:$("diagShare"),diagHint:$("diagHint"),diagName:$("diagName")
+  diagDownload:$("diagDownload"),diagShare:$("diagShare"),diagHint:$("diagHint"),diagName:$("diagName"),
+  mouthBtn:$("mouthBtn"),mouthModal:$("mouthModal"),mouthClose:$("mouthClose"),mouthPick:$("mouthPick"),
+  mouthScenarios:$("mouthScenarios"),mouthToneView:$("mouthToneView"),mouthCtx:$("mouthCtx"),mouthTones:$("mouthTones"),
+  mouthResult:$("mouthResult"),mouthCanvas:$("mouthCanvas"),mouthBack:$("mouthBack"),mouthDownload:$("mouthDownload"),
+  mouthCopy:$("mouthCopy"),mouthHint:$("mouthHint")
 };
 
 const state={cat:"全部",theme:0,font:"yahei",size:64,ls:0,lh:1.62,align:"center",vertical:false,showDate:true,wmOn:true,wmPos:"br",wmImage:null,bgImage:null,extra:"",posterQuotes:[]};
@@ -535,6 +572,46 @@ const DIAG_RESULTS=[
   {name:"人间清醒的疯子",tag:"什么都懂，就是过不好这一生。",desc:"你看得透所有道理，却依然在深夜点开外卖软件。",advice:["少想多做","允许自己糊涂","先睡一觉"],rarity:"SSR"},
   {name:"抽象乐子人",tag:"世界是个草台班子，你是台下最投入的观众。",desc:"你用玩笑消解一切，但玩笑背后，是你认真活过的痕迹。",advice:["乐子可以看，别把自己搭进去","认真生活五分钟","笑完记得吃饭"],rarity:"SSR"},
   {name:"赛博菩萨",tag:"功德已经敲满，情绪还在加载。",desc:"你已经把「随缘」修炼成一种本能，但偶尔也想有人问你累不累。",advice:["功德不能当饭吃","该哭就哭","你已经做得很好了"],rarity:"SSR"}
+];
+
+const MOUTH_TONES=["阴阳怪气","发疯","高情商","抽象"];
+const MOUTH_SCENARIOS=[
+  {who:"老板",label:"老板画饼",said:"好好干，明年给你升职加薪。",replies:{
+    "阴阳怪气":"谢谢老板，那我先把明年的房租也画一下。",
+    "发疯":"好的老板！我现在就去把明天的班也上了，顺便把后年的饼也吃了！",
+    "高情商":"谢谢老板认可，方便的话我们把目标和时间节点也一起定一下吧。",
+    "抽象":"饼收到了，已加入收藏夹，下次开会记得配杯豆浆。"
+  }},
+  {who:"三姨",label:"亲戚催婚",said:"你多大了还不结婚？",replies:{
+    "阴阳怪气":"您多大了还管别人结不结婚？",
+    "发疯":"结了结了，跟工作结的，彩礼是加班。",
+    "高情商":"遇到合适的会考虑的，您先吃菜。",
+    "抽象":"婚姻是围城，我还在城外排队买烤肠。"
+  }},
+  {who:"TA",label:"已读不回",said:"（已读，三小时没回）",replies:{
+    "阴阳怪气":"您这回复速度，是走 EMS 吗？",
+    "发疯":"没关系，我已经在脑子里跟你过完一生了，你继续忙。",
+    "高情商":"看到消息啦，等你忙完我们再聊。",
+    "抽象":"你的已读，是我今天唯一的已读。"
+  }},
+  {who:"群聊",label:"群聊冷场",said:"（群里一片寂静）",replies:{
+    "阴阳怪气":"群里这么安静，是在等我发红包吗？",
+    "发疯":"没人说话？那我开始了：家人们谁懂啊！",
+    "高情商":"大家先忙，有需要随时喊我。",
+    "抽象":"这个群已经进化到用沉默交流了。"
+  }},
+  {who:"甲方",label:"甲方改需求",said:"还是用第一版吧，但加点第五版的感觉。",replies:{
+    "阴阳怪气":"好的，我给您做一个五彩斑斓的黑。",
+    "发疯":"没问题！我这就把第一版和第五版生个孩子！",
+    "高情商":"可以，我们先明确一下您最看重的三个点，我来平衡。",
+    "抽象":"您要的不是设计，是薛定谔的方案。"
+  }},
+  {who:"朋友",label:"朋友借钱",said:"在吗？最近手头有点紧。",replies:{
+    "阴阳怪气":"在，但我的钱包不在。",
+    "发疯":"我最近也紧，紧到想把这条消息撤回。",
+    "高情商":"我最近也有点安排，可能帮不上，抱歉哈。",
+    "抽象":"借钱可以，先给我写一份 800 字还款计划。"
+  }}
 ];
 
 function dateKey(){
@@ -1256,6 +1333,117 @@ function shareDiag(){
   }
 }
 
+let mouthState={scn:0,tone:"阴阳怪气"};
+function showMouthView(name){
+  els.mouthPick.style.display=name==="pick"?"flex":"none";
+  els.mouthToneView.style.display=name==="tone"?"flex":"none";
+  els.mouthResult.style.display=name==="result"?"flex":"none";
+}
+function openMouth(){
+  showMouthView("pick");
+  buildMouthScenarios();
+  els.mouthModal.classList.add("show");
+}
+function buildMouthScenarios(){
+  els.mouthScenarios.innerHTML="";
+  MOUTH_SCENARIOS.forEach((s,i)=>{
+    const b=document.createElement("button");
+    b.className="mouth-scn";
+    b.innerHTML=`${s.label}<small>${s.who}：${s.said}</small>`;
+    b.onclick=()=>chooseMouthScenario(i);
+    els.mouthScenarios.appendChild(b);
+  });
+}
+function chooseMouthScenario(i){
+  mouthState.scn=i;
+  const s=MOUTH_SCENARIOS[i];
+  els.mouthCtx.textContent=`${s.label} · ${s.who}说：${s.said}`;
+  els.mouthTones.innerHTML="";
+  MOUTH_TONES.forEach(t=>{
+    const b=document.createElement("button");
+    b.className="mouth-tone";b.textContent=t;
+    b.onclick=()=>chooseMouthTone(t);
+    els.mouthTones.appendChild(b);
+  });
+  showMouthView("tone");
+}
+function chooseMouthTone(t){
+  mouthState.tone=t;
+  const s=MOUTH_SCENARIOS[mouthState.scn];
+  const reply=s.replies[t];
+  drawMouthCard(els.mouthCanvas,s,t,reply);
+  showMouthView("result");
+  els.mouthHint.textContent=`${s.label} · ${t}`;
+}
+function drawMouthCard(cv,scn,tone,reply){
+  const ctx=cv.getContext("2d"),W=1080,H=1440;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle="#ededed";ctx.fillRect(0,0,W,H);
+  ctx.fillStyle="#111";ctx.font='600 26px "Microsoft YaHei",sans-serif';ctx.textAlign="left";
+  ctx.fillText("9:41",52,50);
+  for(let i=0;i<4;i++){ctx.fillRect(W-214+i*16,46-i*5,9,5+i*5);}
+  ctx.font='600 22px "Microsoft YaHei",sans-serif';ctx.fillText("5G",W-136,50);
+  ctx.strokeStyle="#111";ctx.lineWidth=2;ctx.strokeRect(W-76,30,32,22);
+  ctx.fillRect(W-72,34,24,14);
+  ctx.fillStyle="#f7f7f7";ctx.fillRect(0,80,W,110);
+  ctx.strokeStyle="rgba(0,0,0,.08)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,190);ctx.lineTo(W,190);ctx.stroke();
+  ctx.fillStyle="#111";ctx.font='600 34px "Microsoft YaHei",sans-serif';ctx.textAlign="center";
+  ctx.fillText(scn.who,W/2,148);
+  ctx.textAlign="left";ctx.font='600 44px "Microsoft YaHei",sans-serif';ctx.fillText("‹",52,150);
+  ctx.textAlign="right";ctx.fillText("···",W-52,150);
+  ctx.fillStyle="#8a8a8a";ctx.font='400 24px "Microsoft YaHei",sans-serif';ctx.textAlign="center";
+  ctx.fillText("今天 09:41",W/2,248);
+  const inLines=wrapSquare(ctx,scn.said,"yahei",34,0,560);
+  let inMax=0;for(const ln of inLines)inMax=Math.max(inMax,measureStr(ctx,ln,"yahei",34,0));
+  const inW=Math.min(608,inMax+52),inH=inLines.length*50+50,inX=170,inY=300;
+  ctx.fillStyle="#4a90d9";ctx.beginPath();ctx.arc(104,inY+40,44,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#fff";ctx.font='600 34px "Microsoft YaHei",sans-serif';ctx.textAlign="center";
+  ctx.fillText(scn.who[0],104,inY+52);
+  ctx.fillStyle="#fff";roundRect(ctx,inX,inY,inW,inH,18);ctx.fill();
+  ctx.fillStyle="#111";ctx.font='400 34px "Microsoft YaHei",sans-serif';ctx.textAlign="left";
+  let iy=inY+30+34;
+  for(const ln of inLines){ctx.fillText(ln,inX+26,iy);iy+=50;}
+  const outLines=wrapSquare(ctx,reply,"yahei",34,0,560);
+  let outMax=0;for(const ln of outLines)outMax=Math.max(outMax,measureStr(ctx,ln,"yahei",34,0));
+  const outW=Math.min(608,outMax+52),outH=outLines.length*50+50,outY=inY+inH+90,outX=W-170-outW;
+  ctx.fillStyle="#ff8a5c";ctx.beginPath();ctx.arc(W-104,outY+40,44,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#fff";ctx.font='600 34px "Microsoft YaHei",sans-serif';ctx.textAlign="center";
+  ctx.fillText("我",W-104,outY+52);
+  ctx.fillStyle="#95ec69";roundRect(ctx,outX,outY,outW,outH,18);ctx.fill();
+  ctx.fillStyle="#111";ctx.font='400 34px "Microsoft YaHei",sans-serif';ctx.textAlign="left";
+  let oy=outY+30+34;
+  for(const ln of outLines){ctx.fillText(ln,outX+26,oy);oy+=50;}
+  ctx.fillStyle="#8a8a8a";ctx.font='400 22px "Microsoft YaHei",sans-serif';ctx.textAlign="right";
+  ctx.fillText("已读",W-170,outY+outH+34);
+  const pillW=380,pillH=64,px=(W-pillW)/2,py=1180;
+  ctx.fillStyle="#111";roundRect(ctx,px,py,pillW,pillH,32);ctx.fill();
+  ctx.fillStyle="#fff";ctx.font='600 26px "Microsoft YaHei",sans-serif';ctx.textAlign="center";
+  ctx.fillText("语气 · "+tone,W/2,py+41);
+  ctx.save();ctx.translate(W-170,1230);ctx.rotate(-0.16);
+  ctx.strokeStyle="rgba(192,57,43,.7)";ctx.lineWidth=4;
+  ctx.beginPath();ctx.arc(0,0,74,0,Math.PI*2);ctx.stroke();
+  ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,62,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle="rgba(192,57,43,.85)";ctx.textAlign="center";
+  ctx.font='700 26px "Microsoft YaHei",sans-serif';ctx.fillText("嘴替认证",0,8);
+  ctx.font='700 13px "Microsoft YaHei",sans-serif';ctx.fillText("ONELINE",0,34);
+  ctx.restore();
+  ctx.fillStyle="#8a8a8a";ctx.font='400 22px "Microsoft YaHei",sans-serif';ctx.textAlign="center";
+  ctx.fillText("嘴替由 oneline. 提供 · 仅供娱乐 · 未真实发送",W/2,1380);
+}
+function downloadMouth(){
+  els.mouthCanvas.toBlob(b=>{
+    if(!b){flash("导出失败");return;}
+    downloadBlob(b,`oneline_mouth_${stamp()}.png`);
+    flash("嘴替卡已保存");
+  },"image/png");
+}
+function copyMouth(){
+  const reply=MOUTH_SCENARIOS[mouthState.scn].replies[mouthState.tone];
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(reply).then(()=>flash("文案已复制")).catch(()=>flash("复制失败"));
+  }else{flash("请手动复制："+reply);}
+}
+
 async function batchGenerate(){
   if(!isPro()){promptUpgrade("批量生成是 Pro 功能，升级后一次生成整套卡片并打包下载");return;}
   const lines=els.batchText.value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
@@ -1324,6 +1512,12 @@ els.diagRetry.onclick=startDiag;
 els.diagDownload.onclick=downloadDiag;
 els.diagShare.onclick=shareDiag;
 els.diagModal.addEventListener("click",e=>{if(e.target===els.diagModal)els.diagModal.classList.remove("show");});
+els.mouthBtn.onclick=openMouth;
+els.mouthClose.onclick=()=>els.mouthModal.classList.remove("show");
+els.mouthBack.onclick=()=>{showMouthView("pick");buildMouthScenarios();};
+els.mouthDownload.onclick=downloadMouth;
+els.mouthCopy.onclick=copyMouth;
+els.mouthModal.addEventListener("click",e=>{if(e.target===els.mouthModal)els.mouthModal.classList.remove("show");});
 els.batchBtn.onclick=batchGenerate;
 els.fillQuotesBtn.onclick=()=>{els.batchText.value=QUOTES.map(q=>q.t).join("\n");els.batchMsg.textContent=`已填入 ${QUOTES.length} 句金句`;};
 els.aiBtn.onclick=aiGenerate;
@@ -1369,6 +1563,11 @@ try{
   if(q.get("poster")==="1"){openPoster();}
   if(q.get("diag")==="1"){els.diagName.value=q.get("name")||"";openDiag();}
   if(q.get("diagq")==="1"){openDiag();startDiag();}
+  if(q.get("mouth")==="1"){openMouth();}
+  const mr=q.get("mouthresult"),mt=q.get("tone");
+  if(mr!==null&&mt&&MOUTH_SCENARIOS[+mr]&&MOUTH_TONES.includes(mt)){
+    mouthState.scn=+mr;chooseMouthTone(mt);els.mouthModal.classList.add("show");
+  }
   const dr=q.get("diagresult");
   if(dr&&dr.length>=8){
     const arr=[...dr].slice(0,8).map(Number).filter(n=>n>=0&&n<=3);
