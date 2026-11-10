@@ -280,6 +280,25 @@
   .speech.enemy::after{right:-6px;bottom:14px;transform:rotate(-45deg)}
   .hurt-flash{position:absolute;inset:0;background:radial-gradient(circle,rgba(255,60,80,.32),transparent 70%);opacity:0;pointer-events:none;z-index:12;transition:.12s}
   .hurt-flash.on{opacity:1}
+  .game-hand{perspective:800px}
+  .game-card:hover{transform:translateY(-10px) scale(1.04) rotateX(5deg);border-color:rgba(245,215,110,.6);box-shadow:0 10px 30px rgba(0,0,0,.5),0 0 20px rgba(245,215,110,.15)}
+  .game-hand.dealing .game-card{animation:dealCard .4s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*45ms)}
+  @keyframes dealCard{0%{opacity:0;transform:translateY(46px) scale(.82)}100%{opacity:1;transform:translateY(0) scale(1)}}
+  .game-card.being-played{opacity:.15;transform:scale(.9)}
+  .card-ghost{position:absolute;z-index:30;pointer-events:none;transform-origin:center;box-shadow:0 0 40px rgba(245,215,110,.5)}
+  .impact{position:absolute;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,#fff,rgba(255,107,129,.7),transparent 65%);transform:translate(-50%,-50%) scale(.2);animation:impact .5s ease-out forwards;pointer-events:none;z-index:16}
+  @keyframes impact{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}30%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.9)}}
+  .shake-board{animation:shakeBoard .32s}
+  @keyframes shakeBoard{0%,100%{transform:translate(0,0)}20%{transform:translate(-6px,2px)}40%{transform:translate(6px,-2px)}60%{transform:translate(-4px,1px)}80%{transform:translate(4px,-1px)}}
+  .spark{position:absolute;width:6px;height:6px;border-radius:50%;box-shadow:0 0 12px currentColor;background:currentColor;animation:sparkFly .55s ease-out forwards;pointer-events:none;z-index:17}
+  @keyframes sparkFly{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.2)}}
+  .game-hp.damage{animation:hpFlash .35s}
+  @keyframes hpFlash{0%,100%{box-shadow:none}50%{box-shadow:0 0 16px rgba(255,80,100,.8)}}
+  .turn-banner.show{animation:bannerGlow .9s}
+  @keyframes bannerGlow{0%{filter:blur(4px);letter-spacing:14px}60%{filter:blur(0);letter-spacing:6px}100%{filter:blur(0)}}
+  .relic-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .relic-chip{font-size:10px;padding:3px 7px;border-radius:999px;background:rgba(245,215,110,.1);border:1px solid rgba(245,215,110,.25);color:#f5d76e}
+  .relic-card{border-color:rgba(245,215,110,.5)!important;background:linear-gradient(180deg,#3a2f1a,#1e1a12)!important}
   #gameEndCanvas{display:block;margin:0 auto;max-width:100%;max-height:60vh;width:auto;height:auto;border-radius:12px}
 </style>
 </head>
@@ -501,6 +520,7 @@
             <div class="player-line"><span>精神值 <b id="gHp">70/70</b></span><span>护盾 <b id="gBlock">0</b></span><span>存款 <b id="gCoins">0</b></span></div>
             <div class="game-hp player"><i id="gPlayerHpFill" style="width:100%"></i></div>
             <div class="energy-line">能量 <b id="gEnergy">3/3</b><span class="energy-gems" id="gEnergyGems"><i class="on"></i><i class="on"></i><i class="on"></i></span></div>
+            <div class="relic-row" id="gRelics"></div>
           </div>
         </div>
         <div class="game-hand" id="gHand"></div>
@@ -713,6 +733,7 @@ const els={
   gEnemyPortrait:$("gEnemyPortrait"),gEnemyHpFill:$("gEnemyHpFill"),gPlayerHpFill:$("gPlayerHpFill"),
   gTurnBanner:$("gTurnBanner"),gFloatLayer:$("gFloatLayer"),gEnergyGems:$("gEnergyGems"),
   gPlayerBubble:$("gPlayerBubble"),gEnemyBubble:$("gEnemyBubble"),gHurtFlash:$("gHurtFlash"),
+  gRelics:$("gRelics"),
   gEndTurn:$("gEndTurn"),gameReward:$("gameReward"),gRewards:$("gRewards"),gSkip:$("gSkip"),
   gameEnd:$("gameEnd"),gameEndCanvas:$("gameEndCanvas"),gameAgain:$("gameAgain"),gameSave:$("gameSave")
 };
@@ -906,6 +927,13 @@ const ENEMY_LINES={
   "甲方":{attack:"再改一版，马上就好。",buff:"感觉不对，再找找。",heal:"预算还没批下来。",stun:"你先等等。"},
   "亲戚":{attack:"怎么还不结婚？",buff:"我都是为你好。",heal:"你看别人家孩子。",stun:"哎呀，我不说了。"}
 };
+const RELICS=[
+  {id:"thermos",name:"保温杯",emoji:"🍵",desc:"每场战斗开始获得 8 点护盾。"},
+  {id:"badge",name:"工牌",emoji:"🪪",desc:"每场战斗第一回合额外获得 1 点能量。"},
+  {id:"muyu",name:"电子木鱼",emoji:"🪵",desc:"每回合开始获得 3 点护盾。"},
+  {id:"coffee",name:"咖啡券",emoji:"☕",desc:"每回合多抽 1 张牌。"},
+  {id:"piggy",name:"存钱罐",emoji:"🐷",desc:"每场战斗胜利额外获得 15 存款。"}
+];
 
 function dateKey(){
   const n=new Date();const p=x=>String(x).padStart(2,"0");
@@ -1474,7 +1502,7 @@ function shareDiag(){
   }
 }
 
-let G={player:null,deck:[],hand:[],draw:[],discard:[],enemy:null,encounter:0,turn:1,running:false,log:[],ending:null,busy:false};
+let G={player:null,deck:[],hand:[],draw:[],discard:[],enemy:null,encounter:0,turn:1,running:false,log:[],ending:null,busy:false,relics:[],deal:false};
 function showGameView(name){
   els.gameMenu.style.display=name==="menu"?"flex":"none";
   els.gameBattle.style.display=name==="battle"?"flex":"none";
@@ -1488,7 +1516,7 @@ function openGame(){
 function startGame(){
   G.player={hp:70,maxHp:70,energy:3,maxEnergy:3,block:0,coins:0};
   G.deck=GAME_START_DECK.map(id=>GAME_CARDS.find(c=>c.id===id));
-  G.encounter=0;G.log=[];G.running=true;G.ending=null;G.busy=false;
+  G.encounter=0;G.log=[];G.running=true;G.ending=null;G.busy=false;G.relics=[];
   startBattle();
 }
 function startBattle(){
@@ -1496,8 +1524,12 @@ function startBattle(){
   G.enemy={name:base.name,emoji:base.emoji,tie:base.tie,hp:base.hp,maxHp:base.hp,strength:0,weak:0,vulnerable:0,stun:0,intentIndex:0,intents:base.intents.slice(),flavor:base.flavor};
   G.hand=[];G.draw=shuffleArr(G.deck.slice());G.discard=[];G.turn=1;
   G.player.block=0;G.player.energy=G.player.maxEnergy;G.running=true;G.busy=false;
+  if(G.relics.some(r=>r.id==="thermos"))G.player.block+=8;
+  if(G.relics.some(r=>r.id==="muyu"))G.player.block+=3;
+  if(G.relics.some(r=>r.id==="badge"))G.player.energy+=1;
   logGame(`遭遇「${G.enemy.name}」：${G.enemy.flavor}`);
   drawCards(5);
+  G.deal=true;
   showGameView("battle");
   renderGame();
   showTurnBanner("你的回合");
@@ -1543,6 +1575,33 @@ function showBubble(side,text){
   clearTimeout(el._bubbleTimer);
   el._bubbleTimer=setTimeout(()=>el.classList.remove("show"),1800);
 }
+function impactAt(side){
+  const layer=els.gFloatLayer;
+  if(!layer)return;
+  const pos=side==="enemy"?{x:"68%",y:"30%"}:{x:"30%",y:"64%"};
+  const fx=document.createElement("div");
+  fx.className="impact";
+  fx.style.left=pos.x;fx.style.top=pos.y;
+  layer.appendChild(fx);
+  setTimeout(()=>fx.remove(),520);
+  for(let i=0;i<8;i++){
+    const s=document.createElement("i");
+    s.className="spark";
+    s.style.left=pos.x;s.style.top=pos.y;
+    s.style.color=side==="enemy"?"#ffd76a":"#ff6b81";
+    const a=Math.random()*Math.PI*2,dist=40+Math.random()*60;
+    s.style.setProperty("--dx",Math.cos(a)*dist+"px");
+    s.style.setProperty("--dy",Math.sin(a)*dist+"px");
+    layer.appendChild(s);
+    setTimeout(()=>s.remove(),620);
+  }
+  const board=els.gameBattle.querySelector(".game-board");
+  if(board){
+    board.classList.remove("shake-board");
+    void board.offsetWidth;
+    board.classList.add("shake-board");
+  }
+}
 function intentLabel(e){
   const it=e.intents[e.intentIndex],parts=it.split(":"),t=parts[0],v=+parts[1];
   if(t==="attack")return `攻击 ${v+e.strength}`;
@@ -1569,14 +1628,24 @@ function renderGame(){
       els.gEnergyGems.appendChild(d);
     }
   }
+  if(els.gRelics){
+    els.gRelics.innerHTML=G.relics.map(r=>`<span class="relic-chip" title="${r.desc}">${r.emoji} ${r.name}</span>`).join("");
+  }
   els.gHand.innerHTML="";
   G.hand.forEach((card,i)=>{
     const b=document.createElement("button");
     b.className="game-card "+card.type+(G.player.energy<card.cost?" disabled":"");
     b.innerHTML=`<span class="cost">${card.cost}</span><div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
+    b.style.setProperty("--i",i);
     b.onclick=()=>playGameCard(i);
     els.gHand.appendChild(b);
   });
+  if(G.deal){
+    els.gHand.classList.remove("dealing");
+    void els.gHand.offsetWidth;
+    els.gHand.classList.add("dealing");
+    G.deal=false;
+  }
 }
 function playerDamage(base){
   let d=base;
@@ -1584,6 +1653,9 @@ function playerDamage(base){
   G.enemy.hp-=d;
   logGame(`对 ${G.enemy.name} 造成 ${d} 点伤害`);
   floatGameText(`-${d}`,"#ff6b81","enemy");
+  impactAt("enemy");
+  const ebar=els.gEnemyHpFill.parentElement;
+  if(ebar){ebar.classList.remove("damage");void ebar.offsetWidth;ebar.classList.add("damage");}
 }
 function playGameCard(i){
   if(!G.running||G.busy)return;
@@ -1591,8 +1663,30 @@ function playGameCard(i){
   if(!card||G.player.energy<card.cost)return;
   G.busy=true;
   const el=els.gHand.children[i];
-  if(el)el.classList.add("playing");
-  setTimeout(()=>{G.busy=false;resolveCard(i);},260);
+  if(el){
+    el.classList.add("being-played");
+    const board=els.gameBattle.querySelector(".game-board");
+    if(board){
+      const br=el.getBoundingClientRect(),brd=board.getBoundingClientRect();
+      const ghost=el.cloneNode(true);
+      ghost.classList.remove("being-played","disabled");
+      ghost.classList.add("card-ghost");
+      ghost.style.left=(br.left-brd.left)+"px";
+      ghost.style.top=(br.top-brd.top)+"px";
+      ghost.style.width=br.width+"px";
+      ghost.style.height=br.height+"px";
+      els.gFloatLayer.appendChild(ghost);
+      const dx=brd.width/2-(br.left-brd.left)-br.width/2;
+      const dy=brd.height*0.3-(br.top-brd.top)-br.height/2;
+      ghost.animate([
+        {transform:"translate(0,0) scale(1) rotate(0deg)",opacity:1},
+        {transform:`translate(${dx}px,${dy}px) scale(1.35) rotate(-3deg)`,opacity:1,offset:.7},
+        {transform:`translate(${dx}px,${dy}px) scale(1.55) rotate(-3deg)`,opacity:0}
+      ],{duration:420,easing:"cubic-bezier(.2,.8,.2,1)"});
+      setTimeout(()=>ghost.remove(),450);
+    }
+  }
+  setTimeout(()=>{G.busy=false;resolveCard(i);},420);
 }
 function resolveCard(i){
   if(!G.running)return;
@@ -1637,6 +1731,9 @@ function enemyAct(){
     logGame(`${e.name} 攻击 ${d}，护盾挡下 ${blocked}，你受到 ${dmg} 点伤害`);
     floatGameText(`-${dmg}`,"#ff8a5c","player");
     showBubble("enemy",ENEMY_LINES[e.name]?.attack||"……");
+    impactAt("player");
+    const pbar=els.gPlayerHpFill.parentElement;
+    if(pbar){pbar.classList.remove("damage");void pbar.offsetWidth;pbar.classList.add("damage");}
     els.gHurtFlash.classList.add("on");
     setTimeout(()=>els.gHurtFlash.classList.remove("on"),180);
   }else if(t==="buff"){e.strength+=n;logGame(`${e.name} 加攻 +${n}`);showBubble("enemy",ENEMY_LINES[e.name]?.buff||"……");}
@@ -1656,9 +1753,11 @@ function endTurn(){
     if(G.enemy.vulnerable>0)G.enemy.vulnerable--;
     G.turn++;
     G.player.block=0;
+    if(G.relics.some(r=>r.id==="muyu"))G.player.block+=3;
     G.player.energy=G.player.maxEnergy;
-    drawCards(5);
+    drawCards(5+(G.relics.some(r=>r.id==="coffee")?1:0));
     G.busy=false;
+    G.deal=true;
     renderGame();
     showTurnBanner("你的回合");
   },420);
@@ -1667,6 +1766,7 @@ function winBattle(){
   G.running=false;
   const coins=10+G.encounter*5;
   G.player.coins+=coins;
+  if(G.relics.some(r=>r.id==="piggy"))G.player.coins+=15;
   logGame(`击败「${G.enemy.name}」，获得 ${coins} 存款`);
   G.encounter++;
   if(G.encounter>=GAME_ENEMIES.length)showEnding(false);
@@ -1679,10 +1779,19 @@ function showReward(){
   shuffleArr(GAME_CARDS).slice(0,3).forEach(card=>{
     const b=document.createElement("button");
     b.className="game-card "+card.type;
-    b.innerHTML=`<span class="cost">${card.cost}</span><div class="cname">${card.emoji} ${card.name}</div><div class="cdesc">${card.desc}</div>`;
+    b.innerHTML=`<span class="cost">${card.cost}</span><div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
     b.onclick=()=>{G.deck.push(card);logGame(`获得新卡「${card.name}」`);startBattle();};
     els.gRewards.appendChild(b);
   });
+  const available=RELICS.filter(r=>!G.relics.some(x=>x.id===r.id));
+  if(available.length){
+    const relic=shuffleArr(available)[0];
+    const b=document.createElement("button");
+    b.className="game-card relic-card";
+    b.innerHTML=`<div class="cicon">${relic.emoji}</div><div class="cname">${relic.name}</div><div class="cdesc">${relic.desc}</div>`;
+    b.onclick=()=>{G.relics.push(relic);logGame(`获得遗物「${relic.name}」`);startBattle();};
+    els.gRewards.appendChild(b);
+  }
 }
 function showEnding(defeated){
   G.running=false;G.busy=false;
@@ -1921,6 +2030,8 @@ try{
   if(q.get("game")==="1"){openGame();}
   if(q.get("gamebattle")==="1"){openGame();startGame();}
   if(q.get("gamebubble")==="1"){openGame();startGame();setTimeout(()=>showBubble("player","谁也别拦我，我今天就要发疯！"),300);setTimeout(()=>showBubble("enemy","这个需求，今天必须上线。"),900);}
+  if(q.get("gamereward")==="1"){openGame();startGame();G.encounter=1;showReward();}
+  if(q.get("gameplay")==="1"){openGame();startGame();setTimeout(()=>playGameCard(0),300);}
   if(q.get("gameend")==="1"){openGame();G.player={hp:32,maxHp:70,energy:3,maxEnergy:3,block:0,coins:42};G.encounter=3;G.turn=8;showEnding(false);}
   const dr=q.get("diagresult");
   if(dr&&dr.length>=8){
