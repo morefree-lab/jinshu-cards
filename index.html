@@ -120,6 +120,12 @@
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .afdian{color:var(--accent);text-decoration:none}
   .afdian:hover{text-decoration:underline}
+  .modal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:20px}
+  .modal.show{display:flex}
+  .modal-box{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;max-width:min(92vw,760px);width:100%;display:flex;flex-direction:column;gap:12px;max-height:92vh;overflow:auto}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:15px}
+  #posterCanvas{width:100%;height:auto;border-radius:12px;background:#000}
+  .modal-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 </style>
 </head>
 <body>
@@ -209,7 +215,7 @@
         <button class="btn" id="copyBtn" style="flex:1">复制到剪贴板</button>
       </div>
       <div class="field row">
-        <button class="btn" id="gridBtn" style="flex:1">🀄 九宫格切图（Pro）</button>
+        <button class="btn" id="gridBtn" style="flex:1">🎲 灵感九宫格</button>
       </div>
 
       <h2 style="margin-top:18px">批量生成</h2>
@@ -241,6 +247,18 @@
         <div class="hintbar"><a class="afdian" href="https://afdian.com/a/onelinecards" target="_blank" rel="noopener">支持 oneline. · 爱发电主页</a></div>
       </div>
     </div>
+  </div>
+</div>
+<div class="modal" id="posterModal">
+  <div class="modal-box">
+    <div class="modal-head"><span>🎲 灵感九宫格</span><button class="btn sm" id="posterClose">关闭</button></div>
+    <canvas id="posterCanvas" width="1080" height="1080"></canvas>
+    <div class="modal-actions">
+      <button class="btn" id="posterReroll">再抽一套</button>
+      <button class="btn primary" id="posterDownload">下载海报</button>
+      <button class="btn" id="posterSplit">切成9张（Pro）</button>
+    </div>
+    <div class="filehint" style="text-align:center">一张图直接发；想要朋友圈九宫格碎片，再用 Pro 的「切成9张」。</div>
   </div>
 </div>
 <div id="toast"></div>
@@ -393,10 +411,12 @@ const els={
   batchBtn:$("batchBtn"),batchMsg:$("batchMsg"),canvas:$("preview"),
   aiBase:$("aiBase"),aiKey:$("aiKey"),aiModel:$("aiModel"),aiPrompt:$("aiPrompt"),aiBtn:$("aiBtn"),aiMsg:$("aiMsg"),
   codeInput:$("codeInput"),activateBtn:$("activateBtn"),buyBtn:$("buyBtn"),proTitle:$("proTitle"),proDesc:$("proDesc"),proMsg:$("proMsg"),
-  dailyName:$("dailyName"),dailyBtn:$("dailyBtn"),dailyInfo:$("dailyInfo"),gridBtn:$("gridBtn")
+  dailyName:$("dailyName"),dailyBtn:$("dailyBtn"),dailyInfo:$("dailyInfo"),gridBtn:$("gridBtn"),
+  posterModal:$("posterModal"),posterCanvas:$("posterCanvas"),posterClose:$("posterClose"),
+  posterReroll:$("posterReroll"),posterDownload:$("posterDownload"),posterSplit:$("posterSplit")
 };
 
-const state={cat:"全部",theme:0,font:"yahei",size:64,ls:0,lh:1.62,align:"center",vertical:false,showDate:true,wmOn:true,wmPos:"br",wmImage:null,bgImage:null,extra:""};
+const state={cat:"全部",theme:0,font:"yahei",size:64,ls:0,lh:1.62,align:"center",vertical:false,showDate:true,wmOn:true,wmPos:"br",wmImage:null,bgImage:null,extra:"",posterQuotes:[]};
 let toastTimer=null;
 
 function flash(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),1800);}
@@ -711,7 +731,7 @@ function applyTheme(i){
 }
 
 function pickQuote(){
-  const pool=state.cat==="全部"?QUOTES:QUOTES.filter(q=>q.cat===state.cat);
+  const pool=state.cat==="全部"?QUOTES:QUOTES.filter(q=>q.c===state.cat);
   const q=pool[Math.floor(Math.random()*pool.length)];
   state.extra="";
   els.quote.value=q.t;els.author.value=q.a;render();
@@ -901,14 +921,115 @@ function drawSquareCard(cv,o){
   ctx.textAlign="left";ctx.fillText(`${now.getFullYear()}.${p(now.getMonth()+1)}.${p(now.getDate())}`,pad,S-56);
   if(o.wmOn&&o.wmText){ctx.textAlign="right";ctx.fillText(o.wmText,S-pad,S-56);}
 }
-async function nineGrid(){
-  if(!isPro()){promptUpgrade("九宫格切图是 Pro 功能，升级后可一键打包 9 张切图");return;}
-  const sq=document.createElement("canvas");sq.width=1080;sq.height=1080;
-  drawSquareCard(sq,buildRenderOpts());
+function shadeHex(hex,amt){
+  const n=parseInt(hex.slice(1),16);let r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+  const t=amt<0?0:255,p=Math.abs(amt);
+  r=Math.round(r+(t-r)*p);g=Math.round(g+(t-g)*p);b=Math.round(b+(t-b)*p);
+  return `rgb(${r},${g},${b})`;
+}
+function lumHex(hex){
+  const n=parseInt(hex.slice(1),16);const r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+  return (0.299*r+0.587*g+0.114*b)/255;
+}
+function shuffleArr(a){
+  const b=a.slice();
+  for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}
+  return b;
+}
+function pickPosterQuotes(){
+  const pool=state.cat==="全部"?QUOTES:QUOTES.filter(q=>q.c===state.cat);
+  let picked=shuffleArr(pool).slice(0,8);
+  if(picked.length<8){
+    const extra=shuffleArr(QUOTES).filter(q=>!picked.includes(q));
+    picked=picked.concat(extra.slice(0,8-picked.length));
+  }
+  return picked.slice(0,8);
+}
+function drawPoster(){
+  const cv=els.posterCanvas,ctx=cv.getContext("2d"),S=1080;
+  const theme=THEMES[state.theme];
+  ctx.clearRect(0,0,S,S);
+  if(theme.bg.type==="solid"){ctx.fillStyle=theme.bg.color;ctx.fillRect(0,0,S,S);}
+  else{const g=ctx.createLinearGradient(0,0,0,S);for(const [c,p] of theme.bg.stops)g.addColorStop(p,c);ctx.fillStyle=g;ctx.fillRect(0,0,S,S);}
+  if(theme.dark){
+    for(let i=0;i<80;i++){
+      ctx.fillStyle=`rgba(255,255,255,${(0.04+Math.random()*0.12).toFixed(2)})`;
+      const r=Math.random()*1.6+0.5;
+      ctx.beginPath();ctx.arc(Math.random()*S,Math.random()*S,r,0,Math.PI*2);ctx.fill();
+    }
+  }
+  const pad=34,gap=14,cell=(S-pad*2-gap*2)/3;
+  const dark=theme.dark;
+  const fill=dark?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.72)";
+  const stroke=dark?"rgba(255,255,255,0.14)":"rgba(0,0,0,0.08)";
+  const cells=[];
+  for(let r=0;r<3;r++)for(let c=0;c<3;c++)cells.push([pad+c*(cell+gap),pad+r*(cell+gap)]);
+  const quoteCells=[0,1,2,3,5,6,7,8];
+  quoteCells.forEach((idx,qi)=>{
+    const [x,y]=cells[idx];
+    ctx.fillStyle=fill;roundRect(ctx,x,y,cell,cell,22);ctx.fill();
+    ctx.strokeStyle=stroke;ctx.lineWidth=1.5;ctx.stroke();
+    ctx.font='500 15px "Microsoft YaHei","PingFang SC",sans-serif';
+    ctx.fillStyle=hexA(theme.sub,.6);ctx.textAlign="left";
+    ctx.fillText(String(qi+1).padStart(2,"0"),x+22,y+30);
+    const q=state.posterQuotes[qi];
+    if(q){
+      let size=38,lines=[];
+      const maxW=cell-52;
+      while(size>=20){
+        lines=wrapSquare(ctx,q.t,state.font,size,0,maxW);
+        if(lines.length<=5)break;
+        size-=2;
+      }
+      if(lines.length>5){lines=lines.slice(0,5);lines[4]=lines[4].slice(0,-1)+"…";}
+      const lineH=Math.round(size*1.5);
+      const total=lines.length*lineH;
+      const topSpace=44,avail=cell-topSpace-18;
+      let ty=y+topSpace+Math.max(0,(avail-total)/2)+Math.round(size*.9);
+      setFont(ctx,state.font,size,true);
+      ctx.fillStyle=theme.text;ctx.textAlign="center";
+      for(const ln of lines){ctx.fillText(ln,x+cell/2,ty);ty+=lineH;}
+    }
+  });
+  const [cx,cy]=cells[4];
+  const g=ctx.createLinearGradient(cx,cy,cx+cell,cy+cell);
+  g.addColorStop(0,theme.accent);g.addColorStop(1,shadeHex(theme.accent,-.35));
+  ctx.fillStyle=g;roundRect(ctx,cx,cy,cell,cell,22);ctx.fill();
+  const fg=lumHex(theme.accent)>0.62?"#1a1a1a":"#ffffff";
+  ctx.fillStyle=fg;ctx.textAlign="center";
+  ctx.font='600 20px "Microsoft YaHei","PingFang SC",sans-serif';
+  ctx.fillText("今日灵感",cx+cell/2,cy+66);
+  ctx.font='700 64px "Microsoft YaHei","PingFang SC",sans-serif';
+  ctx.fillText(state.cat==="全部"?"精选":state.cat,cx+cell/2,cy+cell/2+14);
+  const now=new Date();const p=n=>String(n).padStart(2,"0");
+  ctx.font='400 20px "Microsoft YaHei","PingFang SC",sans-serif';
+  ctx.fillText(`${now.getFullYear()}.${p(now.getMonth()+1)}.${p(now.getDate())}`,cx+cell/2,cy+cell-66);
+  const wm=isPro()?(state.wmOn?els.wmText.value.trim():""):"oneline.";
+  if(wm){ctx.font='700 24px "Microsoft YaHei","PingFang SC",sans-serif';ctx.fillText(wm,cx+cell/2,cy+cell-28);}
+}
+function openPoster(){
+  state.posterQuotes=pickPosterQuotes();
+  drawPoster();
+  els.posterModal.classList.add("show");
+}
+function rerollPoster(){
+  state.posterQuotes=pickPosterQuotes();
+  drawPoster();
+  flash("又抽了一套灵感");
+}
+function downloadPoster(){
+  els.posterCanvas.toBlob(b=>{
+    if(!b){flash("导出失败");return;}
+    downloadBlob(b,`oneline_inspiration_${stamp()}.png`);
+    flash("海报已下载");
+  },"image/png");
+}
+async function splitPoster(){
+  if(!isPro()){els.posterModal.classList.remove("show");promptUpgrade("切成9张是 Pro 功能，升级后可导出朋友圈九宫格");return;}
   const tile=360,entries=[];
   for(let r=0;r<3;r++)for(let c=0;c<3;c++){
     const t=document.createElement("canvas");t.width=tile;t.height=tile;
-    t.getContext("2d").drawImage(sq,c*tile,r*tile,tile,tile,0,0,tile,tile);
+    t.getContext("2d").drawImage(els.posterCanvas,c*tile,r*tile,tile,tile,0,0,tile,tile);
     const blob=await new Promise(res=>t.toBlob(res,"image/png"));
     entries.push({name:`oneline_grid_${r*3+c+1}.png`,data:new Uint8Array(await blob.arrayBuffer())});
   }
@@ -970,8 +1091,13 @@ function loadImageFile(file,done){
 els.randomBtn.onclick=pickQuote;
 els.exportBtn.onclick=exportPNG;
 els.copyBtn.onclick=copyPNG;
-els.gridBtn.onclick=nineGrid;
+els.gridBtn.onclick=openPoster;
 els.dailyBtn.onclick=dailySign;
+els.posterClose.onclick=()=>els.posterModal.classList.remove("show");
+els.posterReroll.onclick=rerollPoster;
+els.posterDownload.onclick=downloadPoster;
+els.posterSplit.onclick=splitPoster;
+els.posterModal.addEventListener("click",e=>{if(e.target===els.posterModal)els.posterModal.classList.remove("show");});
 els.batchBtn.onclick=batchGenerate;
 els.fillQuotesBtn.onclick=()=>{els.batchText.value=QUOTES.map(q=>q.t).join("\n");els.batchMsg.textContent=`已填入 ${QUOTES.length} 句金句`;};
 els.aiBtn.onclick=aiGenerate;
@@ -1009,7 +1135,13 @@ els.wmClear.onclick=()=>{state.wmImage=null;els.wmFile.value="";render();};
 els.quote.value=QUOTES[0].t;els.author.value=QUOTES[0].a;
 try{const saved=localStorage.getItem("oneline_name");if(saved)els.dailyName.value=saved;}catch(e){}
 buildChips();buildSwatches();buildFontSel();syncControls();refreshLockUI();render();
-try{const q=new URLSearchParams(location.search);if(q.get("daily")==="1"){els.dailyName.value=q.get("name")||els.dailyName.value;dailySign();}}catch(e){}
+try{
+  const q=new URLSearchParams(location.search);
+  const qc=q.get("cat");if(qc&&CATS.includes(qc)){state.cat=qc;buildChips();}
+  const qt=q.get("theme");if(qt!==null){const ti=+qt;if(ti>=0&&ti<THEMES.length)applyTheme(ti);}
+  if(q.get("daily")==="1"){els.dailyName.value=q.get("name")||els.dailyName.value;dailySign();}
+  if(q.get("poster")==="1"){openPoster();}
+}catch(e){}
 
 (function makeStars(){
   const bg=document.getElementById("bg");
