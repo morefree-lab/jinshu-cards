@@ -10,3 +10,5 @@
 - 可选接入 OpenAI 兼容接口，让 AI 现场写文案
 
 直接打开 `index.html` 即可使用，或访问本项目的 GitHub Pages 地址。
+
+爱发电主页：https://afdian.com/a/onelinecards
