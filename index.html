@@ -126,6 +126,15 @@
   .modal-head{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:15px}
   #posterCanvas{width:100%;height:auto;border-radius:12px;background:#000}
   .modal-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .diag-view{display:flex;flex-direction:column;gap:12px}
+  .diag-big{font-size:22px;font-weight:700;text-align:center;margin-top:8px}
+  .diag-sub{font-size:13px;color:var(--muted);text-align:center;line-height:1.6}
+  .diag-progress{font-size:12px;color:var(--muted);letter-spacing:1px}
+  .diag-q{font-size:18px;font-weight:700;line-height:1.5;margin:6px 0 4px}
+  .diag-opts{display:flex;flex-direction:column;gap:8px}
+  .diag-opt{text-align:left;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);cursor:pointer;font-size:14px;line-height:1.4}
+  .diag-opt:hover{border-color:var(--accent)}
+  #diagCanvas{width:100%;height:auto;border-radius:12px;background:#fff}
 </style>
 </head>
 <body>
@@ -152,6 +161,7 @@
         </div>
       </div>
       <div class="promsg" id="proMsg"></div>
+      <button class="btn primary block" id="diagBtn" style="margin-bottom:14px">🩺 测测你的精神状态</button>
 
       <h2>内容</h2>
       <div class="field"><div class="chips" id="chips"></div></div>
@@ -246,6 +256,31 @@
         <div class="hintbar">1080 × 1440 · 3:4 · 导出即用</div>
         <div class="hintbar"><a class="afdian" href="https://afdian.com/a/onelinecards" target="_blank" rel="noopener">支持 oneline. · 爱发电主页</a></div>
       </div>
+    </div>
+  </div>
+</div>
+<div class="modal" id="diagModal">
+  <div class="modal-box">
+    <div class="modal-head"><span>🩺 精神状态诊断所</span><button class="btn sm" id="diagClose">关闭</button></div>
+    <div class="diag-view" id="diagStart">
+      <div class="diag-big">你的精神状态，还好吗？</div>
+      <div class="diag-sub">8 道题，30 秒，测测你最近的精神状态。<br>本诊断仅供娱乐，请勿当真。</div>
+      <input type="text" id="diagName" placeholder="你的名字/昵称（可留空）">
+      <button class="btn primary" id="diagStartBtn">开始检测</button>
+    </div>
+    <div class="diag-view" id="diagQuiz" style="display:none">
+      <div class="diag-progress" id="diagProgress"></div>
+      <div class="diag-q" id="diagQ"></div>
+      <div class="diag-opts" id="diagOpts"></div>
+    </div>
+    <div class="diag-view" id="diagResult" style="display:none">
+      <canvas id="diagCanvas" width="1080" height="1440"></canvas>
+      <div class="modal-actions">
+        <button class="btn" id="diagRetry">再测一次</button>
+        <button class="btn primary" id="diagDownload">保存诊断书</button>
+        <button class="btn" id="diagShare">复制分享链接</button>
+      </div>
+      <div class="filehint" id="diagHint" style="text-align:center"></div>
     </div>
   </div>
 </div>
@@ -413,7 +448,11 @@ const els={
   codeInput:$("codeInput"),activateBtn:$("activateBtn"),buyBtn:$("buyBtn"),proTitle:$("proTitle"),proDesc:$("proDesc"),proMsg:$("proMsg"),
   dailyName:$("dailyName"),dailyBtn:$("dailyBtn"),dailyInfo:$("dailyInfo"),gridBtn:$("gridBtn"),
   posterModal:$("posterModal"),posterCanvas:$("posterCanvas"),posterClose:$("posterClose"),
-  posterReroll:$("posterReroll"),posterDownload:$("posterDownload"),posterSplit:$("posterSplit")
+  posterReroll:$("posterReroll"),posterDownload:$("posterDownload"),posterSplit:$("posterSplit"),
+  diagBtn:$("diagBtn"),diagModal:$("diagModal"),diagClose:$("diagClose"),diagStart:$("diagStart"),
+  diagStartBtn:$("diagStartBtn"),diagQuiz:$("diagQuiz"),diagProgress:$("diagProgress"),diagQ:$("diagQ"),
+  diagOpts:$("diagOpts"),diagResult:$("diagResult"),diagCanvas:$("diagCanvas"),diagRetry:$("diagRetry"),
+  diagDownload:$("diagDownload"),diagShare:$("diagShare"),diagHint:$("diagHint"),diagName:$("diagName")
 };
 
 const state={cat:"全部",theme:0,font:"yahei",size:64,ls:0,lh:1.62,align:"center",vertical:false,showDate:true,wmOn:true,wmPos:"br",wmImage:null,bgImage:null,extra:"",posterQuotes:[]};
@@ -467,6 +506,36 @@ const DAILY_SIGNS=[
 const YI=["见面","早睡","复盘","存钱","运动","读书","独处","表白","整理房间","给朋友发消息","喝一杯热的","把话说开","散步","学点新东西","投资自己"];
 const JI=["熬夜","内耗","翻旧账","冲动消费","拖延","想太多","和烂人纠缠","空腹喝咖啡","情绪化决定","过度解释"];
 const LUCKY_COLORS=[["珊瑚橙","#ff8a5c"],["深海蓝","#2b4a7a"],["抹茶绿","#7aa77a"],["雾霾紫","#8a7aa7"],["奶油白","#f7efe2"],["正红","#c0392b"],["黑金","#e3c26d"],["薄荷绿","#2fa578"]];
+
+const DIAG_QUESTIONS=[
+  {q:"早上闹钟响了三遍，你会？",opts:[["立刻起床，自律给我自由",0],["再睡五分钟，结果半小时",1],["先刷十分钟手机，假装在醒",2],["直接请假，身体是革命的本钱",3]]},
+  {q:"微信收到一句「在吗」，你的第一反应是？",opts:[["秒回，热情似火",0],["等对方说正事再回",1],["假装没看见，两小时后再回",2],["心里一紧，开始脑补是不是要借钱",3]]},
+  {q:"周末最理想的打开方式是？",opts:[["出门社交，认识新朋友",0],["在家躺平，谁也不见",1],["约一两个熟人，安静吃饭",2],["加班/学习，卷死别人",3]]},
+  {q:"看到别人发「今天也要元气满满」，你会？",opts:[["点赞，传递正能量",0],["默默划走，心里毫无波澜",1],["想回一句「你没事吧」",2],["反手发一条「今天也要摆烂满满」",3]]},
+  {q:"手机电量到 20% 时，你会？",opts:[["立刻找充电器，开始焦虑",0],["还能撑，继续刷",1],["开省电模式，苟住",2],["直接关机，世界清净",3]]},
+  {q:"朋友约你出门，但你已经洗好澡躺下了？",opts:[["立刻爬起来，朋友最大",0],["看心情，可能去可能不去",1],["找借口拒绝，被窝才是家",2],["直接说「我死了」，然后继续躺",3]]},
+  {q:"你发了一条朋友圈，十分钟没人点赞？",opts:[["开始怀疑人生，删掉",0],["无所谓，发给自己看",1],["过一会儿再看一眼",2],["再发一条，测试算法",3]]},
+  {q:"面对「你最近怎么样」，你的真实回答是？",opts:[["挺好的，谢谢关心",0],["就那样，活着",1],["表面还行，内心已经拆迁",2],["别问，问就是在发疯",3]]}
+];
+
+const DIAG_RESULTS=[
+  {name:"电子木鱼成精",tag:"功德+1，情绪稳定得可怕。",desc:"你已经修炼到遇事不慌、凡事「随缘」的境界。别人以为你佛系，其实你只是懒得解释。",advice:["继续保持，但别把「没事」挂嘴边","每天允许自己发疯五分钟","偶尔也当一回「有所谓」的人"],rarity:"N"},
+  {name:"人形充电宝",tag:"谁靠近你都能回血，除了你自己。",desc:"你总能接住别人的情绪，却常常忘了给自己充电。",advice:["先给自己充一次电","学会说不，不会掉粉","周末关机两小时"],rarity:"N"},
+  {name:"情绪稳定器",tag:"天塌下来，你先看看被子叠没叠。",desc:"你的稳定是一种天赋，但稳定久了，也容易变成憋着。",advice:["稳定是优点，但别憋着","找个人说点真话","偶尔也可以不靠谱"],rarity:"N"},
+  {name:"早睡教教主",tag:"作息规律得像退休干部，精神状态领先同龄人十年。",desc:"当别人还在熬夜修仙，你已经睡醒看完日出了。",advice:["继续保持","带朋友一起早睡","别嘲笑熬夜的人，他们真的会碎"],rarity:"N"},
+  {name:"班味晚期",tag:"人还没到工位，班味已经先到了。",desc:"你不是在上班，就是在去上班的路上，连做梦都在回「收到」。",advice:["下班立刻摘工牌","摸鱼二十分钟，不许内疚","把「收到」换成「好的呢」"],rarity:"SR"},
+  {name:"i人电量1%",tag:"社交五分钟，充电两小时。",desc:"你的社交电量常年飘红，最大的愿望是所有人都用文字沟通。",advice:["减少无效社交","能发文字别发语音","把「在吗」设置成免打扰"],rarity:"SR"},
+  {name:"恋爱脑待机",tag:"嘴上说搞钱，心里在等一条消息。",desc:"你白天是清醒的搞钱人，深夜是emo文学的主角。",advice:["先搞钱，钱不会已读不回","把聊天框关掉","你值得被主动"],rarity:"SR"},
+  {name:"摆烂型选手",tag:"不是不努力，是努力了也没用，所以先躺。",desc:"你已经看透了内卷的本质，选择用躺平保护自己。",advice:["允许躺，但别躺太久","躺完做一件小事","别拿别人的人生当尺子"],rarity:"SR"},
+  {name:"电子榨菜依赖症",tag:"吃饭必须配视频，不然这顿饭没有灵魂。",desc:"你的人生不能没有背景音，安静会让你开始胡思乱想。",advice:["偶尔认真吃一顿饭","给眼睛放个假","别在深夜刷吃播"],rarity:"SR"},
+  {name:"深夜emo批发商",tag:"白天哈哈哈，晚上人间不值得。",desc:"你的情绪有营业时间，白天稳定输出快乐，深夜独自清仓。",advice:["早点睡，真的","把emo写下来，别发出去","别在凌晨做决定"],rarity:"SR"},
+  {name:"嘴硬心软型",tag:"嘴上说随便，心里已经演完八十集。",desc:"你最擅长用「没事」掩饰有事，用「随便」表达在意。",advice:["想要就说","别用反话试探","真诚不丢人"],rarity:"SR"},
+  {name:"社交牛杂症",tag:"熟的时候是疯子，不熟的时候是哑巴。",desc:"你的社交状态取决于对方是谁，切换速度连你自己都害怕。",advice:["不用讨好所有人","找到你的同类","允许自己慢热"],rarity:"SR"},
+  {name:"发疯文学代言人",tag:"精神状态：稳定地发疯，优雅地崩溃。",desc:"你把生活过成了一部荒诞剧，而你是唯一投入的演员。",advice:["发疯可以，别伤害自己","找个树洞","你只是太累了"],rarity:"SSR"},
+  {name:"人间清醒的疯子",tag:"什么都懂，就是过不好这一生。",desc:"你看得透所有道理，却依然在深夜点开外卖软件。",advice:["少想多做","允许自己糊涂","先睡一觉"],rarity:"SSR"},
+  {name:"抽象乐子人",tag:"世界是个草台班子，你是台下最投入的观众。",desc:"你用玩笑消解一切，但玩笑背后，是你认真活过的痕迹。",advice:["乐子可以看，别把自己搭进去","认真生活五分钟","笑完记得吃饭"],rarity:"SSR"},
+  {name:"赛博菩萨",tag:"功德已经敲满，情绪还在加载。",desc:"你已经把「随缘」修炼成一种本能，但偶尔也想有人问你累不累。",advice:["功德不能当饭吃","该哭就哭","你已经做得很好了"],rarity:"SSR"}
+];
 
 function dateKey(){
   const n=new Date();const p=x=>String(x).padStart(2,"0");
@@ -1037,6 +1106,156 @@ async function splitPoster(){
   flash("九宫格已打包下载");
 }
 
+let diagState={answers:[],index:0};
+function showDiagView(name){
+  els.diagStart.style.display=name==="start"?"flex":"none";
+  els.diagQuiz.style.display=name==="quiz"?"flex":"none";
+  els.diagResult.style.display=name==="result"?"flex":"none";
+}
+function openDiag(){
+  diagState={answers:[],index:0};
+  showDiagView("start");
+  els.diagModal.classList.add("show");
+}
+function startDiag(){
+  diagState={answers:[],index:0};
+  showDiagView("quiz");
+  renderDiagQuestion();
+}
+function renderDiagQuestion(){
+  const q=DIAG_QUESTIONS[diagState.index];
+  els.diagProgress.textContent=`${diagState.index+1} / ${DIAG_QUESTIONS.length}`;
+  els.diagQ.textContent=q.q;
+  els.diagOpts.innerHTML="";
+  q.opts.forEach(([text,score])=>{
+    const b=document.createElement("button");
+    b.className="diag-opt";b.textContent=text;
+    b.onclick=()=>{
+      diagState.answers.push(score);
+      diagState.index++;
+      if(diagState.index>=DIAG_QUESTIONS.length)finishDiag();
+      else renderDiagQuestion();
+    };
+    els.diagOpts.appendChild(b);
+  });
+}
+function finishDiag(){
+  const sum=diagState.answers.reduce((a,b)=>a+b,0);
+  const band=sum<=6?0:sum<=12?1:sum<=18?2:3;
+  const h=fnv1a(diagState.answers.join(",")+"|diag");
+  const result=DIAG_RESULTS[band*4+(h%4)];
+  drawDiagnosisCard(els.diagCanvas,result,els.diagName.value.trim(),diagState.answers);
+  showDiagView("result");
+  els.diagHint.textContent=`确诊：${result.name} · ${result.rarity==="N"?"普通":result.rarity==="SR"?"稀有":"SSR"}`;
+}
+function drawDiagnosisCard(cv,result,name,answers){
+  const ctx=cv.getContext("2d"),W=1080,H=1440;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle="#f4f1ea";ctx.fillRect(0,0,W,H);
+  for(let i=0;i<420;i++){
+    ctx.fillStyle=`rgba(0,0,0,${(0.015+Math.random()*0.025).toFixed(3)})`;
+    ctx.fillRect(Math.random()*W,Math.random()*H,2,2);
+  }
+  ctx.strokeStyle="rgba(31,31,31,.5)";ctx.lineWidth=2;
+  ctx.strokeRect(46,46,W-92,H-92);
+  ctx.strokeRect(58,58,W-116,H-116);
+  ctx.textAlign="left";ctx.fillStyle="#1f1f1f";
+  ctx.font='700 30px "Microsoft YaHei",sans-serif';
+  ctx.fillText("ONELINE 精神状态诊断所",90,128);
+  ctx.fillStyle="#6b6b6b";ctx.font='400 18px "Microsoft YaHei",sans-serif';
+  ctx.fillText("MENTAL STATUS CLINIC · EST. 2026",90,162);
+  ctx.fillStyle="#c0392b";ctx.fillRect(W-150,96,46,12);ctx.fillRect(W-133,79,12,46);
+  ctx.fillStyle="#1f1f1f";ctx.textAlign="center";
+  ctx.font='700 56px "Microsoft YaHei",sans-serif';
+  ctx.fillText("精 神 状 态 诊 断 书",W/2,258);
+  ctx.strokeStyle="rgba(31,31,31,.3)";ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(90,298);ctx.lineTo(W-90,298);ctx.stroke();
+  const now=new Date();const p=n=>String(n).padStart(2,"0");
+  const date=`${now.getFullYear()}.${p(now.getMonth()+1)}.${p(now.getDate())}`;
+  const id="ONL-"+String((fnv1a(answers.join(","))%900000)+100000);
+  ctx.textAlign="left";ctx.font='400 26px "Microsoft YaHei",sans-serif';ctx.fillStyle="#4a4a4a";
+  ctx.fillText(`姓名：${(name||"匿名患者").slice(0,10)}`,90,352);
+  ctx.fillText(`编号：${id}`,90,394);
+  ctx.fillText(`日期：${date}`,90,436);
+  ctx.fillText("科室：情绪内科",560,352);
+  ctx.fillText("门诊：网络冲浪门诊",560,394);
+  ctx.fillText("医师：Dr. oneline",560,436);
+  ctx.fillStyle="#6b6b6b";ctx.font='700 22px "Microsoft YaHei",sans-serif';
+  ctx.fillText("DIAGNOSIS / 诊断结果",90,512);
+  ctx.strokeStyle="rgba(31,31,31,.2)";ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(90,532);ctx.lineTo(W-90,532);ctx.stroke();
+  ctx.fillStyle="#c0392b";ctx.font='700 84px "Microsoft YaHei",sans-serif';
+  ctx.fillText(result.name,90,634);
+  ctx.fillStyle="#1f1f1f";ctx.font='700 34px "Microsoft YaHei",sans-serif';
+  let ty=704;
+  for(const ln of wrapSquare(ctx,result.tag,"yahei",34,0,W-180)){ctx.fillText(ln,90,ty);ty+=48;}
+  ctx.fillStyle="#4a4a4a";ctx.font='400 30px "Microsoft YaHei",sans-serif';
+  ty+=10;
+  let dl=wrapSquare(ctx,result.desc,"yahei",30,0,W-180);
+  if(dl.length>3)dl=dl.slice(0,3);
+  for(const ln of dl){ctx.fillText(ln,90,ty);ty+=46;}
+  if(ty<880){
+    ctx.fillStyle="#6b6b6b";ctx.font='700 18px "Microsoft YaHei",sans-serif';ctx.textAlign="left";
+    ctx.fillText("答题记录 / ANSWERS",90,865);
+    for(let i=0;i<8;i++){
+      const s=answers[i]||0,ax=100+i*96,ay=915;
+      ctx.beginPath();ctx.arc(ax,ay,14,0,Math.PI*2);
+      ctx.fillStyle=`rgba(192,57,43,${0.12+s*0.22})`;ctx.fill();
+      ctx.strokeStyle="rgba(192,57,43,.45)";ctx.lineWidth=1.5;ctx.stroke();
+    }
+  }
+  ctx.fillStyle="#6b6b6b";ctx.font='700 22px "Microsoft YaHei",sans-serif';
+  ctx.fillText("ADVICE / 医嘱",90,990);
+  ctx.strokeStyle="rgba(31,31,31,.2)";ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(90,1010);ctx.lineTo(W-90,1010);ctx.stroke();
+  result.advice.forEach((a,i)=>{
+    const ay=1066+i*54;
+    ctx.fillStyle="#c0392b";ctx.font='700 26px "Microsoft YaHei",sans-serif';
+    ctx.fillText(`${i+1}.`,90,ay);
+    ctx.fillStyle="#1f1f1f";ctx.font='400 30px "Microsoft YaHei",sans-serif';
+    ctx.fillText(a,132,ay);
+  });
+  ctx.save();
+  ctx.translate(W-175,1170);ctx.rotate(-0.18);
+  const rl=result.rarity==="N"?"普通":result.rarity==="SR"?"稀有":"SSR";
+  ctx.strokeStyle="rgba(192,57,43,.72)";ctx.lineWidth=5;
+  ctx.beginPath();ctx.arc(0,0,78,0,Math.PI*2);ctx.stroke();
+  ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,66,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle="rgba(192,57,43,.85)";ctx.textAlign="center";
+  ctx.font='700 38px "Microsoft YaHei",sans-serif';
+  ctx.fillText(rl,0,8);
+  ctx.font='700 15px "Microsoft YaHei",sans-serif';
+  ctx.fillText("ONELINE CLINIC",0,36);
+  ctx.restore();
+  ctx.fillStyle="#1f1f1f";
+  let bx=90;
+  for(let i=0;i<42;i++){
+    const bw=Math.random()<.3?2:4,bh=64+Math.random()*26;
+    ctx.fillRect(bx,1236,bw,bh);
+    bx+=bw+4+Math.random()*4;
+  }
+  ctx.fillStyle="#6b6b6b";ctx.font='400 16px Consolas,monospace';ctx.textAlign="left";
+  ctx.fillText(id,90,1326);
+  ctx.fillStyle="#8a8a8a";ctx.font='400 22px "Microsoft YaHei",sans-serif';ctx.textAlign="center";
+  ctx.fillText("本诊断仅供娱乐，请勿当真 · oneline.",W/2,1370);
+}
+function downloadDiag(){
+  els.diagCanvas.toBlob(b=>{
+    if(!b){flash("导出失败");return;}
+    downloadBlob(b,`oneline_diagnosis_${stamp()}.png`);
+    flash("诊断书已保存");
+  },"image/png");
+}
+function shareDiag(){
+  const nm=encodeURIComponent(els.diagName.value.trim());
+  const url=`https://morefree-lab.github.io/jinshu-cards/?diagresult=${diagState.answers.join("")}${nm?"&name="+nm:""}`;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(()=>flash("分享链接已复制")).catch(()=>flash("复制失败，请手动复制链接"));
+  }else{
+    flash("请手动复制："+url);
+  }
+}
+
 async function batchGenerate(){
   if(!isPro()){promptUpgrade("批量生成是 Pro 功能，升级后一次生成整套卡片并打包下载");return;}
   const lines=els.batchText.value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
@@ -1098,6 +1317,13 @@ els.posterReroll.onclick=rerollPoster;
 els.posterDownload.onclick=downloadPoster;
 els.posterSplit.onclick=splitPoster;
 els.posterModal.addEventListener("click",e=>{if(e.target===els.posterModal)els.posterModal.classList.remove("show");});
+els.diagBtn.onclick=openDiag;
+els.diagStartBtn.onclick=startDiag;
+els.diagClose.onclick=()=>els.diagModal.classList.remove("show");
+els.diagRetry.onclick=startDiag;
+els.diagDownload.onclick=downloadDiag;
+els.diagShare.onclick=shareDiag;
+els.diagModal.addEventListener("click",e=>{if(e.target===els.diagModal)els.diagModal.classList.remove("show");});
 els.batchBtn.onclick=batchGenerate;
 els.fillQuotesBtn.onclick=()=>{els.batchText.value=QUOTES.map(q=>q.t).join("\n");els.batchMsg.textContent=`已填入 ${QUOTES.length} 句金句`;};
 els.aiBtn.onclick=aiGenerate;
@@ -1141,6 +1367,13 @@ try{
   const qt=q.get("theme");if(qt!==null){const ti=+qt;if(ti>=0&&ti<THEMES.length)applyTheme(ti);}
   if(q.get("daily")==="1"){els.dailyName.value=q.get("name")||els.dailyName.value;dailySign();}
   if(q.get("poster")==="1"){openPoster();}
+  if(q.get("diag")==="1"){els.diagName.value=q.get("name")||"";openDiag();}
+  if(q.get("diagq")==="1"){openDiag();startDiag();}
+  const dr=q.get("diagresult");
+  if(dr&&dr.length>=8){
+    const arr=[...dr].slice(0,8).map(Number).filter(n=>n>=0&&n<=3);
+    if(arr.length===8){diagState={answers:arr,index:8};els.diagName.value=q.get("name")||"";finishDiag();els.diagModal.classList.add("show");}
+  }
 }catch(e){}
 
 (function makeStars(){
