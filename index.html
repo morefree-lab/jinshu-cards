@@ -66,7 +66,10 @@
         <div class="gf-actions">
           <button class="gf-cta" id="startFromHub">进入游戏 →</button>
           <button class="gf-secondary" id="rulesBtn">游戏规则</button>
+          <button class="gf-secondary" id="dailyChallengeBtn">每日挑战</button>
+          <button class="gf-secondary" id="collectionBtn">收集册 · <span id="hubPoints">0</span> 工分</button>
         </div>
+        <div class="gf-daily" id="dailyStatus">今日挑战未完成 · 连胜 0 天</div>
       </div>
       <div class="gf-preview">
         <div class="gf-boss portrait-slot" data-portrait="boss">👔</div>
@@ -284,7 +287,9 @@
       <div class="modal-actions">
         <button class="btn" id="gameAgain">再上一班</button>
         <button class="btn primary" id="gameSave">保存战绩卡</button>
+        <button class="btn" id="gameShare">复制战绩</button>
       </div>
+      <div class="filehint" id="gameEndHint" style="text-align:center"></div>
     </div>
   </div>
 </div>
@@ -311,6 +316,13 @@
       </div>
       <div class="filehint" id="diagHint" style="text-align:center"></div>
     </div>
+  </div>
+</div>
+<div class="modal" id="collectionModal">
+  <div class="modal-box">
+    <div class="modal-head"><span>📚 收集册</span><button class="btn sm" id="collectionClose">关闭</button></div>
+    <div class="collection-top"><span>工分 <b id="colPoints">0</b></span><span id="colProgress"></span></div>
+    <div class="collection-grid" id="collectionGrid"></div>
   </div>
 </div>
 <div id="toast"></div>
