@@ -228,6 +228,7 @@
     <div class="game-view" id="gameCharacter" style="display:none">
       <div class="game-title">选择角色</div>
       <div class="game-sub">不同角色有不同精神值、起手牌组和被动。</div>
+      <div class="char-points">工分 <b id="charPoints">0</b></div>
       <div class="character-grid" id="characterGrid"></div>
       <div class="modal-actions">
         <button class="btn" id="characterBack">返回</button>
@@ -331,6 +332,12 @@
   <div class="modal-box">
     <div class="modal-head"><span>📚 收集册</span><button class="btn sm" id="collectionClose">关闭</button></div>
     <div class="collection-top"><span>工分 <b id="colPoints">0</b></span><span id="colProgress"></span></div>
+    <div class="collection-tabs" id="collectionTabs">
+      <button data-tab="characters" class="on">角色</button>
+      <button data-tab="cards">卡牌</button>
+      <button data-tab="relics">遗物</button>
+    </div>
+    <div class="collection-hint">打一局赚工分 · 新手已赠送 120 工分</div>
     <div class="collection-grid" id="collectionGrid"></div>
   </div>
 </div>
