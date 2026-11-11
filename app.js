@@ -155,7 +155,8 @@ const els={
   diagStartBtn:$("diagStartBtn"),diagQuiz:$("diagQuiz"),diagProgress:$("diagProgress"),diagQ:$("diagQ"),
   diagOpts:$("diagOpts"),diagResult:$("diagResult"),diagCanvas:$("diagCanvas"),diagRetry:$("diagRetry"),
   diagDownload:$("diagDownload"),diagShare:$("diagShare"),diagHint:$("diagHint"),diagName:$("diagName"),
-  gameBtn:$("gameBtn"),startFromHub:$("startFromHub"),rulesBtn:$("rulesBtn"),gameModal:$("gameModal"),gameClose:$("gameClose"),gameMenu:$("gameMenu"),gameStart:$("gameStart"),
+  gameBtn:$("gameBtn"),startFromHub:$("startFromHub"),rulesBtn:$("rulesBtn"),dailyChallengeBtn:$("dailyChallengeBtn"),collectionBtn:$("collectionBtn"),hubPoints:$("hubPoints"),dailyStatus:$("dailyStatus"),
+  gameModal:$("gameModal"),gameClose:$("gameClose"),gameMenu:$("gameMenu"),gameStart:$("gameStart"),
   gameMulligan:$("gameMulligan"),gMulliganHand:$("gMulliganHand"),gMulliganCount:$("gMulliganCount"),
   mulliganKeep:$("mulliganKeep"),mulliganConfirm:$("mulliganConfirm"),
   gSound:$("gSound"),gSpeed:$("gSpeed"),gEmbers:$("gEmbers"),gBattleIntro:$("gBattleIntro"),gIntroKicker:$("gIntroKicker"),
@@ -169,7 +170,8 @@ const els={
   gRelics:$("gRelics"),
   gEndTurn:$("gEndTurn"),gameReward:$("gameReward"),gRewards:$("gRewards"),gSkip:$("gSkip"),
   gameEvent:$("gameEvent"),gEventTitle:$("gEventTitle"),gEventDesc:$("gEventDesc"),gEventChoices:$("gEventChoices"),
-  gameEnd:$("gameEnd"),gameEndCanvas:$("gameEndCanvas"),gameAgain:$("gameAgain"),gameSave:$("gameSave")
+  gameEnd:$("gameEnd"),gameEndCanvas:$("gameEndCanvas"),gameAgain:$("gameAgain"),gameSave:$("gameSave"),gameShare:$("gameShare"),gameEndHint:$("gameEndHint"),
+  collectionModal:$("collectionModal"),collectionClose:$("collectionClose"),colPoints:$("colPoints"),colProgress:$("colProgress"),collectionGrid:$("collectionGrid")
 };
 
 const state={cat:"全部",theme:0,font:"yahei",size:64,ls:0,lh:1.62,align:"center",vertical:false,showDate:true,wmOn:true,wmPos:"br",wmImage:null,bgImage:null,extra:""};
@@ -299,6 +301,33 @@ const MINIONS={
   revision:{name:"改稿",emoji:"✏️",atk:1,hp:1,charge:true},
   cousin:{name:"别人家的孩子",emoji:"👦",atk:2,hp:2,taunt:true}
 };
+const DEFAULT_UNLOCKS=["c1","c2","c3","c4","c6","c8","c9","c12","c17","c21","c23","thermos","badge"];
+let unlocked=new Set(DEFAULT_UNLOCKS);
+try{
+  const saved=JSON.parse(localStorage.getItem("oneline_unlocked")||"null");
+  if(Array.isArray(saved))unlocked=new Set(saved);
+}catch(e){}
+let points=0;
+try{points=parseInt(localStorage.getItem("oneline_points")||"0",10)||0;}catch(e){}
+function saveUnlocked(){try{localStorage.setItem("oneline_unlocked",JSON.stringify([...unlocked]));}catch(e){}}
+function savePoints(){try{localStorage.setItem("oneline_points",String(points));}catch(e){}}
+function isUnlocked(id){return unlocked.has(id);}
+function addPoints(n){points+=n;savePoints();updateHubStatus();}
+function hashString(s){
+  let h=2166136261;
+  for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}
+  return h>>>0;
+}
+function mulberry32(a){
+  return function(){
+    a|=0;a=(a+0x6D2B79F5)|0;
+    let t=Math.imul(a^(a>>>15),1|a);
+    t=(t+Math.imul(t^(t>>>7),61|t))^t;
+    return ((t^(t>>>14))>>>0)/4294967296;
+  };
+}
+function rand(){return G&&G.rng?G.rng():Math.random();}
+function dailySeed(){return "oneline-"+dateKey();}
 
 const BOSS_SVG=`<svg viewBox="0 0 200 200" class="portrait-svg" aria-hidden="true">
 <defs>
@@ -878,7 +907,7 @@ function wrapSquare(ctx,text,font,size,ls,maxW){
 }
 function shuffleArr(a){
   const b=a.slice();
-  for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}
+  for(let i=b.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[b[i],b[j]]=[b[j],b[i]];}
   return b;
 }
 let diagState={answers:[],index:0};
@@ -1046,7 +1075,11 @@ function openGame(){
   showGameView("menu");
   els.gameModal.classList.add("show");
 }
-function startGame(){
+function startGame(daily=false){
+  G.isDaily=!!daily;
+  G.seed=G.isDaily?dailySeed():("free-"+Date.now());
+  G.rng=mulberry32(hashString(G.seed));
+  G.rewarded=false;G.lastPoints=0;G.streak=0;
   G.player={hp:70,maxHp:70,energy:3,maxEnergy:3,block:0,coins:0,heroPowerUsed:false};
   G.deck=GAME_START_DECK.map(id=>GAME_CARDS.find(c=>c.id===id));
   G.encounter=0;G.log=[];G.running=false;G.ending=null;G.busy=false;G.relics=[];G.combo=0;
@@ -1092,8 +1125,8 @@ function confirmMulligan(){
   G.pendingMulligan=false;
   startBattle(true);
 }
-function startGameFast(){
-  startGame();
+function startGameFast(daily=false){
+  startGame(daily);
   G.mulliganSelected.clear();
   confirmMulligan();
 }
@@ -1525,7 +1558,7 @@ function enemyMinionsAttack(){
     const taunts=G.playerMinions.filter(x=>x.taunt);
     let target=null;
     if(taunts.length)target=taunts[Math.floor(Math.random()*taunts.length)];
-    else if(G.playerMinions.length&&Math.random()<.6)target=G.playerMinions[Math.floor(Math.random()*G.playerMinions.length)];
+    else if(G.playerMinions.length&&rand()<.6)target=G.playerMinions[Math.floor(rand()*G.playerMinions.length)];
     if(target){
       combat(m,target,"player");
     }else{
@@ -1587,7 +1620,7 @@ function winBattle(){
   },gs(950));
 }
 function showEvent(){
-  const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)];
+  const ev=EVENTS[Math.floor(rand()*EVENTS.length)];
   els.gEventTitle.textContent=ev.title;
   els.gEventDesc.textContent=ev.desc;
   els.gEventChoices.innerHTML="";
@@ -1604,7 +1637,7 @@ function showReward(){
   G.busy=false;
   showGameView("reward");
   els.gRewards.innerHTML="";
-  shuffleArr(GAME_CARDS).slice(0,3).forEach((card,idx)=>{
+  shuffleArr(GAME_CARDS.filter(c=>isUnlocked(c.id))).slice(0,3).forEach((card,idx)=>{
     const b=document.createElement("button");
     b.className="game-card "+card.type+(card.rare?" rare":"");
     b.style.setProperty("--i",idx);
@@ -1612,7 +1645,7 @@ function showReward(){
     b.onclick=()=>{G.deck.push(card);logGame(`获得新卡「${card.name}」`);startBattle();};
     els.gRewards.appendChild(b);
   });
-  const available=RELICS.filter(r=>!G.relics.some(x=>x.id===r.id));
+  const available=RELICS.filter(r=>!G.relics.some(x=>x.id===r.id)&&isUnlocked(r.id));
   if(available.length){
     const relic=shuffleArr(available)[0];
     const b=document.createElement("button");
@@ -1621,6 +1654,75 @@ function showReward(){
     b.onclick=()=>{G.relics.push(relic);logGame(`获得遗物「${relic.name}」`);startBattle();};
     els.gRewards.appendChild(b);
   }
+}
+function finishRun(defeated){
+  if(G.rewarded)return;
+  G.rewarded=true;
+  const hp=Math.max(0,G.player.hp);
+  const earned=10+Math.floor(hp/5)+Math.floor(G.player.coins/10)+(defeated?0:10)+(G.isDaily?10:0);
+  addPoints(earned);
+  G.lastPoints=earned;
+  if(G.isDaily){
+    const today=dateKey();
+    let last=null,streak=0;
+    try{last=localStorage.getItem("oneline_daily_last");streak=parseInt(localStorage.getItem("oneline_daily_streak")||"0",10)||0;}catch(e){}
+    if(last!==today){
+      if(last){
+        const prev=new Date(last+"T00:00:00");
+        const now=new Date(today+"T00:00:00");
+        const diff=Math.round((now-prev)/86400000);
+        streak=diff===1?streak+1:1;
+      }else streak=1;
+      try{localStorage.setItem("oneline_daily_last",today);localStorage.setItem("oneline_daily_streak",String(streak));}catch(e){}
+    }
+    G.streak=streak||1;
+  }
+  updateHubStatus();
+}
+function updateHubStatus(){
+  if(els.hubPoints)els.hubPoints.textContent=points;
+  if(els.dailyStatus){
+    const today=dateKey();
+    let last=null,streak=0;
+    try{last=localStorage.getItem("oneline_daily_last");streak=parseInt(localStorage.getItem("oneline_daily_streak")||"0",10)||0;}catch(e){}
+    els.dailyStatus.textContent=last===today?`今日挑战已完成 · 连胜 ${streak||1} 天`:`今日挑战未完成 · 连胜 ${streak} 天`;
+  }
+}
+function shareRun(){
+  const name=G.ending?.ending||"未完成";
+  const hp=Math.max(0,G.player.hp);
+  const mode=G.isDaily?`每日挑战 ${G.seed}`:"自由模式";
+  const url=G.isDaily?"https://morefree-lab.github.io/jinshu-cards/?dailygame=1":"https://morefree-lab.github.io/jinshu-cards/";
+  const text=`oneline. 打工人求生指南 · ${mode}\n结局：${name}\n回合 ${G.turn} · 精神值 ${hp}/${G.player.maxHp} · 存款 ${G.player.coins}\n工分 +${G.lastPoints||0}${G.isDaily?` · 连胜 ${G.streak||0} 天`:""}\n来挑战：${url}`;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>flash("战绩已复制")).catch(()=>flash("复制失败"));
+  }else flash("请手动复制战绩");
+}
+function openCollection(){
+  renderCollection();
+  els.collectionModal.classList.add("show");
+}
+function renderCollection(){
+  if(els.colPoints)els.colPoints.textContent=points;
+  if(els.colProgress)els.colProgress.textContent=`已解锁 ${unlocked.size} / ${GAME_CARDS.length+RELICS.length}`;
+  els.collectionGrid.innerHTML="";
+  const add=(id,name,emoji,cost)=>{
+    const owned=unlocked.has(id);
+    const d=document.createElement("div");
+    d.className="collection-item"+(owned?" owned":"");
+    d.innerHTML=`<div class="ci-emoji">${emoji}</div><div class="ci-name">${name}</div>`+
+      (owned?`<div class="ci-cost">已拥有</div>`:`<div class="ci-cost">${cost} 工分</div><button ${points<cost?"disabled":""}>解锁</button>`);
+    if(!owned){
+      d.querySelector("button").onclick=()=>{
+        if(points<cost)return;
+        points-=cost;savePoints();unlocked.add(id);saveUnlocked();
+        renderCollection();updateHubStatus();flash(`已解锁「${name}」`);
+      };
+    }
+    els.collectionGrid.appendChild(d);
+  };
+  GAME_CARDS.forEach(c=>add(c.id,c.name,c.emoji,c.rare?60:30));
+  RELICS.forEach(r=>add(r.id,r.name,r.emoji,40));
 }
 function showEnding(defeated){
   G.running=false;G.busy=false;
@@ -1633,6 +1735,10 @@ function showEnding(defeated){
   else if(hp<=15){ending="带薪躺平";line="你没能升职，但你成功地在工位上躺平了。";grade="B";}
   else{ending="苟到下班";line="今天也平安地下班了，明天继续。";grade="B";}
   G.ending={ending,line,grade};
+  finishRun(defeated);
+  if(els.gameEndHint){
+    els.gameEndHint.textContent=`工分 +${G.lastPoints||0}${G.isDaily?` · 每日挑战 · 连胜 ${G.streak||1} 天`:""}`;
+  }
   drawEndingCard(els.gameEndCanvas,ending,line,grade);
   showGameView("end");
 }
@@ -1655,8 +1761,11 @@ function drawEndingCard(cv,ending,line,grade){
   ctx.fillText("ONELINE · WORKLOG",W2/2,130);
   ctx.fillStyle="#fff";ctx.font='700 50px "Microsoft YaHei",sans-serif';
   ctx.fillText("打工人求生战绩",W2/2,214);
+  ctx.fillStyle=G.isDaily?"#ff8a5c":"rgba(255,255,255,.5)";
+  ctx.font='700 16px "Microsoft YaHei",sans-serif';
+  ctx.fillText(G.isDaily?`DAILY · ${G.seed}`:"FREE RUN",W2/2,252);
   ctx.strokeStyle="rgba(245,215,110,.35)";ctx.lineWidth=1.5;
-  ctx.beginPath();ctx.moveTo(240,260);ctx.lineTo(W2-240,260);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(240,280);ctx.lineTo(W2-240,280);ctx.stroke();
   ctx.beginPath();ctx.arc(W2/2,420,110,0,Math.PI*2);
   ctx.strokeStyle="rgba(245,215,110,.8)";ctx.lineWidth=5;ctx.stroke();
   ctx.beginPath();ctx.arc(W2/2,420,95,0,Math.PI*2);
@@ -1794,6 +1903,8 @@ els.enterApp.onclick=showApp;
 els.backCover.onclick=showCover;
 els.startFromHub.onclick=(e)=>{e.stopPropagation();openGame();};
 els.rulesBtn.onclick=(e)=>{e.stopPropagation();openGame();const d=document.querySelector(".brief-more");if(d){d.open=true;setTimeout(()=>d.scrollIntoView({behavior:"smooth",block:"center"}),120);}};
+els.dailyChallengeBtn.onclick=(e)=>{e.stopPropagation();openGame();startGame(true);};
+els.collectionBtn.onclick=(e)=>{e.stopPropagation();openCollection();};
 [els.gameBtn].forEach(el=>el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();el.click();}}));
 window.addEventListener("hashchange",()=>{if(location.hash==="#play")showApp();else if(location.hash==="#cover")showCover();});
 els.exportBtn.onclick=exportPNG;
@@ -1809,16 +1920,20 @@ els.gameBtn.onclick=openGame;
 els.gSound.onclick=()=>{soundOn=!soundOn;try{localStorage.setItem("oneline_sound",soundOn?"1":"0");}catch(e){}updateSoundBtn();if(soundOn)playSfx("click");};
 els.gSpeed.onclick=()=>{gameSpeed=gameSpeed===1?2:1;els.gSpeed.textContent=gameSpeed+"×";playSfx("click");};
 updateSoundBtn();
+updateHubStatus();
 els.gameClose.onclick=()=>els.gameModal.classList.remove("show");
-els.gameStart.onclick=startGame;
+els.gameStart.onclick=()=>startGame(false);
 els.mulliganKeep.onclick=()=>{G.mulliganSelected.clear();confirmMulligan();};
 els.mulliganConfirm.onclick=confirmMulligan;
 els.gHeroPower.onclick=useHeroPower;
 els.gameBattle.querySelector(".enemy-hud").onclick=()=>attackTarget("hero");
 els.gEndTurn.onclick=endTurn;
 els.gSkip.onclick=()=>{G.player.hp=Math.min(G.player.maxHp,G.player.hp+15);logGame("跳过奖励，回复 15 点精神值");startBattle();};
-els.gameAgain.onclick=startGame;
+els.gameAgain.onclick=()=>startGame(false);
 els.gameSave.onclick=saveEnding;
+els.gameShare.onclick=shareRun;
+els.collectionClose.onclick=()=>els.collectionModal.classList.remove("show");
+els.collectionModal.addEventListener("click",e=>{if(e.target===els.collectionModal)els.collectionModal.classList.remove("show");});
 els.gameModal.addEventListener("click",e=>{if(e.target===els.gameModal)els.gameModal.classList.remove("show");});
 (function makeEmbers(){
   const box=els.gEmbers;
@@ -1876,6 +1991,9 @@ try{
   if(q.get("diag")==="1"){els.diagName.value=q.get("name")||"";openDiag();}
   if(q.get("diagq")==="1"){openDiag();startDiag();}
   if(q.get("game")==="1"){openGame();}
+  if(q.get("dailygame")==="1"){openGame();startGame(true);}
+  if(q.get("collection")==="1"){openCollection();}
+  if(q.get("dailyresult")==="1"){openGame();startGameFast(true);G.player.hp=32;G.player.coins=42;G.turn=8;showEnding(false);}
   if(q.get("gamebattle")==="1"){openGame();startGameFast();}
   if(q.get("gamemulligan")==="1"){openGame();startGame();}
   if(q.get("gameminion")==="1"){openGame();startGameFast();G.playerMinions=[makeMinion("intern"),makeMinion("printer")];G.enemyMinions=[makeMinion("demand")];G.playerMinions.forEach(m=>{m.canAttack=true;m.hasAttacked=false;});renderGame();setTimeout(()=>{selectMinion(0);attackTarget("minion",0);},600);}
