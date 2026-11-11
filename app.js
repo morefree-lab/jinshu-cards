@@ -1974,10 +1974,8 @@ function showApp(){
   els.coverView.style.display="none";
   els.appView.style.display="block";
   try{history.replaceState(null,"","#play");}catch(e){}
-  render();
 }
 
-els.randomBtn.onclick=pickQuote;
 els.enterApp.onclick=showApp;
 els.backCover.onclick=showCover;
 els.startFromHub.onclick=(e)=>{e.stopPropagation();openGame();};
@@ -1986,15 +1984,6 @@ els.dailyChallengeBtn.onclick=(e)=>{e.stopPropagation();openGame();openCharacter
 els.collectionBtn.onclick=(e)=>{e.stopPropagation();openCollection();};
 [els.gameBtn].forEach(el=>el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();el.click();}}));
 window.addEventListener("hashchange",()=>{if(location.hash==="#play")showApp();else if(location.hash==="#cover")showCover();});
-els.exportBtn.onclick=exportPNG;
-els.copyBtn.onclick=copyPNG;
-els.dailyBtn.onclick=dailySign;
-els.diagStartBtn.onclick=startDiag;
-els.diagClose.onclick=()=>els.diagModal.classList.remove("show");
-els.diagRetry.onclick=startDiag;
-els.diagDownload.onclick=downloadDiag;
-els.diagShare.onclick=shareDiag;
-els.diagModal.addEventListener("click",e=>{if(e.target===els.diagModal)els.diagModal.classList.remove("show");});
 els.gameBtn.onclick=openGame;
 els.gSound.onclick=()=>{soundOn=!soundOn;try{localStorage.setItem("oneline_sound",soundOn?"1":"0");}catch(e){}updateSoundBtn();if(soundOn)playSfx("click");};
 els.gSpeed.onclick=()=>{gameSpeed=gameSpeed===1?2:1;els.gSpeed.textContent=gameSpeed+"×";playSfx("click");};
@@ -2028,50 +2017,8 @@ els.gameModal.addEventListener("click",e=>{if(e.target===els.gameModal)els.gameM
     box.appendChild(e);
   }
 })();
-els.batchBtn.onclick=batchGenerate;
-els.fillQuotesBtn.onclick=()=>{els.batchText.value=QUOTES.map(q=>q.t).join("\n");els.batchMsg.textContent=`已填入 ${QUOTES.length} 句金句`;};
-els.aiBtn.onclick=aiGenerate;
-els.activateBtn.onclick=()=>{
-  const code=els.codeInput.value.trim();
-  if(!code){setProMsg("请输入激活码","");return;}
-  if(verifyCode(code)){setPro(true);refreshLockUI();buildSwatches();render();setProMsg("已解锁 Pro，感谢支持！","ok");flash("已解锁 Pro");}
-  else{setProMsg("激活码无效，请检查后重试","");}
-};
-els.buyBtn.onclick=()=>{
-  if(PURCHASE_URL){window.open(PURCHASE_URL,"_blank","noopener");}
-  else{setProMsg("购买链接暂未配置，请联系站长获取激活码","");}
-};
-
-els.quote.addEventListener("input",()=>{state.extra="";render();});
-els.author.addEventListener("input",render);
-els.wmText.addEventListener("input",render);
-els.showDate.addEventListener("change",()=>{state.showDate=els.showDate.checked;render();});
-els.wmOn.addEventListener("change",()=>{
-  if(!isPro()){els.wmOn.checked=true;promptUpgrade("去水印是 Pro 功能");return;}
-  state.wmOn=els.wmOn.checked;render();
-});
-els.wmPos.addEventListener("change",()=>{state.wmPos=els.wmPos.value;render();});
-els.verticalToggle.addEventListener("change",()=>{state.vertical=els.verticalToggle.checked;render();});
-els.fontSel.addEventListener("change",()=>{state.font=els.fontSel.value;render();});
-els.sizeRange.addEventListener("input",()=>{state.size=+els.sizeRange.value;els.sizeVal.textContent=state.size;render();});
-els.lsRange.addEventListener("input",()=>{state.ls=+els.lsRange.value;els.lsVal.textContent=state.ls;render();});
-els.lhRange.addEventListener("input",()=>{state.lh=+els.lhRange.value;els.lhVal.textContent=state.lh;render();});
-els.alignSeg.querySelectorAll(".btn").forEach(b=>b.onclick=()=>{state.align=b.dataset.a;syncControls();render();});
-els.bgFile.addEventListener("change",e=>{loadImageFile(e.target.files[0],img=>{state.bgImage=img;render();});});
-els.bgClear.onclick=()=>{state.bgImage=null;els.bgFile.value="";render();};
-els.wmFile.addEventListener("change",e=>{loadImageFile(e.target.files[0],img=>{state.wmImage=img;render();});});
-els.wmClear.onclick=()=>{state.wmImage=null;els.wmFile.value="";render();};
-
-els.quote.value=QUOTES[0].t;els.author.value=QUOTES[0].a;
-try{const saved=localStorage.getItem("oneline_name");if(saved)els.dailyName.value=saved;}catch(e){}
-buildChips();buildSwatches();buildFontSel();syncControls();refreshLockUI();render();
 try{
   const q=new URLSearchParams(location.search);
-  const qc=q.get("cat");if(qc&&CATS.includes(qc)){state.cat=qc;buildChips();}
-  const qt=q.get("theme");if(qt!==null){const ti=+qt;if(ti>=0&&ti<THEMES.length)applyTheme(ti);}
-  if(q.get("daily")==="1"){els.dailyName.value=q.get("name")||els.dailyName.value;dailySign();}
-  if(q.get("diag")==="1"){els.diagName.value=q.get("name")||"";openDiag();}
-  if(q.get("diagq")==="1"){openDiag();startDiag();}
   if(q.get("game")==="1"){openGame();}
   if(q.get("dailygame")==="1"){openGame();openCharacterSelect("daily");}
   if(q.get("collection")==="1"){openCollection();}
@@ -2086,12 +2033,7 @@ try{
   if(q.get("gameplay")==="1"){openGame();startGameFast();setTimeout(()=>playGameCard(0),300);}
   if(q.get("gameevent")==="1"){openGame();startGameFast();setTimeout(()=>showEvent(),200);}
   if(q.get("gameend")==="1"){openGame();G.player={hp:32,maxHp:70,energy:3,maxEnergy:3,block:0,coins:42};G.encounter=3;G.turn=8;showEnding(false);}
-  const dr=q.get("diagresult");
-  if(dr&&dr.length>=8){
-    const arr=[...dr].slice(0,8).map(Number).filter(n=>n>=0&&n<=3);
-    if(arr.length===8){diagState={answers:arr,index:8};els.diagName.value=q.get("name")||"";finishDiag();els.diagModal.classList.add("show");}
-  }
-  const direct=location.hash==="#play"||["daily","diag","diagq","diagresult","game","gamebattle","gameend","app"].some(k=>q.has(k));
+  const direct=location.hash==="#play"||["game","dailygame","collection","characters","intern","dailyresult","gamebattle","gamemulligan","gameminion","gamebubble","gamereward","gameplay","gameevent","gameend","app"].some(k=>q.has(k));
   if(direct)showApp();else showCover();
 }catch(e){}
 
