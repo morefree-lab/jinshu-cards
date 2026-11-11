@@ -1128,7 +1128,7 @@ function drawCards(n){
 function logGame(s){
   G.log.push(s);
   if(G.log.length>8)G.log.shift();
-  if(els.gLog)els.gLog.innerHTML=G.log.map(x=>`<div>· ${x}</div>`).join("");
+  if(els.gLog)els.gLog.innerHTML=`<div>· ${s}</div>`;
 }
 function floatGameText(text,color,side){
   const layer=els.gFloatLayer;
