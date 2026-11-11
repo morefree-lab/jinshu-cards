@@ -156,7 +156,7 @@ const els={
   diagOpts:$("diagOpts"),diagResult:$("diagResult"),diagCanvas:$("diagCanvas"),diagRetry:$("diagRetry"),
   diagDownload:$("diagDownload"),diagShare:$("diagShare"),diagHint:$("diagHint"),diagName:$("diagName"),
   gameBtn:$("gameBtn"),startFromHub:$("startFromHub"),rulesBtn:$("rulesBtn"),gameModal:$("gameModal"),gameClose:$("gameClose"),gameMenu:$("gameMenu"),gameStart:$("gameStart"),
-  gSound:$("gSound"),gEmbers:$("gEmbers"),gBattleIntro:$("gBattleIntro"),gIntroKicker:$("gIntroKicker"),
+  gSound:$("gSound"),gSpeed:$("gSpeed"),gEmbers:$("gEmbers"),gBattleIntro:$("gBattleIntro"),gIntroKicker:$("gIntroKicker"),
   gIntroName:$("gIntroName"),gIntroSub:$("gIntroSub"),gCombo:$("gCombo"),gCrit:$("gCrit"),gKO:$("gKO"),
   gameBattle:$("gameBattle"),gHp:$("gHp"),gBlock:$("gBlock"),gCoins:$("gCoins"),gEnergy:$("gEnergy"),
   gEnemyName:$("gEnemyName"),gEnemyHp:$("gEnemyHp"),gIntent:$("gIntent"),gLog:$("gLog"),gHand:$("gHand"),
@@ -255,9 +255,9 @@ const GAME_CARDS=[
   {id:"c1",name:"嘴替出击",cost:1,type:"attack",desc:"造成 6 点伤害。",dmg:6,emoji:"💬"},
   {id:"c2",name:"阴阳怪气",cost:1,type:"attack",desc:"造成 4 点伤害，施加 2 层易伤。",dmg:4,vuln:2,emoji:"😏"},
   {id:"c3",name:"甩锅",cost:1,type:"attack",desc:"造成 5 点伤害，获得 5 点护盾。",dmg:5,block:5,emoji:"🍳"},
-  {id:"c4",name:"发疯",cost:2,type:"attack",desc:"造成 14 点伤害，失去 3 点精神值。",dmg:14,selfDmg:3,emoji:"🤯"},
-  {id:"c5",name:"辞职",cost:3,type:"attack",desc:"造成 24 点伤害，失去 8 点精神值。",dmg:24,selfDmg:8,emoji:"🚪"},
-  {id:"c6",name:"已读不回",cost:1,type:"skill",desc:"敌人跳过下一回合。",stun:1,emoji:"📵"},
+  {id:"c4",name:"发疯",cost:2,type:"attack",desc:"造成 14 点伤害，失去 3 点精神值。",dmg:14,selfDmg:3,emoji:"🤯",rare:true},
+  {id:"c5",name:"辞职",cost:3,type:"attack",desc:"造成 24 点伤害，失去 8 点精神值。",dmg:24,selfDmg:8,emoji:"🚪",rare:true},
+  {id:"c6",name:"已读不回",cost:1,type:"skill",desc:"敌人跳过下一回合。",stun:1,emoji:"📵",rare:true},
   {id:"c7",name:"画饼",cost:1,type:"skill",desc:"敌人获得 2 层虚弱。",weak:2,emoji:"🥞"},
   {id:"c8",name:"摸鱼",cost:1,type:"skill",desc:"回复 6 点精神值，获得 4 点护盾。",heal:6,block:4,emoji:"🐟"},
   {id:"c9",name:"咖啡续命",cost:0,type:"skill",desc:"获得 2 点能量，抽 1 张牌。",energy:2,draw:1,emoji:"☕"},
@@ -268,16 +268,16 @@ const GAME_CARDS=[
   {id:"c14",name:"反向PUA",cost:1,type:"skill",desc:"敌人获得 3 层虚弱。",weak:3,emoji:"🪞"},
   {id:"c15",name:"充电",cost:1,type:"skill",desc:"回复 10 点精神值。",heal:10,emoji:"🔋"},
   {id:"c16",name:"存钱",cost:1,type:"skill",desc:"获得 15 存款。",coins:15,emoji:"🏦"},
-  {id:"c17",name:"摸鱼哲学",cost:0,type:"skill",desc:"抽 2 张牌。",draw:2,emoji:"🧘"},
+  {id:"c17",name:"摸鱼哲学",cost:0,type:"skill",desc:"抽 2 张牌。",draw:2,emoji:"🧘",rare:true},
   {id:"c18",name:"精神状态良好",cost:2,type:"skill",desc:"回复 12 点精神值，获得 6 点护盾。",heal:12,block:6,emoji:"🙂"},
-  {id:"c19",name:"破防",cost:1,type:"attack",desc:"造成 8 点伤害；敌人低于半血时额外 4 点。",dmg:8,execute:4,emoji:"💥"},
+  {id:"c19",name:"破防",cost:1,type:"attack",desc:"造成 8 点伤害；敌人低于半血时额外 4 点。",dmg:8,execute:4,emoji:"💥",rare:true},
   {id:"c20",name:"带薪摸鱼",cost:2,type:"skill",desc:"回复 10 点精神值，获得 10 存款。",heal:10,coins:10,emoji:"🛋️"}
 ];
-const GAME_START_DECK=["c1","c1","c1","c1","c8","c8","c9","c3","c2","c12"];
+const GAME_START_DECK=["c1","c1","c1","c1","c8","c8","c9","c3","c2","c12","c17"];
 const GAME_ENEMIES=[
-  {name:"老板",emoji:"👔",tie:"#c0392b",hp:40,intents:["attack:8","buff:2","attack:12","attack:10"],flavor:"画饼中……"},
-  {name:"甲方",emoji:"📋",tie:"#3b6ea5",hp:50,intents:["attack:9","attack:13","attack:7","attack:11"],flavor:"再改一版……"},
-  {name:"亲戚",emoji:"🧧",tie:"#d9a441",hp:60,intents:["attack:7","heal:6","attack:12","attack:10"],flavor:"怎么还不结婚……"}
+  {name:"老板",emoji:"👔",tie:"#c0392b",hp:32,intents:["attack:7","charge:18","attack:9","release"],flavor:"画饼中……"},
+  {name:"甲方",emoji:"📋",tie:"#3b6ea5",hp:40,intents:["attack:8","attack:11","charge:22","release"],flavor:"再改一版……"},
+  {name:"亲戚",emoji:"🧧",tie:"#d9a441",hp:48,intents:["attack:6","heal:5","charge:20","release"],flavor:"怎么还不结婚……"}
 ];
 
 const BOSS_SVG=`<svg viewBox="0 0 200 200" class="portrait-svg" aria-hidden="true">
@@ -435,6 +435,8 @@ function playSfx(type){
   else if(type==="heal"){tone(523,.18,"triangle",.055);tone(659,.22,"triangle",.05,undefined,.08);tone(784,.26,"triangle",.04,undefined,.16);}
   else if(type==="shield"){tone(1200,.08,"triangle",.035);tone(1600,.12,"sine",.025,undefined,.03);}
   else if(type==="enemy"){tone(70,.45,"sine",.2,35);noiseBurst(.28,420,.12,120);}
+  else if(type==="charge"){tone(80,.6,"sawtooth",.08,220);noiseBurst(.4,120,.06,300);}
+  else if(type==="combo"){tone(659,.08,"triangle",.04);tone(880,.08,"triangle",.04,undefined,.07);tone(1175,.12,"triangle",.04,undefined,.14);}
   else if(type==="win"){tone(523,.12,"triangle",.06);tone(659,.12,"triangle",.06,undefined,.12);tone(784,.12,"triangle",.06,undefined,.24);tone(1047,.3,"triangle",.05,undefined,.36);}
   else if(type==="lose"){tone(300,.5,"sine",.08,90);tone(180,.6,"triangle",.05,70,.2);}
   else if(type==="click"){tone(880,.04,"square",.02);}
@@ -1009,6 +1011,8 @@ function shareDiag(){
 }
 
 let G={player:null,deck:[],hand:[],draw:[],discard:[],enemy:null,encounter:0,turn:1,running:false,log:[],ending:null,busy:false,relics:[],deal:false,combo:0};
+let gameSpeed=1;
+function gs(ms){return Math.max(120,Math.round(ms/gameSpeed));}
 function showGameView(name){
   els.gameMenu.style.display=name==="menu"?"flex":"none";
   els.gameBattle.style.display=name==="battle"?"flex":"none";
@@ -1021,7 +1025,7 @@ function openGame(){
   els.gameModal.classList.add("show");
 }
 function startGame(){
-  G.player={hp:70,maxHp:70,energy:3,maxEnergy:3,block:0,coins:0};
+  G.player={hp:70,maxHp:70,energy:4,maxEnergy:4,block:0,coins:0};
   G.deck=GAME_START_DECK.map(id=>GAME_CARDS.find(c=>c.id===id));
   G.encounter=0;G.log=[];G.running=true;G.ending=null;G.busy=false;G.relics=[];G.combo=0;
   initAudio();updateSoundBtn();
@@ -1029,7 +1033,7 @@ function startGame(){
 }
 function startBattle(){
   const base=GAME_ENEMIES[G.encounter];
-  G.enemy={name:base.name,emoji:base.emoji,tie:base.tie,hp:base.hp,maxHp:base.hp,strength:0,weak:0,vulnerable:0,stun:0,intentIndex:0,intents:base.intents.slice(),flavor:base.flavor};
+  G.enemy={name:base.name,emoji:base.emoji,tie:base.tie,hp:base.hp,maxHp:base.hp,strength:0,weak:0,vulnerable:0,stun:0,charged:0,intentIndex:0,intents:base.intents.slice(),flavor:base.flavor};
   G.hand=[];G.draw=shuffleArr(G.deck.slice());G.discard=[];G.turn=1;
   G.player.block=0;G.player.energy=G.player.maxEnergy;G.running=true;G.busy=false;
   if(G.relics.some(r=>r.id==="thermos"))G.player.block+=8;
@@ -1042,7 +1046,7 @@ function startBattle(){
   showGameView("battle");
   renderGame();
   showBattleIntro();
-  setTimeout(()=>showTurnBanner("你的回合"),1600);
+  setTimeout(()=>showTurnBanner("你的回合"),gs(1600));
 }
 function drawCards(n){
   for(let i=0;i<n;i++){
@@ -1066,7 +1070,7 @@ function floatGameText(text,color,side){
   el.style.left=side==="enemy"?"58%":"34%";
   el.style.top=side==="enemy"?"24%":"62%";
   layer.appendChild(el);
-  setTimeout(()=>el.remove(),900);
+  setTimeout(()=>el.remove(),gs(900));
 }
 function showTurnBanner(text){
   const b=els.gTurnBanner;
@@ -1075,7 +1079,7 @@ function showTurnBanner(text){
   b.classList.remove("show");
   void b.offsetWidth;
   b.classList.add("show");
-  setTimeout(()=>b.classList.remove("show"),1100);
+  setTimeout(()=>b.classList.remove("show"),gs(1100));
 }
 function showBattleIntro(){
   const b=els.gBattleIntro;
@@ -1086,15 +1090,15 @@ function showBattleIntro(){
   b.classList.remove("show");
   void b.offsetWidth;
   b.classList.add("show");
-  setTimeout(()=>b.classList.remove("show"),1550);
+  setTimeout(()=>b.classList.remove("show"),gs(1550));
 }
-function showCombo(){
+function showCombo(text){
   if(!els.gCombo)return;
-  els.gCombo.textContent=`COMBO ×${G.combo}`;
+  els.gCombo.textContent=text||`COMBO ×${G.combo}`;
   els.gCombo.classList.remove("show");
   void els.gCombo.offsetWidth;
   els.gCombo.classList.add("show");
-  setTimeout(()=>els.gCombo.classList.remove("show"),900);
+  setTimeout(()=>els.gCombo.classList.remove("show"),gs(900));
 }
 function showBubble(side,text){
   const el=side==="player"?els.gPlayerBubble:els.gEnemyBubble;
@@ -1102,7 +1106,7 @@ function showBubble(side,text){
   el.textContent=text;
   el.classList.add("show");
   clearTimeout(el._bubbleTimer);
-  el._bubbleTimer=setTimeout(()=>el.classList.remove("show"),1800);
+  el._bubbleTimer=setTimeout(()=>el.classList.remove("show"),gs(1800));
 }
 function impactAt(side){
   const layer=els.gFloatLayer;
@@ -1112,7 +1116,7 @@ function impactAt(side){
   fx.className="impact";
   fx.style.left=pos.x;fx.style.top=pos.y;
   layer.appendChild(fx);
-  setTimeout(()=>fx.remove(),520);
+  setTimeout(()=>fx.remove(),gs(520));
   for(let i=0;i<8;i++){
     const s=document.createElement("i");
     s.className="spark";
@@ -1122,7 +1126,7 @@ function impactAt(side){
     s.style.setProperty("--dx",Math.cos(a)*dist+"px");
     s.style.setProperty("--dy",Math.sin(a)*dist+"px");
     layer.appendChild(s);
-    setTimeout(()=>s.remove(),620);
+    setTimeout(()=>s.remove(),gs(620));
   }
   const board=els.gameBattle.querySelector(".game-board");
   if(board){
@@ -1137,6 +1141,8 @@ function intentLabel(e){
   if(t==="attack")return `攻击 ${v+e.strength}`;
   if(t==="buff")return `加攻 +${v}`;
   if(t==="heal")return `回血 ${v}`;
+  if(t==="charge")return `蓄力：${v} 伤害`;
+  if(t==="release")return `释放：${e.charged||20} 伤害`;
   return it;
 }
 function renderGame(){
@@ -1150,6 +1156,10 @@ function renderGame(){
   els.gPlayerHpFill.style.width=`${Math.max(0,G.player.hp)/G.player.maxHp*100}%`;
   els.gEnemyPortrait.style.setProperty("--tie",G.enemy.tie||"#c0392b");
   els.gIntent.textContent="意图："+intentLabel(G.enemy);
+  const nextIntent=G.enemy.intents[G.enemy.intentIndex]||"";
+  els.gIntent.classList.toggle("danger",nextIntent.startsWith("charge")||nextIntent.startsWith("release"));
+  const board=els.gameBattle.querySelector(".game-board");
+  if(board)board.classList.toggle("low-hp",G.player.hp<=G.player.maxHp*.3);
   if(els.gEnergyGems){
     els.gEnergyGems.innerHTML="";
     for(let i=0;i<G.player.maxEnergy;i++){
@@ -1164,7 +1174,7 @@ function renderGame(){
   els.gHand.innerHTML="";
   G.hand.forEach((card,i)=>{
     const b=document.createElement("button");
-    b.className="game-card "+card.type+(G.player.energy<card.cost?" disabled":"");
+    b.className="game-card "+card.type+(card.rare?" rare":"")+(G.player.energy<card.cost?" disabled":"");
     b.innerHTML=`<span class="cost">${card.cost}</span><div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
     b.style.setProperty("--i",i);
     b.onclick=()=>playGameCard(i);
@@ -1220,10 +1230,10 @@ function playGameCard(i){
         {transform:`translate(${dx}px,${dy}px) scale(1.35) rotate(-3deg)`,opacity:1,offset:.7},
         {transform:`translate(${dx}px,${dy}px) scale(1.55) rotate(-3deg)`,opacity:0}
       ],{duration:420,easing:"cubic-bezier(.2,.8,.2,1)"});
-      setTimeout(()=>ghost.remove(),450);
+      setTimeout(()=>ghost.remove(),gs(450));
     }
   }
-  setTimeout(()=>{G.busy=false;resolveCard(i);},420);
+  setTimeout(()=>{G.busy=false;resolveCard(i);},gs(420));
 }
 function resolveCard(i){
   if(!G.running)return;
@@ -1249,7 +1259,13 @@ function resolveCard(i){
   if(card.weak)G.enemy.weak+=card.weak;
   if(card.stun)G.enemy.stun+=card.stun;
   G.combo++;
-  if(G.combo>=2)showCombo();
+  if(G.combo%3===0){
+    G.player.energy+=1;
+    showCombo(`COMBO ×${G.combo} · +1 能量`);
+    playSfx("combo");
+  }else if(G.combo>=2){
+    showCombo(`COMBO ×${G.combo}`);
+  }
   if(G.enemy.hp<=0){winBattle();return;}
   if(G.player.hp<=0){showEnding(true);return;}
   renderGame();
@@ -1259,26 +1275,39 @@ function enemyAct(){
   if(e.stun>0){e.stun--;logGame(`${e.name} 被「已读不回」，跳过了回合`);showBubble("enemy",ENEMY_LINES[e.name]?.stun||"？？？");return;}
   const it=e.intents[e.intentIndex],parts=it.split(":"),t=parts[0],n=+parts[1];
   if(t==="attack"){
-    playSfx("enemy");
-    els.gEnemyPortrait.classList.add("attacking");
-    setTimeout(()=>els.gEnemyPortrait.classList.remove("attacking"),420);
-    let d=n+e.strength;
-    if(e.weak>0)d=Math.round(d*0.75);
-    const blocked=Math.min(G.player.block,d);
-    G.player.block-=blocked;
-    const dmg=Math.max(0,d-blocked);
-    G.player.hp-=dmg;
-    logGame(`${e.name} 攻击 ${d}，护盾挡下 ${blocked}，你受到 ${dmg} 点伤害`);
-    floatGameText(`-${dmg}`,"#ff8a5c","player");
-    showBubble("enemy",ENEMY_LINES[e.name]?.attack||"……");
-    impactAt("player");
-    const pbar=els.gPlayerHpFill.parentElement;
-    if(pbar){pbar.classList.remove("damage");void pbar.offsetWidth;pbar.classList.add("damage");}
-    els.gHurtFlash.classList.add("on");
-    setTimeout(()=>els.gHurtFlash.classList.remove("on"),180);
+    enemyStrike(n,"攻击");
+  }else if(t==="charge"){
+    e.charged=n;
+    logGame(`${e.name} 开始蓄力，下回合释放 ${n} 点伤害`);
+    showBubble("enemy","这个需求，下周上线。");
+    playSfx("charge");
+  }else if(t==="release"){
+    const dmg=e.charged||20;
+    e.charged=0;
+    enemyStrike(dmg,"释放");
   }else if(t==="buff"){e.strength+=n;logGame(`${e.name} 加攻 +${n}`);showBubble("enemy",ENEMY_LINES[e.name]?.buff||"……");}
   else if(t==="heal"){e.hp=Math.min(e.maxHp,e.hp+n);logGame(`${e.name} 回复 ${n} 点`);showBubble("enemy",ENEMY_LINES[e.name]?.heal||"……");}
   e.intentIndex=(e.intentIndex+1)%e.intents.length;
+}
+function enemyStrike(base,label){
+  const e=G.enemy;
+  playSfx("enemy");
+  els.gEnemyPortrait.classList.add("attacking");
+  setTimeout(()=>els.gEnemyPortrait.classList.remove("attacking"),gs(420));
+  let d=base+e.strength;
+  if(e.weak>0)d=Math.round(d*0.75);
+  const blocked=Math.min(G.player.block,d);
+  G.player.block-=blocked;
+  const dmg=Math.max(0,d-blocked);
+  G.player.hp-=dmg;
+  logGame(`${e.name} ${label} ${d}，护盾挡下 ${blocked}，你受到 ${dmg} 点伤害`);
+  floatGameText(`-${dmg}`,"#ff8a5c","player");
+  showBubble("enemy",ENEMY_LINES[e.name]?.attack||"……");
+  impactAt("player");
+  const pbar=els.gPlayerHpFill.parentElement;
+  if(pbar){pbar.classList.remove("damage");void pbar.offsetWidth;pbar.classList.add("damage");}
+  els.gHurtFlash.classList.add("on");
+  setTimeout(()=>els.gHurtFlash.classList.remove("on"),gs(180));
 }
 function endTurn(){
   if(!G.running||G.busy)return;
@@ -1303,7 +1332,7 @@ function endTurn(){
     G.deal=true;
     renderGame();
     showTurnBanner("你的回合");
-  },420);
+  },gs(420));
 }
 function winBattle(){
   G.running=false;
@@ -1321,7 +1350,7 @@ function winBattle(){
     if(els.gKO)els.gKO.classList.remove("show");
     if(G.encounter>=GAME_ENEMIES.length)showEnding(false);
     else showEvent();
-  },950);
+  },gs(950));
 }
 function showEvent(){
   const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)];
@@ -1341,9 +1370,10 @@ function showReward(){
   G.busy=false;
   showGameView("reward");
   els.gRewards.innerHTML="";
-  shuffleArr(GAME_CARDS).slice(0,3).forEach(card=>{
+  shuffleArr(GAME_CARDS).slice(0,3).forEach((card,idx)=>{
     const b=document.createElement("button");
-    b.className="game-card "+card.type;
+    b.className="game-card "+card.type+(card.rare?" rare":"");
+    b.style.setProperty("--i",idx);
     b.innerHTML=`<span class="cost">${card.cost}</span><div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
     b.onclick=()=>{G.deck.push(card);logGame(`获得新卡「${card.name}」`);startBattle();};
     els.gRewards.appendChild(b);
@@ -1543,6 +1573,7 @@ els.diagShare.onclick=shareDiag;
 els.diagModal.addEventListener("click",e=>{if(e.target===els.diagModal)els.diagModal.classList.remove("show");});
 els.gameBtn.onclick=openGame;
 els.gSound.onclick=()=>{soundOn=!soundOn;try{localStorage.setItem("oneline_sound",soundOn?"1":"0");}catch(e){}updateSoundBtn();if(soundOn)playSfx("click");};
+els.gSpeed.onclick=()=>{gameSpeed=gameSpeed===1?2:1;els.gSpeed.textContent=gameSpeed+"×";playSfx("click");};
 updateSoundBtn();
 els.gameClose.onclick=()=>els.gameModal.classList.remove("show");
 els.gameStart.onclick=startGame;
