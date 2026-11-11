@@ -1,4 +1,3 @@
-
 const W=1080, H=1440, PAD=120, MAXW=W-PAD*2;
 
 const QUOTES=[
@@ -162,7 +161,7 @@ const els={
   mulliganKeep:$("mulliganKeep"),mulliganConfirm:$("mulliganConfirm"),
   gSound:$("gSound"),gSpeed:$("gSpeed"),gEmbers:$("gEmbers"),gBattleIntro:$("gBattleIntro"),gIntroKicker:$("gIntroKicker"),
   gIntroName:$("gIntroName"),gIntroSub:$("gIntroSub"),gCombo:$("gCombo"),gCrit:$("gCrit"),gKO:$("gKO"),
-  gEnemyDecision:$("gEnemyDecision"),gEnemyOptions:$("gEnemyOptions"),
+  gEnemyDecision:$("gEnemyDecision"),gEnemyOptions:$("gEnemyOptions"),gEnemyThought:$("gEnemyThought"),gEnemyClock:$("gEnemyClock"),gEnemyAvatar:$("gEnemyAvatar"),
   gameBattle:$("gameBattle"),gHp:$("gHp"),gBlock:$("gBlock"),gCoins:$("gCoins"),gEnergy:$("gEnergy"),
   gHeroPower:$("gHeroPower"),gEnemyBoard:$("gEnemyBoard"),gPlayerBoard:$("gPlayerBoard"),gBoardHint:$("gBoardHint"),gPlayerPortrait:$("gPlayerPortrait"),
   gEnemyName:$("gEnemyName"),gEnemyHp:$("gEnemyHp"),gIntent:$("gIntent"),gEnemyPower:$("gEnemyPower"),gLog:$("gLog"),gHand:$("gHand"),
@@ -268,7 +267,7 @@ const GAME_CARDS=[
   {id:"c6",name:"已读不回",cost:1,type:"skill",desc:"敌人跳过下一回合。",stun:1,emoji:"📵",rare:true},
   {id:"c7",name:"画饼",cost:1,type:"skill",desc:"敌人获得 2 层虚弱。",weak:2,emoji:"🥞"},
   {id:"c8",name:"摸鱼",cost:1,type:"skill",desc:"回复 3 点精神值，获得 2 点护盾。",heal:3,block:2,emoji:"🐟"},
-  {id:"c9",name:"咖啡续命",cost:0,type:"skill",desc:"获得 2 点能量，抽 1 张牌。",energy:2,draw:1,emoji:"☕"},
+  {id:"c9",name:"咖啡续命",cost:0,type:"skill",desc:"获得 1 点能量，抽 1 张牌。消耗。",energy:1,draw:1,exhaust:true,emoji:"☕"},
   {id:"c10",name:"带薪拉屎",cost:1,type:"skill",desc:"回复 4 点精神值，获得 5 存款。",heal:4,coins:5,emoji:"🚽"},
   {id:"c11",name:"电子木鱼",cost:1,type:"skill",desc:"获得 5 点护盾，回复 1 点精神值。",block:5,heal:1,emoji:"🪵"},
   {id:"c12",name:"深呼吸",cost:1,type:"skill",desc:"获得 6 点护盾。",block:6,emoji:"🌬️"},
@@ -276,7 +275,7 @@ const GAME_CARDS=[
   {id:"c14",name:"反向PUA",cost:1,type:"skill",desc:"敌人获得 3 层虚弱。",weak:3,emoji:"🪞"},
   {id:"c15",name:"充电",cost:1,type:"skill",desc:"回复 6 点精神值。",heal:6,emoji:"🔋"},
   {id:"c16",name:"存钱",cost:1,type:"skill",desc:"获得 15 存款。",coins:15,emoji:"🏦"},
-  {id:"c17",name:"摸鱼哲学",cost:0,type:"skill",desc:"抽 2 张牌。",draw:2,emoji:"🧘",rare:true},
+  {id:"c17",name:"摸鱼哲学",cost:1,type:"skill",desc:"抽 2 张牌。",draw:2,emoji:"🧘",rare:true},
   {id:"c18",name:"精神状态良好",cost:2,type:"skill",desc:"回复 7 点精神值，获得 4 点护盾。",heal:7,block:4,emoji:"🙂"},
   {id:"c19",name:"破防",cost:1,type:"attack",desc:"造成 8 点伤害；敌人低于半血时额外 4 点。",dmg:8,execute:4,emoji:"💥",rare:true},
   {id:"c20",name:"带薪摸鱼",cost:2,type:"skill",desc:"回复 6 点精神值，获得 10 存款。",heal:6,coins:10,emoji:"🛋️"},
@@ -288,13 +287,13 @@ const GAME_CARDS=[
   {id:"c26",name:"老板的饼",cost:3,type:"minion",desc:"0/5 嘲讽，亡语：获得 10 存款。",minion:"pie",emoji:"🥞"},
   {id:"c27",name:"内耗",cost:1,type:"skill",desc:"抽 2 张牌，失去 3 点精神值。",draw:2,selfDmg:3,emoji:"🌀",rare:true},
   {id:"c28",name:"甩锅",cost:1,type:"attack",desc:"弃 1 张牌，造成 8 点伤害。",dmg:8,discardRandom:1,emoji:"🍳",rare:true},
-  {id:"c29",name:"加班",cost:0,type:"skill",desc:"获得 2 法力，下回合少 1 法力。",energy:2,nextPenalty:1,emoji:"🌃",rare:true}
+  {id:"c29",name:"加班",cost:0,type:"skill",desc:"获得 2 法力，下回合少 2 法力。消耗。",energy:2,nextPenalty:2,exhaust:true,emoji:"🌃",rare:true}
 ];
 const GAME_START_DECK=["c1","c1","c1","c1","c8","c8","c9","c3","c2","c12","c17","c21","c23"];
 const GAME_ENEMIES=[
-  {name:"老板",emoji:"👔",tie:"#c0392b",hp:42,intents:["attack:12","summon:demand","charge:30","release"],flavor:"画饼中……"},
-  {name:"甲方",emoji:"📋",tie:"#3b6ea5",hp:52,intents:["attack:14","summon:revision","attack:18","charge:34","release"],flavor:"再改一版……"},
-  {name:"亲戚",emoji:"🧧",tie:"#d9a441",hp:62,intents:["attack:11","summon:cousin","heal:8","charge:30","release"],flavor:"怎么还不结婚……"}
+  {name:"老板",emoji:"👔",tie:"#c0392b",hp:64,starters:["demand","demand"],intents:["attack:12","summon:demand","charge:30","release"],flavor:"画饼中……"},
+  {name:"甲方",emoji:"📋",tie:"#3b6ea5",hp:82,starters:["revision","revision","cousin"],intents:["attack:14","summon:revision","attack:18","charge:34","release"],flavor:"再改一版……"},
+  {name:"亲戚",emoji:"🧧",tie:"#d9a441",hp:98,starters:["cousin","cousin","revision"],intents:["attack:11","summon:cousin","heal:8","charge:30","release"],flavor:"怎么还不结婚……"}
 ];
 const MINIONS={
   intern:{name:"实习生",emoji:"🧑‍💼",atk:1,hp:3,taunt:true},
@@ -303,9 +302,9 @@ const MINIONS={
   mate:{name:"摸鱼搭子",emoji:"🐟",atk:2,hp:4,battlecry:{block:5}},
   grinder:{name:"卷王",emoji:"🔥",atk:4,hp:3,charge:true},
   pie:{name:"老板的饼",emoji:"🥞",atk:0,hp:5,taunt:true,deathrattle:{coins:10}},
-  demand:{name:"需求",emoji:"📄",atk:0,hp:2,taunt:true},
-  revision:{name:"改稿",emoji:"✏️",atk:1,hp:1,charge:true},
-  cousin:{name:"别人家的孩子",emoji:"👦",atk:2,hp:2,taunt:true}
+  demand:{name:"需求",emoji:"📄",atk:0,hp:3,taunt:true},
+  revision:{name:"改稿",emoji:"✏️",atk:1,hp:2,charge:true},
+  cousin:{name:"别人家的孩子",emoji:"👦",atk:2,hp:3,taunt:true}
 };
 const DEFAULT_UNLOCKS=["worker","c1","c2","c3","c4","c6","c8","c9","c12","c17","c21","c23","c27","c28","c29","thermos","badge"];
 let unlocked=new Set(DEFAULT_UNLOCKS);
@@ -1170,6 +1169,7 @@ function startGame(daily=false,charId=selectedCharId){
   const char=CHARACTERS.find(c=>c.id===charId)||CHARACTERS[0];
   G.character=char;
   G.drawCount=char.draw;
+  G.refillCount=char.id==="intern"?4:3;
   G.ascension=ascension;
   G.isDaily=!!daily;
   G.seed=G.isDaily?dailySeed():("free-"+Date.now());
@@ -1177,7 +1177,7 @@ function startGame(daily=false,charId=selectedCharId){
   G.rewarded=false;G.lastPoints=0;G.streak=0;
   G.player={hp:char.hp,maxHp:char.hp,energy:3,maxEnergy:3,block:0,coins:0,heroPowerUsed:false,nextPenalty:0};
   G.deck=char.deck.map(id=>GAME_CARDS.find(c=>c.id===id));
-  G.encounter=0;G.log=[];G.running=false;G.ending=null;G.busy=false;G.relics=[];G.combo=0;
+  G.encounter=0;G.log=[];G.running=false;G.ending=null;G.busy=false;G.relics=[];G.combo=0;G.fatigue=0;
   G.playerMinions=[];G.enemyMinions=[];G.selectedMinion=-1;
   const shuffled=shuffleArr(G.deck.slice());
   G.mulliganHand=shuffled.slice(0,G.drawCount);
@@ -1233,6 +1233,12 @@ function startBattle(prepared){
   G.enemy={name:base.name,emoji:base.emoji,tie:base.tie,hp:ehp,maxHp:ehp,strength:asc,weak:0,vulnerable:0,stun:0,charged:0,armor:0,turns:0,deadlineUsed:false,intentIndex:0,intents:base.intents.slice(),flavor:base.flavor};
   hideEnemyDecision();
   G.enemyMinions=[];G.playerMinions=[];G.selectedMinion=-1;
+  G.enemyMinions=(base.starters||[]).map(k=>{
+    const m=makeMinion(k);
+    m.justSummoned=true;
+    m.canAttack=false;
+    return m;
+  });
   if(!prepared){
     G.hand=[];G.draw=shuffleArr(G.deck.slice());G.discard=[];
     drawCards(G.drawCount||5);
@@ -1253,9 +1259,23 @@ function startBattle(prepared){
 }
 function drawCards(n){
   for(let i=0;i<n;i++){
-    if(!G.draw.length){G.draw=shuffleArr(G.discard);G.discard=[];}
-    if(!G.draw.length)break;
-    G.hand.push(G.draw.pop());
+    if(!G.draw.length&&G.discard.length){G.draw=shuffleArr(G.discard);G.discard=[];}
+    if(!G.draw.length){
+      G.fatigue=(G.fatigue||0)+1;
+      G.player.hp-=G.fatigue;
+      logGame(`牌库已空，精神内耗造成 ${G.fatigue} 点伤害`);
+      floatGameText(`疲劳 -${G.fatigue}`,"#ff6b81","player");
+      playSfx("hit");
+      if(G.player.hp<=0&&G.running)setTimeout(()=>showEnding(true),gs(260));
+      continue;
+    }
+    const card=G.draw.pop();
+    if(G.hand.length>=7){
+      G.discard.push(card);
+      logGame(`手牌已满，「${card.name}」被挤掉了`);
+      continue;
+    }
+    G.hand.push(card);
   }
 }
 function logGame(s){
@@ -1360,6 +1380,7 @@ function renderMinions(){
         d.classList.toggle("shield",!!m.divineShield);
         d.classList.toggle("exhausted",!m.canAttack||m.hasAttacked);
         if(["demand","revision","cousin"].includes(m.key))d.classList.add("danger-minion");
+        if(m.justSummoned){d.classList.add("summoned");m.justSummoned=false;}
         if(side==="player"&&G.selectedMinion===i)d.classList.add("selected");
         if(side==="enemy"&&G.selectedMinion>=0&&(tauntExists?m.taunt:true))d.classList.add("targetable");
         const label=m.key==="demand"?"需求·增攻":m.key==="revision"?"改稿·成长":m.key==="cousin"?"别人家的孩子·回血":m.name;
@@ -1447,81 +1468,184 @@ function useHeroPower(){
   playSfx("shield");
   renderGame();
 }
-function enemyActionOptions(e){
-  if(e.name==="老板")return ["交作业","加需求","画饼","裁员","截止日"];
-  if(e.name==="甲方")return ["改稿","催稿","全盘推翻","截止日"];
-  return ["催婚","别人家的孩子","比较","截止日"];
+function enemyProfile(e){
+  if(e.name==="老板")return {
+    strikeName:"交作业",strike:10,summon:"demand",buffName:"画饼",buff:2,sweepName:"优化名单",sweep:3,healName:"绩效回血",heal:6,
+    lines:["先看他还剩多少精神值。","护盾厚？那就换个打法。","这套方案，你接得住吗？"],
+    attackLine:"这个需求，今天必须上线。",summonLine:"再给你加一个需求。",buffLine:"年轻人，要有格局。"
+  };
+  if(e.name==="甲方")return {
+    strikeName:"催终稿",strike:12,summon:"revision",buffName:"再改一版",buff:1,sweepName:"全盘推翻",sweep:4,healName:"追加预算",heal:7,
+    lines:["感觉还是不对。","我再看看你的场面。","就按这个方向全部推翻。"],
+    attackLine:"再改一版，马上就好。",summonLine:"这里再加一版。",buffLine:"方向对了，继续改。"
+  };
+  return {
+    strikeName:"当众催婚",strike:9,summon:"cousin",buffName:"别人家孩子",buff:2,sweepName:"逐个比较",sweep:2,healName:"亲戚回血",heal:8,
+    lines:["我是为你好。","你看别人家的孩子。","这件事，今天必须聊明白。"],
+    attackLine:"怎么还不结婚？",summonLine:"你看别人家孩子。",buffLine:"人家孩子都二胎了。"
+  };
+}
+function makeEnemyPlan(id,name,icon,forecast,actions,motive,score){
+  return {id,name,icon,forecast,actions,motive,score};
+}
+function buildEnemyPlans(e){
+  const p=enemyProfile(e);
+  const canSummon=G.enemyMinions.length<3;
+  const playerBoard=G.playerMinions.length;
+  const lowPlayer=G.player.hp<=Math.max(22,G.player.maxHp*.35);
+  const plans=[];
+  plans.push(makeEnemyPlan(
+    "pressure","持续施压","⚔️",`${p.strikeName} + 强化`,
+    [
+      {kind:"strike",name:p.strikeName,icon:"⚔️",desc:`造成 ${p.strike} 点直伤`,amount:p.strike},
+      {kind:"buff",name:p.buffName,icon:"📈",desc:`攻击力永久 +${p.buff}`,amount:p.buff}
+    ],
+    lowPlayer?"你快要撑不住了，直接压死。":"先用直伤逼你交资源和护盾。",
+    52+(lowPlayer?22:0)+e.strength*2
+  ));
+  if(canSummon){
+    const m=MINIONS[p.summon];
+    plans.push(makeEnemyPlan(
+      "swarm","继续铺场","🧩",`召唤「${m.name}」 + 强化`,
+      [
+        {kind:"summon",name:m.name,icon:m.emoji,desc:`召唤 ${m.atk}/${m.hp} 随从`,minion:p.summon},
+        {kind:"buff",name:p.buffName,icon:"📈",desc:`攻击力永久 +${p.buff}`,amount:p.buff}
+      ],
+      playerBoard?"你的场面起来了，得继续加人。":"先占满场，让你每回合都要做选择。",
+      43+(G.enemyMinions.length<3?26:0)+playerBoard*5
+    ));
+  }
+  plans.push(makeEnemyPlan(
+    "control","针对清场","🪓",`${p.sweepName} + 追击`,
+    [
+      {kind:"sweep",name:p.sweepName,icon:"💥",desc:`你的随从各受 ${p.sweep} 点伤害`,amount:p.sweep},
+      {kind:"strike",name:"补刀",icon:"🗡️",desc:`造成 ${Math.max(4,p.strike-5)} 点直伤`,amount:Math.max(4,p.strike-5)}
+    ],
+    playerBoard>=2?"你铺得太多，全盘清掉更省事。":"小随从不构成威胁，顺手清掉。",
+    28+playerBoard*14+(playerBoard>=2?10:0)
+  ));
+  plans.push(makeEnemyPlan(
+    "recover","稳住节奏","♻️",`${p.healName} + 反击`,
+    [
+      {kind:"heal",name:p.healName,icon:"💚",desc:`回复 ${p.heal} 点生命`,amount:p.heal},
+      {kind:"strike",name:"反手一击",icon:"⚔️",desc:`造成 ${Math.max(5,p.strike-4)} 点直伤`,amount:Math.max(5,p.strike-4)}
+    ],
+    e.hp<e.maxHp*.5?"血线不安全，先拖回安全区。":"保持血线，不给你速攻机会。",
+    18+(1-e.hp/e.maxHp)*90
+  ));
+  if(e.turns>=4&&!e.deadlineUsed){
+    plans.push(makeEnemyPlan(
+      "deadline","终极截止日","☠️","高额直伤 + 永久强化",
+      [
+        {kind:"deadline",name:"截止日",icon:"☠️",desc:`造成 ${p.strike+14} 点直伤`,amount:p.strike+14},
+        {kind:"buff",name:p.buffName,icon:"📈",desc:`攻击力永久 +3`,amount:3}
+      ],
+      "拖得够久了，该让项目结项。",
+      110-(e.hp/e.maxHp)*20
+    ));
+  }
+  return plans.sort((a,b)=>b.score-a.score).slice(0,3);
 }
 function chooseEnemyMove(e){
-  const options=enemyActionOptions(e);
-  if(e.turns>=4&&!e.deadlineUsed)return {id:"deadline",name:"截止日",options,dmg:30};
-  if(e.name==="老板"){
-    if(G.playerMinions.length>=2)return {id:"layoff",name:"裁员",options};
-    if(G.enemyMinions.length===0)return {id:"summon",name:"加需求",options,minion:"demand"};
-    if(e.strength<3)return {id:"buff",name:"画饼",options};
-    return {id:"attack",name:"交作业",options,dmg:14};
-  }
-  if(e.name==="甲方"){
-    if(G.playerMinions.length>=2)return {id:"layoff",name:"全盘推翻",options};
-    if(G.enemyMinions.length===0)return {id:"summon",name:"改稿",options,minion:"revision"};
-    if(e.hp<e.maxHp*.5)return {id:"heal",name:"预算回血",options,heal:8};
-    return {id:"attack",name:"催稿",options,dmg:16};
-  }
-  if(G.playerMinions.length>=2)return {id:"layoff",name:"比较",options};
-  if(G.enemyMinions.length===0)return {id:"summon",name:"别人家的孩子",options,minion:"cousin"};
-  if(e.hp<e.maxHp*.6)return {id:"heal",name:"你看别人家",options,heal:8};
-  return {id:"attack",name:"催婚",options,dmg:12};
+  return buildEnemyPlans(e)[0];
 }
-function showEnemyDecision(move){
-  if(!els.gEnemyDecision)return;
+const waitGame=ms=>new Promise(resolve=>setTimeout(resolve,gs(ms)));
+async function showEnemyDecision(plans){
+  if(!els.gEnemyDecision||!plans.length)return plans[0];
+  const chosen=plans[0];
+  const profile=enemyProfile(G.enemy);
   els.gEnemyOptions.innerHTML="";
-  (move.options||enemyActionOptions(G.enemy)).forEach(o=>{
-    const s=document.createElement("span");
-    s.className="ed-option";s.textContent=o;
+  plans.forEach((plan,i)=>{
+    const s=document.createElement("div");
+    s.className="ed-option";
+    s.dataset.plan=plan.id;
+    s.innerHTML=`<span class="ed-icon">${plan.icon}</span><b>${plan.name}</b><small>${plan.forecast}</small><small>${plan.motive}</small>`;
     els.gEnemyOptions.appendChild(s);
   });
+  if(els.gEnemyAvatar)els.gEnemyAvatar.textContent=G.enemy.emoji;
+  if(els.gEnemyThought)els.gEnemyThought.textContent="读取你的手牌、护盾和场面……";
   els.gEnemyDecision.classList.add("show");
-  setTimeout(()=>{
-    [...els.gEnemyOptions.children].forEach(s=>s.classList.toggle("chosen",s.textContent===move.name));
-  },gs(260));
+  els.gEnemyPortrait.classList.add("pondering");
+  const children=[...els.gEnemyOptions.children];
+  const order=[1,2,0].filter(i=>children[i]);
+  for(let step=0;step<order.length;step++){
+    children.forEach(x=>x.classList.remove("thinking"));
+    const option=children[order[step]];
+    option.classList.add("thinking");
+    if(els.gEnemyThought)els.gEnemyThought.textContent=`${profile.lines[step%profile.lines.length]} ${plans[order[step]].motive}`;
+    if(els.gEnemyClock)els.gEnemyClock.textContent=`00.0${step+2}`;
+    playSfx("click");
+    await waitGame(560);
+  }
+  children.forEach(x=>x.classList.remove("thinking"));
+  children[0].classList.add("chosen");
+  if(els.gEnemyThought)els.gEnemyThought.innerHTML=`决策锁定：<b>${chosen.name}</b> · ${chosen.forecast}`;
+  if(els.gEnemyClock)els.gEnemyClock.textContent="LOCK";
+  playSfx("combo");
+  await waitGame(1000);
+  els.gEnemyPortrait.classList.remove("pondering");
+  return chosen;
 }
 function hideEnemyDecision(){
   if(els.gEnemyDecision)els.gEnemyDecision.classList.remove("show");
+  if(els.gEnemyPortrait)els.gEnemyPortrait.classList.remove("pondering");
 }
-function executeEnemyMove(move){
-  const e=G.enemy;
-  if(move.id==="deadline"){
+function showEnemyCardCast(action){
+  const el=document.createElement("div");
+  el.className="enemy-card-cast";
+  el.innerHTML=`<div class="ecc-icon">${action.icon||"🃏"}</div><div class="ecc-name">${action.name}</div><div class="ecc-desc">${action.desc||""}</div>`;
+  els.gameBattle.querySelector(".game-board")?.appendChild(el);
+  requestAnimationFrame(()=>el.classList.add("show"));
+  setTimeout(()=>el.remove(),gs(950));
+}
+async function executeEnemyAction(action){
+  const e=G.enemy,p=enemyProfile(e);
+  showEnemyCardCast(action);
+  if(action.kind==="strike"){
+    showBubble("enemy",p.attackLine);
+  }else if(action.kind==="summon"){
+    showBubble("enemy",p.summonLine);
+  }else if(action.kind==="buff"){
+    showBubble("enemy",p.buffLine);
+  }
+  await waitGame(330);
+  if(action.kind==="strike"){
+    logGame(`${e.name} 打出「${action.name}」`);
+    enemyStrike(action.amount||p.strike,action.name);
+  }else if(action.kind==="deadline"){
     e.deadlineUsed=true;
-    showBubble("enemy","截止日到了。");
-    enemyStrike(30,"截止日");
+    logGame(`${e.name} 打出「截止日」，项目进入最终倒计时`);
     playSfx("crit");
-  }else if(move.id==="layoff"){
-    logGame(`${e.name} 使用「${move.name}」，所有随从受到 4 点伤害`);
-    G.playerMinions.forEach(m=>dealToMinion(m,4));
-    showBubble("enemy","最近人有点多。");
-    playSfx("hit");
-    processDeaths();
-  }else if(move.id==="summon"){
+    enemyStrike(action.amount||24,"截止日");
+  }else if(action.kind==="summon"){
     if(G.enemyMinions.length<3){
-      G.enemyMinions.push(makeMinion(move.minion));
-      logGame(`${e.name} 召唤了「${MINIONS[move.minion].name}」`);
-      showBubble("enemy","这个需求，你来接一下。");
+      const m=makeMinion(action.minion);
+      m.justSummoned=true;
+      m.canAttack=false;
+      G.enemyMinions.push(m);
+      logGame(`${e.name} 召唤了「${m.name}」`);
       playSfx("summon");
     }else{
-      enemyStrike(12,"攻击");
+      e.strength+=1;
+      logGame(`${e.name} 的随从位已满，转化为攻击力 +1`);
     }
-  }else if(move.id==="buff"){
-    e.strength+=3;
-    logGame(`${e.name} 加攻 +3`);
-    showBubble("enemy","年轻人，要有格局。");
-  }else if(move.id==="heal"){
-    e.hp=Math.min(e.maxHp,e.hp+(move.heal||8));
-    logGame(`${e.name} 回复 ${move.heal||8} 点`);
-    showBubble("enemy","公司不会亏待你的。");
+  }else if(action.kind==="buff"){
+    e.strength+=action.amount||p.buff;
+    logGame(`${e.name} 使用「${action.name}」，攻击力 +${action.amount||p.buff}`);
+    playSfx("charge");
+  }else if(action.kind==="sweep"){
+    logGame(`${e.name} 使用「${action.name}」，你的随从各受 ${action.amount||p.sweep} 点伤害`);
+    G.playerMinions.forEach(m=>dealToMinion(m,action.amount||p.sweep));
+    playSfx("hit");
+    processDeaths();
+  }else if(action.kind==="heal"){
+    const healed=Math.min(action.amount||p.heal,e.maxHp-e.hp);
+    e.hp+=healed;
+    logGame(`${e.name} 使用「${action.name}」，回复 ${healed} 点生命`);
     playSfx("heal");
-  }else{
-    enemyStrike(move.dmg||12,"攻击");
   }
+  renderGame();
+  await waitGame(520);
 }
 function intentLabel(e){
   const it=e.intents[e.intentIndex],parts=it.split(":"),t=parts[0],v=+parts[1];
@@ -1544,10 +1668,15 @@ function renderGame(){
   els.gPlayerHpFill.style.width=`${Math.max(0,G.player.hp)/G.player.maxHp*100}%`;
   els.gEnemyPortrait.style.setProperty("--tie",G.enemy.tie||"#c0392b");
   let previewName="观察中";
-  try{previewName=chooseEnemyMove(G.enemy).name;}catch(e){}
-  els.gIntent.textContent="意图："+previewName;
+  let previewForecast="";
+  try{
+    const preview=chooseEnemyMove(G.enemy);
+    previewName=preview.name;
+    previewForecast=preview.forecast;
+  }catch(e){}
+  els.gIntent.textContent=`预判：${previewName}${previewForecast?" · "+previewForecast:""}`;
   els.gEnemyPower.textContent=`力量 ${G.enemy.strength} · 护甲 ${G.enemy.armor||0}`;
-  els.gIntent.classList.toggle("danger",previewName==="截止日");
+  els.gIntent.classList.toggle("danger",previewName.includes("截止日"));
   const board=els.gameBattle.querySelector(".game-board");
   if(board)board.classList.toggle("low-hp",G.player.hp<=G.player.maxHp*.3);
   if(els.gEnergyGems){
@@ -1562,6 +1691,10 @@ function renderGame(){
     els.gRelics.innerHTML=G.relics.map(r=>`<span class="relic-chip" title="${r.desc}">${r.emoji} ${r.name}</span>`).join("");
   }
   if(els.gHeroPower)els.gHeroPower.disabled=!G.running||G.player.heroPowerUsed||G.player.energy<2;
+  if(els.gEndTurn){
+    els.gEndTurn.disabled=!G.running||G.busy;
+    els.gEndTurn.textContent=G.busy?"对手行动中…":"结束回合";
+  }
   renderMinions();
   els.gHand.innerHTML="";
   G.hand.forEach((card,i)=>{
@@ -1642,7 +1775,7 @@ function resolveCard(i){
   if(card.type==="minion"&&G.playerMinions.length>=3){logGame("随从位已满");return;}
   G.player.energy-=card.cost;
   G.hand.splice(i,1);
-  G.discard.push(card);
+  if(!card.exhaust)G.discard.push(card);
   logGame(`打出「${card.name}」`);
   showBubble("player",CARD_LINES[card.id]||"……");
   if(card.type==="minion"){
@@ -1657,14 +1790,16 @@ function resolveCard(i){
       if(m.battlecry.draw)drawCards(m.battlecry.draw);
     }
     G.combo++;
-    if(G.combo%3===0){G.player.energy+=1;showCombo(`COMBO ×${G.combo} · +1 法力`);playSfx("combo");}
+    if(G.combo%3===0){showCombo(`COMBO ×${G.combo} · 攻击 +2`);playSfx("combo");}
     if(G.enemy.hp<=0){winBattle();return;}
     renderGame();
     return;
   }
   if(card.dmg){
-    let d=card.dmg;
+    const comboBonus=Math.min(6,Math.floor((G.combo+1)/3)*2);
+    let d=card.dmg+comboBonus;
     if(card.execute&&G.enemy.hp<G.enemy.maxHp/2)d+=card.execute;
+    if(comboBonus)showCombo(`COMBO ×${G.combo} · +${comboBonus} 伤害`);
     playerDamage(d);
   }
   if(card.heal){G.player.hp=Math.min(G.player.maxHp,G.player.hp+card.heal);playSfx("heal");}
@@ -1687,8 +1822,7 @@ function resolveCard(i){
   if(card.stun)G.enemy.stun+=card.stun;
   G.combo++;
   if(G.combo%3===0){
-    G.player.energy+=1;
-    showCombo(`COMBO ×${G.combo} · +1 法力`);
+    showCombo(`COMBO ×${G.combo} · 攻击 +2`);
     playSfx("combo");
   }else if(G.combo>=2){
     showCombo(`COMBO ×${G.combo}`);
@@ -1726,6 +1860,21 @@ function enemyAct(){
   else if(t==="heal"){e.hp=Math.min(e.maxHp,e.hp+n);logGame(`${e.name} 回复 ${n} 点`);showBubble("enemy",ENEMY_LINES[e.name]?.heal||"……");}
   e.intentIndex=(e.intentIndex+1)%e.intents.length;
 }
+function damagePlayerHero(amount,label){
+  const d=Math.max(0,amount);
+  const blocked=Math.min(G.player.block,d);
+  G.player.block-=blocked;
+  const dmg=Math.max(0,d-blocked);
+  G.player.hp-=dmg;
+  logGame(`${label} ${d}，护盾挡下 ${blocked}，你受到 ${dmg} 点伤害`);
+  floatGameText(`-${dmg}`,"#ff8a5c","player");
+  impactAt("player");
+  const pbar=els.gPlayerHpFill.parentElement;
+  if(pbar){pbar.classList.remove("damage");void pbar.offsetWidth;pbar.classList.add("damage");}
+  els.gHurtFlash.classList.add("on");
+  setTimeout(()=>els.gHurtFlash.classList.remove("on"),gs(180));
+  return dmg;
+}
 function enemyStrike(base,label){
   const e=G.enemy;
   playSfx("enemy");
@@ -1733,100 +1882,123 @@ function enemyStrike(base,label){
   setTimeout(()=>els.gEnemyPortrait.classList.remove("attacking"),gs(420));
   let d=base+e.strength;
   if(e.weak>0)d=Math.round(d*0.75);
-  const blocked=Math.min(G.player.block,d);
-  G.player.block-=blocked;
-  const dmg=Math.max(0,d-blocked);
-  G.player.hp-=dmg;
-  logGame(`${e.name} ${label} ${d}，护盾挡下 ${blocked}，你受到 ${dmg} 点伤害`);
-  floatGameText(`-${dmg}`,"#ff8a5c","player");
   showBubble("enemy",ENEMY_LINES[e.name]?.attack||"……");
-  impactAt("player");
-  const pbar=els.gPlayerHpFill.parentElement;
-  if(pbar){pbar.classList.remove("damage");void pbar.offsetWidth;pbar.classList.add("damage");}
-  els.gHurtFlash.classList.add("on");
-  setTimeout(()=>els.gHurtFlash.classList.remove("on"),gs(180));
+  return damagePlayerHero(d,`${e.name} 使用「${label}」`);
 }
-function enemyMinionsAttack(){
-  for(const m of G.enemyMinions){
+function animateMinion(index,className){
+  const el=els.gEnemyBoard.children[index];
+  if(!el)return;
+  el.classList.remove(className);
+  void el.offsetWidth;
+  el.classList.add(className);
+  setTimeout(()=>el.classList.remove(className),gs(460));
+}
+async function enemyMinionsAttack(){
+  for(let i=0;i<G.enemyMinions.length;i++){
+    const m=G.enemyMinions[i];
+    if(m.hp<=0)continue;
     if(m.key==="demand"){
-      G.enemy.strength+=2;
-      G.player.hp-=4;
-      logGame("「需求」让老板攻击力 +2，并造成 4 点伤害");
-      impactAt("player");
-      showBubble("enemy","需求又变了。");
+      animateMinion(i,"attacking");
+      await waitGame(150);
+      G.enemy.strength+=1;
+      damagePlayerHero(3,"「需求」突然变更");
+      logGame("「需求」让敌方攻击力永久 +1");
     }else if(m.key==="revision"){
       m.atk+=2;m.hp+=1;m.maxHp+=1;
-      logGame("「改稿」变强了");
+      animateMinion(i,"buffed");
+      logGame("「改稿」成长了：攻击 +2，生命 +1");
     }else if(m.key==="cousin"){
+      animateMinion(i,"healed");
       G.enemy.hp=Math.min(G.enemy.maxHp,G.enemy.hp+5);
       logGame("「别人家的孩子」让敌人回复 5 点");
     }
+    renderGame();
+    await waitGame(240);
+    if(G.player.hp<=0)return;
   }
-  for(const m of G.enemyMinions){
+  for(let i=0;i<G.enemyMinions.length;i++){
+    const m=G.enemyMinions[i];
     if(!m.canAttack||m.hasAttacked||m.atk<=0)continue;
     const taunts=G.playerMinions.filter(x=>x.taunt);
     let target=null;
-    if(taunts.length)target=taunts[Math.floor(Math.random()*taunts.length)];
-    else if(G.playerMinions.length&&rand()<.6)target=G.playerMinions[Math.floor(rand()*G.playerMinions.length)];
+    if(taunts.length)target=taunts.slice().sort((a,b)=>b.atk-a.atk)[0];
+    else if(G.playerMinions.length&&G.player.hp>14)target=G.playerMinions.slice().sort((a,b)=>(b.atk*2+b.hp)-(a.atk*2+a.hp))[0];
+    animateMinion(i,"attacking");
+    await waitGame(170);
     if(target){
       combat(m,target,"player");
     }else{
       m.hasAttacked=true;
-      G.player.hp-=m.atk;
-      logGame(`「${m.name}」攻击你，造成 ${m.atk} 点伤害`);
-      floatGameText(`-${m.atk}`,"#ff8a5c","player");
-      impactAt("player");
+      damagePlayerHero(m.atk,`「${m.name}」攻击你`);
     }
+    processDeaths();
+    renderGame();
+    await waitGame(260);
+    if(G.player.hp<=0)return;
   }
   processDeaths();
 }
-function endTurn(){
+async function endTurn(){
   if(!G.running||G.busy)return;
   G.busy=true;
-  G.discard.push(...G.hand);G.hand=[];
+  G.selectedMinion=-1;
   showTurnBanner("敌方回合");
   logGame("—— 敌方回合 ——");
-  setTimeout(()=>{
-    G.enemy.armor=(G.enemy.armor||0)+4;
+  const board=els.gameBattle.querySelector(".game-board");
+  board?.classList.add("enemy-turn");
+  try{
+    await waitGame(420);
+    G.enemy.armor=(G.enemy.armor||0)+3;
     G.enemy.turns=(G.enemy.turns||0)+1;
-    G.enemy.strength+=1;
-    logGame(`${G.enemy.name} 护甲 +4，攻击力 +1`);
+    logGame(`${G.enemy.name} 进入工作状态，护甲 +3`);
     renderGame();
-    if(G.enemy.turns===3&&!G.enemy.deadlineUsed){
+    if(G.enemy.turns===2&&!G.enemy.deadlineUsed){
       logGame("警告：下回合是截止日");
       showBubble("enemy","下回合是截止日，准备好了吗？");
     }
     G.enemyMinions.forEach(m=>{m.hasAttacked=false;m.canAttack=true;});
-    const move=chooseEnemyMove(G.enemy);
-    showEnemyDecision(move);
-    setTimeout(()=>{
-      executeEnemyMove(move);
-      if(G.player.hp<=0){G.busy=false;hideEnemyDecision();showEnding(true);return;}
-      setTimeout(()=>{
-        enemyMinionsAttack();
-        hideEnemyDecision();
-        if(G.player.hp<=0){G.busy=false;showEnding(true);return;}
-        if(G.enemy.weak>0)G.enemy.weak--;
-        if(G.enemy.vulnerable>0)G.enemy.vulnerable--;
-        G.turn++;
-        G.combo=0;
-        if(els.gCombo)els.gCombo.classList.remove("show");
-        G.player.block=0;
-        if(G.relics.some(r=>r.id==="muyu"))G.player.block+=3;
-        G.player.maxEnergy=Math.min(5,G.player.maxEnergy+1);
-        G.player.energy=Math.max(0,G.player.maxEnergy-(G.player.nextPenalty||0));
-        G.player.nextPenalty=0;
-        G.player.heroPowerUsed=false;
-        G.playerMinions.forEach(m=>{m.hasAttacked=false;m.canAttack=true;});
-        drawCards((G.drawCount||5)+(G.relics.some(r=>r.id==="coffee")?1:0));
-        playSfx("draw");
+    const plans=buildEnemyPlans(G.enemy);
+    const plan=await showEnemyDecision(plans);
+    hideEnemyDecision();
+    for(const action of plan.actions){
+      if(!G.running)return;
+      await executeEnemyAction(action);
+      if(G.player.hp<=0){
         G.busy=false;
-        G.deal=true;
-        renderGame();
-        showTurnBanner("你的回合");
-      },gs(500));
-    },gs(700));
-  },gs(300));
+        showEnding(true);
+        return;
+      }
+    }
+    await enemyMinionsAttack();
+    if(G.player.hp<=0){
+      G.busy=false;
+      showEnding(true);
+      return;
+    }
+    if(G.enemy.weak>0)G.enemy.weak--;
+    if(G.enemy.vulnerable>0)G.enemy.vulnerable--;
+    G.turn++;
+    G.combo=0;
+    if(els.gCombo)els.gCombo.classList.remove("show");
+    G.player.block=0;
+    if(G.relics.some(r=>r.id==="muyu"))G.player.block+=3;
+    G.player.maxEnergy=Math.min(5,G.player.maxEnergy+1);
+    G.player.energy=Math.max(0,G.player.maxEnergy-(G.player.nextPenalty||0));
+    G.player.nextPenalty=0;
+    G.player.heroPowerUsed=false;
+    G.playerMinions.forEach(m=>{m.hasAttacked=false;m.canAttack=true;});
+    drawCards((G.refillCount||3)+(G.relics.some(r=>r.id==="coffee")?1:0));
+    playSfx("draw");
+    G.deal=true;
+    renderGame();
+    await waitGame(260);
+    showTurnBanner("你的回合");
+  }finally{
+    board?.classList.remove("enemy-turn");
+    hideEnemyDecision();
+    if(G.running)G.busy=false;
+    renderGame();
+  }
 }
 function winBattle(){
   hideEnemyDecision();

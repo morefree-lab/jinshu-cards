@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>oneline. · 打工人求生指南</title>
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="./styles.css">
 </head>
 <body>
 <div class="bg" id="bg"></div>
@@ -63,13 +63,13 @@
         <div class="brief-sub">一份写给打工人的求生手册</div>
       </div>
       <div class="brief-steps">
-        <div class="brief-step"><span>01</span><b>抽牌</b><p>每回合抽 5 张牌，3 点能量。</p></div>
-        <div class="brief-step"><span>02</span><b>看意图</b><p>敌人会预告下一步要做什么。</p></div>
-        <div class="brief-step"><span>03</span><b>出牌</b><p>攻击、叠盾、回血，活着下班。</p></div>
+        <div class="brief-step"><span>01</span><b>读场面</b><p>敌方随从会持续施压，先杀谁很关键。</p></div>
+        <div class="brief-step"><span>02</span><b>拆决策</b><p>观察对手权衡杀手锏，再决定攻或守。</p></div>
+        <div class="brief-step"><span>03</span><b>算资源</b><p>法力有限，每一张牌都要用在刀刃上。</p></div>
       </div>
       <div class="brief-stats">
-        <div><b>精神值</b><span>你的血条，归零就下班失败</span></div>
-        <div><b>法力</b><span>每回合 +1，上限 5 点</span></div>
+        <div><b>精神值</b><span>你的血条。硬吃伤害会很快崩盘</span></div>
+        <div><b>法力</b><span>每回合增长，出牌顺序决定收益</span></div>
         <div><b>护盾</b><span>抵挡伤害，回合开始重置</span></div>
         <div><b>存款</b><span>影响最终结局评级</span></div>
       </div>
@@ -77,8 +77,9 @@
       <details class="brief-more">
         <summary>规则详情</summary>
         <div class="brief-more-body">
-          <p><b>卡牌类型：</b>红色是攻击牌，蓝色是技能牌（回血、护盾、抽牌、上 debuff）。</p>
-          <p><b>敌人意图：</b>敌人头顶会显示下一步动作，提前决定进攻还是防守。</p>
+          <p><b>手牌：</b>首回合 5 张，之后每回合补 3 张，未打出的牌会保留，手牌上限 7 张。</p>
+          <p><b>敌方决策：</b>敌人会评估斩杀、清场、铺场和防守，不同局面会临时改变方案。</p>
+          <p><b>随从威胁：</b>「需求」会加攻并直伤，「改稿」持续成长，「别人家的孩子」会回血拖延。</p>
           <p><b>战后成长：</b>每场胜利后可以选新卡、遗物，或回血；还会遇到随机事件。</p>
           <p><b>失败条件：</b>精神值归零。撑过三场遭遇即可结算战绩。</p>
         </div>
@@ -118,7 +119,14 @@
         <div class="turn-banner" id="gTurnBanner">你的回合</div>
         <div class="float-layer" id="gFloatLayer"></div>
         <div class="enemy-decision" id="gEnemyDecision">
-          <div class="ed-title">对手决策</div>
+          <div class="ed-head">
+            <div class="ed-avatar" id="gEnemyAvatar">👔</div>
+            <div class="ed-copy">
+              <div class="ed-title">ENEMY THINKING // 对手正在决策</div>
+              <div class="ed-thought" id="gEnemyThought">正在读取你的场面……</div>
+            </div>
+            <div class="ed-time" id="gEnemyClock">00.00</div>
+          </div>
           <div class="ed-options" id="gEnemyOptions"></div>
         </div>
         <div class="speech player" id="gPlayerBubble"></div>
@@ -196,6 +204,6 @@
 </div>
 <div id="toast"></div>
 
-<script src="app.js"></script>
+<script src="./app.js"></script>
 </body>
 </html>
