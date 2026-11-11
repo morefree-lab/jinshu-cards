@@ -164,7 +164,7 @@ const els={
   gIntroName:$("gIntroName"),gIntroSub:$("gIntroSub"),gCombo:$("gCombo"),gCrit:$("gCrit"),gKO:$("gKO"),
   gameBattle:$("gameBattle"),gHp:$("gHp"),gBlock:$("gBlock"),gCoins:$("gCoins"),gEnergy:$("gEnergy"),
   gHeroPower:$("gHeroPower"),gEnemyBoard:$("gEnemyBoard"),gPlayerBoard:$("gPlayerBoard"),gBoardHint:$("gBoardHint"),gPlayerPortrait:$("gPlayerPortrait"),
-  gEnemyName:$("gEnemyName"),gEnemyHp:$("gEnemyHp"),gIntent:$("gIntent"),gLog:$("gLog"),gHand:$("gHand"),
+  gEnemyName:$("gEnemyName"),gEnemyHp:$("gEnemyHp"),gIntent:$("gIntent"),gEnemyPower:$("gEnemyPower"),gLog:$("gLog"),gHand:$("gHand"),
   gEnemyPortrait:$("gEnemyPortrait"),gEnemyHpFill:$("gEnemyHpFill"),gPlayerHpFill:$("gPlayerHpFill"),
   gTurnBanner:$("gTurnBanner"),gFloatLayer:$("gFloatLayer"),gEnergyGems:$("gEnergyGems"),
   gPlayerBubble:$("gPlayerBubble"),gEnemyBubble:$("gEnemyBubble"),gHurtFlash:$("gHurtFlash"),
@@ -261,24 +261,24 @@ const DIAG_RESULTS=[
 const GAME_CARDS=[
   {id:"c1",name:"嘴替出击",cost:1,type:"attack",desc:"造成 6 点伤害。",dmg:6,emoji:"💬"},
   {id:"c2",name:"阴阳怪气",cost:1,type:"attack",desc:"造成 4 点伤害，施加 2 层易伤。",dmg:4,vuln:2,emoji:"😏"},
-  {id:"c3",name:"甩锅",cost:1,type:"attack",desc:"造成 5 点伤害，获得 5 点护盾。",dmg:5,block:5,emoji:"🍳"},
+  {id:"c3",name:"甩锅",cost:1,type:"attack",desc:"造成 4 点伤害，获得 3 点护盾。",dmg:4,block:3,emoji:"🍳"},
   {id:"c4",name:"发疯",cost:2,type:"attack",desc:"造成 14 点伤害，失去 3 点精神值。",dmg:14,selfDmg:3,emoji:"🤯",rare:true},
   {id:"c5",name:"辞职",cost:3,type:"attack",desc:"造成 24 点伤害，失去 8 点精神值。",dmg:24,selfDmg:8,emoji:"🚪",rare:true},
   {id:"c6",name:"已读不回",cost:1,type:"skill",desc:"敌人跳过下一回合。",stun:1,emoji:"📵",rare:true},
   {id:"c7",name:"画饼",cost:1,type:"skill",desc:"敌人获得 2 层虚弱。",weak:2,emoji:"🥞"},
-  {id:"c8",name:"摸鱼",cost:1,type:"skill",desc:"回复 6 点精神值，获得 4 点护盾。",heal:6,block:4,emoji:"🐟"},
+  {id:"c8",name:"摸鱼",cost:1,type:"skill",desc:"回复 3 点精神值，获得 2 点护盾。",heal:3,block:2,emoji:"🐟"},
   {id:"c9",name:"咖啡续命",cost:0,type:"skill",desc:"获得 2 点能量，抽 1 张牌。",energy:2,draw:1,emoji:"☕"},
-  {id:"c10",name:"带薪拉屎",cost:1,type:"skill",desc:"回复 8 点精神值，获得 5 存款。",heal:8,coins:5,emoji:"🚽"},
-  {id:"c11",name:"电子木鱼",cost:1,type:"skill",desc:"获得 8 点护盾，回复 2 点精神值。",block:8,heal:2,emoji:"🪵"},
-  {id:"c12",name:"深呼吸",cost:1,type:"skill",desc:"获得 10 点护盾。",block:10,emoji:"🌬️"},
-  {id:"c13",name:"装死",cost:2,type:"skill",desc:"获得 16 点护盾。",block:16,emoji:"💀"},
+  {id:"c10",name:"带薪拉屎",cost:1,type:"skill",desc:"回复 4 点精神值，获得 5 存款。",heal:4,coins:5,emoji:"🚽"},
+  {id:"c11",name:"电子木鱼",cost:1,type:"skill",desc:"获得 5 点护盾，回复 1 点精神值。",block:5,heal:1,emoji:"🪵"},
+  {id:"c12",name:"深呼吸",cost:1,type:"skill",desc:"获得 6 点护盾。",block:6,emoji:"🌬️"},
+  {id:"c13",name:"装死",cost:2,type:"skill",desc:"获得 10 点护盾。",block:10,emoji:"💀"},
   {id:"c14",name:"反向PUA",cost:1,type:"skill",desc:"敌人获得 3 层虚弱。",weak:3,emoji:"🪞"},
-  {id:"c15",name:"充电",cost:1,type:"skill",desc:"回复 10 点精神值。",heal:10,emoji:"🔋"},
+  {id:"c15",name:"充电",cost:1,type:"skill",desc:"回复 6 点精神值。",heal:6,emoji:"🔋"},
   {id:"c16",name:"存钱",cost:1,type:"skill",desc:"获得 15 存款。",coins:15,emoji:"🏦"},
   {id:"c17",name:"摸鱼哲学",cost:0,type:"skill",desc:"抽 2 张牌。",draw:2,emoji:"🧘",rare:true},
-  {id:"c18",name:"精神状态良好",cost:2,type:"skill",desc:"回复 12 点精神值，获得 6 点护盾。",heal:12,block:6,emoji:"🙂"},
+  {id:"c18",name:"精神状态良好",cost:2,type:"skill",desc:"回复 7 点精神值，获得 4 点护盾。",heal:7,block:4,emoji:"🙂"},
   {id:"c19",name:"破防",cost:1,type:"attack",desc:"造成 8 点伤害；敌人低于半血时额外 4 点。",dmg:8,execute:4,emoji:"💥",rare:true},
-  {id:"c20",name:"带薪摸鱼",cost:2,type:"skill",desc:"回复 10 点精神值，获得 10 存款。",heal:10,coins:10,emoji:"🛋️"},
+  {id:"c20",name:"带薪摸鱼",cost:2,type:"skill",desc:"回复 6 点精神值，获得 10 存款。",heal:6,coins:10,emoji:"🛋️"},
   {id:"c21",name:"实习生",cost:1,type:"minion",desc:"1/3 嘲讽。",minion:"intern",emoji:"🧑‍💼"},
   {id:"c22",name:"咖啡机",cost:2,type:"minion",desc:"0/4 亡语：抽 1 张。",minion:"coffee",emoji:"☕"},
   {id:"c23",name:"打印机",cost:2,type:"minion",desc:"2/2 战吼：造成 2 点伤害。",minion:"printer",emoji:"🖨️"},
@@ -291,9 +291,9 @@ const GAME_CARDS=[
 ];
 const GAME_START_DECK=["c1","c1","c1","c1","c8","c8","c9","c3","c2","c12","c17","c21","c23"];
 const GAME_ENEMIES=[
-  {name:"老板",emoji:"👔",tie:"#c0392b",hp:32,intents:["attack:7","summon:demand","charge:18","release"],flavor:"画饼中……"},
-  {name:"甲方",emoji:"📋",tie:"#3b6ea5",hp:40,intents:["attack:8","summon:revision","attack:11","charge:22","release"],flavor:"再改一版……"},
-  {name:"亲戚",emoji:"🧧",tie:"#d9a441",hp:48,intents:["attack:6","summon:cousin","heal:5","charge:20","release"],flavor:"怎么还不结婚……"}
+  {name:"老板",emoji:"👔",tie:"#c0392b",hp:42,intents:["attack:12","summon:demand","charge:30","release"],flavor:"画饼中……"},
+  {name:"甲方",emoji:"📋",tie:"#3b6ea5",hp:52,intents:["attack:14","summon:revision","attack:18","charge:34","release"],flavor:"再改一版……"},
+  {name:"亲戚",emoji:"🧧",tie:"#d9a441",hp:62,intents:["attack:11","summon:cousin","heal:8","charge:30","release"],flavor:"怎么还不结婚……"}
 ];
 const MINIONS={
   intern:{name:"实习生",emoji:"🧑‍💼",atk:1,hp:3,taunt:true},
@@ -1469,6 +1469,7 @@ function renderGame(){
   els.gPlayerHpFill.style.width=`${Math.max(0,G.player.hp)/G.player.maxHp*100}%`;
   els.gEnemyPortrait.style.setProperty("--tie",G.enemy.tie||"#c0392b");
   els.gIntent.textContent="意图："+intentLabel(G.enemy);
+  els.gEnemyPower.textContent=`力量 ${G.enemy.strength}`;
   const nextIntent=G.enemy.intents[G.enemy.intentIndex]||"";
   els.gIntent.classList.toggle("danger",nextIntent.startsWith("charge")||nextIntent.startsWith("release"));
   const board=els.gameBattle.querySelector(".game-board");
@@ -1666,14 +1667,16 @@ function enemyMinionsAttack(){
   for(const m of G.enemyMinions){
     if(m.key==="demand"){
       G.enemy.strength+=2;
-      logGame("「需求」让老板攻击力 +2");
+      G.player.hp-=4;
+      logGame("「需求」让老板攻击力 +2，并造成 4 点伤害");
+      impactAt("player");
       showBubble("enemy","需求又变了。");
     }else if(m.key==="revision"){
-      m.atk+=1;m.hp+=1;m.maxHp+=1;
+      m.atk+=2;m.hp+=1;m.maxHp+=1;
       logGame("「改稿」变强了");
     }else if(m.key==="cousin"){
-      G.enemy.hp=Math.min(G.enemy.maxHp,G.enemy.hp+3);
-      logGame("「别人家的孩子」让敌人回复 3 点");
+      G.enemy.hp=Math.min(G.enemy.maxHp,G.enemy.hp+5);
+      logGame("「别人家的孩子」让敌人回复 5 点");
     }
   }
   for(const m of G.enemyMinions){
@@ -1701,6 +1704,8 @@ function endTurn(){
   showTurnBanner("敌方回合");
   logGame("—— 敌方回合 ——");
   setTimeout(()=>{
+    G.enemy.strength+=1;
+    logGame(`${G.enemy.name} 开始加压，攻击力 +1`);
     G.enemyMinions.forEach(m=>{m.hasAttacked=false;m.canAttack=true;});
     enemyAct();
     enemyMinionsAttack();
@@ -1712,7 +1717,7 @@ function endTurn(){
     if(els.gCombo)els.gCombo.classList.remove("show");
     G.player.block=0;
     if(G.relics.some(r=>r.id==="muyu"))G.player.block+=3;
-    G.player.maxEnergy=Math.min(6,G.player.maxEnergy+1);
+    G.player.maxEnergy=Math.min(5,G.player.maxEnergy+1);
     G.player.energy=Math.max(0,G.player.maxEnergy-(G.player.nextPenalty||0));
     G.player.nextPenalty=0;
     G.player.heroPowerUsed=false;
