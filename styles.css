@@ -398,6 +398,10 @@
   .event-choice:hover{border-color:rgba(245,215,110,.5);background:rgba(245,215,110,.06)}
   .collection-top{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--muted)}
   .collection-top b{color:#f5d76e;font-size:20px}
+  .collection-tabs{display:flex;gap:6px}
+  .collection-tabs button{padding:6px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:rgba(255,255,255,.6);font-size:12px;cursor:pointer}
+  .collection-tabs button.on{background:linear-gradient(90deg,#ff8a5c,#ff5c8a);border-color:transparent;color:#fff;font-weight:700}
+  .collection-hint{font-size:10px;color:rgba(255,255,255,.4)}
   .collection-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-height:62vh;overflow:auto;padding:4px}
   .collection-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px;text-align:center;font-size:11px}
   .collection-item.owned{border-color:rgba(124,224,168,.35);background:rgba(124,224,168,.05)}
@@ -412,6 +416,10 @@
   .char-card:hover{transform:translateY(-3px);border-color:rgba(245,215,110,.4)}
   .char-card.selected{border-color:#f5d76e;box-shadow:0 0 30px rgba(245,215,110,.25)}
   .char-card.locked{opacity:.55}
+  .char-points{text-align:center;font-size:13px;color:var(--muted)}
+  .char-points b{color:#f5d76e;font-size:20px}
+  .char-unlock{margin-top:8px;padding:5px 12px;border-radius:999px;border:1px solid rgba(245,215,110,.45);background:rgba(245,215,110,.1);color:#f5d76e;font-size:11px;font-weight:700;cursor:pointer}
+  .char-unlock:disabled{opacity:.4;cursor:not-allowed}
   .char-portrait{width:84px;height:84px;border-radius:50%;overflow:hidden;margin:0 auto 10px;border:2px solid rgba(245,215,110,.4)}
   .char-portrait svg{width:100%;height:100%;display:block}
   .char-name{font-size:18px;font-weight:900}
