@@ -332,6 +332,18 @@ try{
 }catch(e){}
 let pendingCharacterMode="free";
 let collectionTab="characters";
+let seenRules=false;
+try{seenRules=localStorage.getItem("oneline_seen_rules")==="1";}catch(e){}
+function beginMode(mode){
+  pendingCharacterMode=mode||"free";
+  if(seenRules){
+    openGame();
+    openCharacterSelect(pendingCharacterMode);
+  }else{
+    openGame();
+    showGameView("menu");
+  }
+}
 function openCharacterSelect(mode){
   pendingCharacterMode=mode||"free";
   renderCharacterSelect();
@@ -1139,6 +1151,7 @@ function showGameView(name){
   els.gameEnd.style.display=name==="end"?"flex":"none";
 }
 function openGame(){
+  stopCoverLoop();
   showGameView("menu");
   els.gameModal.classList.add("show");
 }
@@ -1965,32 +1978,20 @@ function startCoverLoop(){
 }
 function showCover(){
   els.coverView.style.display="flex";
-  els.appView.style.display="none";
   startCoverLoop();
   try{history.replaceState(null,"","#cover");}catch(e){}
 }
-function showApp(){
-  stopCoverLoop();
-  els.coverView.style.display="none";
-  els.appView.style.display="block";
-  try{history.replaceState(null,"","#play");}catch(e){}
-}
 
-els.enterApp.onclick=showApp;
-els.backCover.onclick=showCover;
-els.startFromHub.onclick=(e)=>{e.stopPropagation();openGame();};
-els.rulesBtn.onclick=(e)=>{e.stopPropagation();openGame();const d=document.querySelector(".brief-more");if(d){d.open=true;setTimeout(()=>d.scrollIntoView({behavior:"smooth",block:"center"}),120);}};
-els.dailyChallengeBtn.onclick=(e)=>{e.stopPropagation();openGame();openCharacterSelect("daily");};
+els.enterApp.onclick=()=>beginMode("free");
+els.rulesBtn.onclick=(e)=>{e.stopPropagation();pendingCharacterMode="free";openGame();const d=document.querySelector(".brief-more");if(d){d.open=true;setTimeout(()=>d.scrollIntoView({behavior:"smooth",block:"center"}),120);}};
+els.dailyChallengeBtn.onclick=(e)=>{e.stopPropagation();beginMode("daily");};
 els.collectionBtn.onclick=(e)=>{e.stopPropagation();openCollection();};
-[els.gameBtn].forEach(el=>el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();el.click();}}));
-window.addEventListener("hashchange",()=>{if(location.hash==="#play")showApp();else if(location.hash==="#cover")showCover();});
-els.gameBtn.onclick=openGame;
 els.gSound.onclick=()=>{soundOn=!soundOn;try{localStorage.setItem("oneline_sound",soundOn?"1":"0");}catch(e){}updateSoundBtn();if(soundOn)playSfx("click");};
 els.gSpeed.onclick=()=>{gameSpeed=gameSpeed===1?2:1;els.gSpeed.textContent=gameSpeed+"×";playSfx("click");};
 updateSoundBtn();
 updateHubStatus();
-els.gameClose.onclick=()=>els.gameModal.classList.remove("show");
-els.gameStart.onclick=()=>openCharacterSelect("free");
+els.gameClose.onclick=()=>{els.gameModal.classList.remove("show");startCoverLoop();};
+els.gameStart.onclick=()=>{seenRules=true;try{localStorage.setItem("oneline_seen_rules","1");}catch(e){}openCharacterSelect(pendingCharacterMode||"free");};
 els.characterBack.onclick=()=>showGameView("menu");
 els.characterConfirm.onclick=confirmCharacter;
 els.mulliganKeep.onclick=()=>{G.mulliganSelected.clear();confirmMulligan();};
@@ -2005,7 +2006,7 @@ els.gameShare.onclick=shareRun;
 els.collectionClose.onclick=()=>els.collectionModal.classList.remove("show");
 els.collectionModal.addEventListener("click",e=>{if(e.target===els.collectionModal)els.collectionModal.classList.remove("show");});
 els.collectionTabs.querySelectorAll("button").forEach(b=>b.onclick=()=>{collectionTab=b.dataset.tab;renderCollection();});
-els.gameModal.addEventListener("click",e=>{if(e.target===els.gameModal)els.gameModal.classList.remove("show");});
+els.gameModal.addEventListener("click",e=>{if(e.target===els.gameModal){els.gameModal.classList.remove("show");startCoverLoop();}});
 (function makeEmbers(){
   const box=els.gEmbers;
   if(!box)return;
@@ -2034,7 +2035,8 @@ try{
   if(q.get("gameevent")==="1"){openGame();startGameFast();setTimeout(()=>showEvent(),200);}
   if(q.get("gameend")==="1"){openGame();G.player={hp:32,maxHp:70,energy:3,maxEnergy:3,block:0,coins:42};G.encounter=3;G.turn=8;showEnding(false);}
   const direct=location.hash==="#play"||["game","dailygame","collection","characters","intern","dailyresult","gamebattle","gamemulligan","gameminion","gamebubble","gamereward","gameplay","gameevent","gameend","app"].some(k=>q.has(k));
-  if(direct)showApp();else showCover();
+  showCover();
+  if(direct)stopCoverLoop();
 }catch(e){}
 
 (function makeStars(){
