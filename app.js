@@ -157,12 +157,13 @@ const els={
   diagDownload:$("diagDownload"),diagShare:$("diagShare"),diagHint:$("diagHint"),diagName:$("diagName"),
   gameBtn:$("gameBtn"),startFromHub:$("startFromHub"),rulesBtn:$("rulesBtn"),dailyChallengeBtn:$("dailyChallengeBtn"),collectionBtn:$("collectionBtn"),hubPoints:$("hubPoints"),dailyStatus:$("dailyStatus"),
   gameModal:$("gameModal"),gameClose:$("gameClose"),gameMenu:$("gameMenu"),gameStart:$("gameStart"),
+  gameCharacter:$("gameCharacter"),characterGrid:$("characterGrid"),characterBack:$("characterBack"),characterConfirm:$("characterConfirm"),
   gameMulligan:$("gameMulligan"),gMulliganHand:$("gMulliganHand"),gMulliganCount:$("gMulliganCount"),
   mulliganKeep:$("mulliganKeep"),mulliganConfirm:$("mulliganConfirm"),
   gSound:$("gSound"),gSpeed:$("gSpeed"),gEmbers:$("gEmbers"),gBattleIntro:$("gBattleIntro"),gIntroKicker:$("gIntroKicker"),
   gIntroName:$("gIntroName"),gIntroSub:$("gIntroSub"),gCombo:$("gCombo"),gCrit:$("gCrit"),gKO:$("gKO"),
   gameBattle:$("gameBattle"),gHp:$("gHp"),gBlock:$("gBlock"),gCoins:$("gCoins"),gEnergy:$("gEnergy"),
-  gHeroPower:$("gHeroPower"),gEnemyBoard:$("gEnemyBoard"),gPlayerBoard:$("gPlayerBoard"),gBoardHint:$("gBoardHint"),
+  gHeroPower:$("gHeroPower"),gEnemyBoard:$("gEnemyBoard"),gPlayerBoard:$("gPlayerBoard"),gBoardHint:$("gBoardHint"),gPlayerPortrait:$("gPlayerPortrait"),
   gEnemyName:$("gEnemyName"),gEnemyHp:$("gEnemyHp"),gIntent:$("gIntent"),gLog:$("gLog"),gHand:$("gHand"),
   gEnemyPortrait:$("gEnemyPortrait"),gEnemyHpFill:$("gEnemyHpFill"),gPlayerHpFill:$("gPlayerHpFill"),
   gTurnBanner:$("gTurnBanner"),gFloatLayer:$("gFloatLayer"),gEnergyGems:$("gEnergyGems"),
@@ -301,7 +302,7 @@ const MINIONS={
   revision:{name:"改稿",emoji:"✏️",atk:1,hp:1,charge:true},
   cousin:{name:"别人家的孩子",emoji:"👦",atk:2,hp:2,taunt:true}
 };
-const DEFAULT_UNLOCKS=["c1","c2","c3","c4","c6","c8","c9","c12","c17","c21","c23","thermos","badge"];
+const DEFAULT_UNLOCKS=["worker","c1","c2","c3","c4","c6","c8","c9","c12","c17","c21","c23","thermos","badge"];
 let unlocked=new Set(DEFAULT_UNLOCKS);
 try{
   const saved=JSON.parse(localStorage.getItem("oneline_unlocked")||"null");
@@ -313,6 +314,47 @@ function saveUnlocked(){try{localStorage.setItem("oneline_unlocked",JSON.stringi
 function savePoints(){try{localStorage.setItem("oneline_points",String(points));}catch(e){}}
 function isUnlocked(id){return unlocked.has(id);}
 function addPoints(n){points+=n;savePoints();updateHubStatus();}
+const CHARACTERS=[
+  {id:"worker",name:"打工人",emoji:"🧑‍💻",hp:70,draw:5,passive:"均衡开局，稳定下班。",deck:["c1","c1","c1","c1","c8","c8","c9","c3","c2","c12","c17","c21","c23"],unlockCost:0},
+  {id:"intern",name:"实习生",emoji:"🧑‍🎓",hp:55,draw:6,passive:"每回合多抽 1 张牌，但精神值更低。",deck:["c1","c1","c1","c9","c9","c17","c17","c21","c23","c3","c8"],unlockCost:120}
+];
+let selectedCharId="worker";
+try{
+  const saved=localStorage.getItem("oneline_character");
+  if(saved&&CHARACTERS.some(c=>c.id===saved)&&isUnlocked(saved))selectedCharId=saved;
+}catch(e){}
+let pendingCharacterMode="free";
+function openCharacterSelect(mode){
+  pendingCharacterMode=mode||"free";
+  renderCharacterSelect();
+  showGameView("character");
+}
+function renderCharacterSelect(){
+  els.characterGrid.innerHTML="";
+  CHARACTERS.forEach(c=>{
+    const owned=isUnlocked(c.id);
+    const sel=selectedCharId===c.id&&owned;
+    const d=document.createElement("div");
+    d.className="char-card"+(sel?" selected":"")+(owned?"":" locked");
+    d.innerHTML=`<div class="char-portrait portrait-slot">${c.emoji}</div>`+
+      `<div class="char-name">${c.name}</div>`+
+      `<div class="char-stats">${c.hp} 精神 · 每回合抽 ${c.draw} 张</div>`+
+      `<div class="char-passive">${c.passive}</div>`+
+      `<div class="char-state">${owned?(sel?"已选择":"点击选择"):`🔒 ${c.unlockCost} 工分`}</div>`;
+    d.querySelector(".char-portrait").innerHTML=c.id==="intern"?INTERN_SVG:PLAYER_SVG;
+    d.onclick=()=>{
+      if(!owned){openCollection();return;}
+      selectedCharId=c.id;
+      renderCharacterSelect();
+    };
+    els.characterGrid.appendChild(d);
+  });
+}
+function confirmCharacter(){
+  if(!isUnlocked(selectedCharId)){openCollection();return;}
+  try{localStorage.setItem("oneline_character",selectedCharId);}catch(e){}
+  startGame(pendingCharacterMode==="daily",selectedCharId);
+}
 function hashString(s){
   let h=2166136261;
   for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}
@@ -376,8 +418,15 @@ const PLAYER_SVG=`<svg viewBox="0 0 200 200" class="portrait-svg" aria-hidden="t
 <g transform="translate(138,158)"><rect width="24" height="28" rx="4" fill="#f2ead8"/><path d="M24 7 Q35 7 35 17 Q35 25 24 25" fill="none" stroke="#f2ead8" stroke-width="4"/><rect width="24" height="6" fill="#c0392b"/></g>
 </svg>`;
 
+const INTERN_SVG=PLAYER_SVG
+  .replaceAll("playerBg","internBg")
+  .replaceAll("hoodie","internHoodie")
+  .replaceAll("#2e4d68","#4f7a96")
+  .replaceAll("#22384f","#3a5a70")
+  .replaceAll("#241c26","#4a3527")
+  .replaceAll("#3a2c3c","#6a4c36");
 document.querySelectorAll(".portrait-slot").forEach(el=>{
-  el.innerHTML=el.dataset.portrait==="boss"?BOSS_SVG:PLAYER_SVG;
+  el.innerHTML=el.dataset.portrait==="boss"?BOSS_SVG:el.dataset.portrait==="intern"?INTERN_SVG:PLAYER_SVG;
 });
 
 const CARD_LINES={
@@ -1065,6 +1114,7 @@ let gameSpeed=1;
 function gs(ms){return Math.max(120,Math.round(ms/gameSpeed));}
 function showGameView(name){
   els.gameMenu.style.display=name==="menu"?"flex":"none";
+  els.gameCharacter.style.display=name==="character"?"flex":"none";
   els.gameMulligan.style.display=name==="mulligan"?"flex":"none";
   els.gameBattle.style.display=name==="battle"?"flex":"none";
   els.gameReward.style.display=name==="reward"?"flex":"none";
@@ -1075,20 +1125,24 @@ function openGame(){
   showGameView("menu");
   els.gameModal.classList.add("show");
 }
-function startGame(daily=false){
+function startGame(daily=false,charId=selectedCharId){
+  const char=CHARACTERS.find(c=>c.id===charId)||CHARACTERS[0];
+  G.character=char;
+  G.drawCount=char.draw;
   G.isDaily=!!daily;
   G.seed=G.isDaily?dailySeed():("free-"+Date.now());
   G.rng=mulberry32(hashString(G.seed));
   G.rewarded=false;G.lastPoints=0;G.streak=0;
-  G.player={hp:70,maxHp:70,energy:3,maxEnergy:3,block:0,coins:0,heroPowerUsed:false};
-  G.deck=GAME_START_DECK.map(id=>GAME_CARDS.find(c=>c.id===id));
+  G.player={hp:char.hp,maxHp:char.hp,energy:3,maxEnergy:3,block:0,coins:0,heroPowerUsed:false};
+  G.deck=char.deck.map(id=>GAME_CARDS.find(c=>c.id===id));
   G.encounter=0;G.log=[];G.running=false;G.ending=null;G.busy=false;G.relics=[];G.combo=0;
   G.playerMinions=[];G.enemyMinions=[];G.selectedMinion=-1;
   const shuffled=shuffleArr(G.deck.slice());
-  G.mulliganHand=shuffled.slice(0,5);
-  G.mulliganDraw=shuffled.slice(5);
+  G.mulliganHand=shuffled.slice(0,G.drawCount);
+  G.mulliganDraw=shuffled.slice(G.drawCount);
   G.mulliganSelected=new Set();
   G.pendingMulligan=true;
+  if(els.gPlayerPortrait)els.gPlayerPortrait.innerHTML=char.id==="intern"?INTERN_SVG:PLAYER_SVG;
   initAudio();updateSoundBtn();
   showMulligan();
 }
@@ -1126,7 +1180,7 @@ function confirmMulligan(){
   startBattle(true);
 }
 function startGameFast(daily=false){
-  startGame(daily);
+  startGame(daily,selectedCharId);
   G.mulliganSelected.clear();
   confirmMulligan();
 }
@@ -1136,7 +1190,7 @@ function startBattle(prepared){
   G.enemyMinions=[];G.playerMinions=[];G.selectedMinion=-1;
   if(!prepared){
     G.hand=[];G.draw=shuffleArr(G.deck.slice());G.discard=[];
-    drawCards(5);
+    drawCards(G.drawCount||5);
   }
   G.turn=1;
   G.player.block=0;G.player.maxEnergy=3;G.player.energy=3;G.player.heroPowerUsed=false;G.running=true;G.busy=false;
@@ -1593,7 +1647,7 @@ function endTurn(){
     G.player.energy=G.player.maxEnergy;
     G.player.heroPowerUsed=false;
     G.playerMinions.forEach(m=>{m.hasAttacked=false;m.canAttack=true;});
-    drawCards(5+(G.relics.some(r=>r.id==="coffee")?1:0));
+    drawCards((G.drawCount||5)+(G.relics.some(r=>r.id==="coffee")?1:0));
     playSfx("draw");
     G.busy=false;
     G.deal=true;
@@ -1704,7 +1758,7 @@ function openCollection(){
 }
 function renderCollection(){
   if(els.colPoints)els.colPoints.textContent=points;
-  if(els.colProgress)els.colProgress.textContent=`已解锁 ${unlocked.size} / ${GAME_CARDS.length+RELICS.length}`;
+  if(els.colProgress)els.colProgress.textContent=`已解锁 ${unlocked.size} / ${GAME_CARDS.length+RELICS.length+CHARACTERS.length}`;
   els.collectionGrid.innerHTML="";
   const add=(id,name,emoji,cost)=>{
     const owned=unlocked.has(id);
@@ -1721,6 +1775,7 @@ function renderCollection(){
     }
     els.collectionGrid.appendChild(d);
   };
+  CHARACTERS.forEach(c=>add(c.id,c.name,c.emoji,c.unlockCost||0));
   GAME_CARDS.forEach(c=>add(c.id,c.name,c.emoji,c.rare?60:30));
   RELICS.forEach(r=>add(r.id,r.name,r.emoji,40));
 }
@@ -1903,7 +1958,7 @@ els.enterApp.onclick=showApp;
 els.backCover.onclick=showCover;
 els.startFromHub.onclick=(e)=>{e.stopPropagation();openGame();};
 els.rulesBtn.onclick=(e)=>{e.stopPropagation();openGame();const d=document.querySelector(".brief-more");if(d){d.open=true;setTimeout(()=>d.scrollIntoView({behavior:"smooth",block:"center"}),120);}};
-els.dailyChallengeBtn.onclick=(e)=>{e.stopPropagation();openGame();startGame(true);};
+els.dailyChallengeBtn.onclick=(e)=>{e.stopPropagation();openGame();openCharacterSelect("daily");};
 els.collectionBtn.onclick=(e)=>{e.stopPropagation();openCollection();};
 [els.gameBtn].forEach(el=>el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();el.click();}}));
 window.addEventListener("hashchange",()=>{if(location.hash==="#play")showApp();else if(location.hash==="#cover")showCover();});
@@ -1922,14 +1977,16 @@ els.gSpeed.onclick=()=>{gameSpeed=gameSpeed===1?2:1;els.gSpeed.textContent=gameS
 updateSoundBtn();
 updateHubStatus();
 els.gameClose.onclick=()=>els.gameModal.classList.remove("show");
-els.gameStart.onclick=()=>startGame(false);
+els.gameStart.onclick=()=>openCharacterSelect("free");
+els.characterBack.onclick=()=>showGameView("menu");
+els.characterConfirm.onclick=confirmCharacter;
 els.mulliganKeep.onclick=()=>{G.mulliganSelected.clear();confirmMulligan();};
 els.mulliganConfirm.onclick=confirmMulligan;
 els.gHeroPower.onclick=useHeroPower;
 els.gameBattle.querySelector(".enemy-hud").onclick=()=>attackTarget("hero");
 els.gEndTurn.onclick=endTurn;
 els.gSkip.onclick=()=>{G.player.hp=Math.min(G.player.maxHp,G.player.hp+15);logGame("跳过奖励，回复 15 点精神值");startBattle();};
-els.gameAgain.onclick=()=>startGame(false);
+els.gameAgain.onclick=()=>openCharacterSelect("free");
 els.gameSave.onclick=saveEnding;
 els.gameShare.onclick=shareRun;
 els.collectionClose.onclick=()=>els.collectionModal.classList.remove("show");
@@ -1991,8 +2048,10 @@ try{
   if(q.get("diag")==="1"){els.diagName.value=q.get("name")||"";openDiag();}
   if(q.get("diagq")==="1"){openDiag();startDiag();}
   if(q.get("game")==="1"){openGame();}
-  if(q.get("dailygame")==="1"){openGame();startGame(true);}
+  if(q.get("dailygame")==="1"){openGame();openCharacterSelect("daily");}
   if(q.get("collection")==="1"){openCollection();}
+  if(q.get("characters")==="1"){openGame();openCharacterSelect("free");}
+  if(q.get("intern")==="1"){unlocked.add("intern");selectedCharId="intern";openGame();startGameFast(false);}
   if(q.get("dailyresult")==="1"){openGame();startGameFast(true);G.player.hp=32;G.player.coins=42;G.turn=8;showEnding(false);}
   if(q.get("gamebattle")==="1"){openGame();startGameFast();}
   if(q.get("gamemulligan")==="1"){openGame();startGame();}
