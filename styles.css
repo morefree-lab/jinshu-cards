@@ -269,6 +269,12 @@
   .turn-banner{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) scale(.8);opacity:0;font-size:34px;font-weight:900;letter-spacing:6px;color:#f5d76e;text-shadow:0 4px 30px rgba(245,215,110,.5);pointer-events:none;z-index:20;transition:.35s}
   .turn-banner.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
   .float-layer{position:absolute;inset:0;pointer-events:none;z-index:15;overflow:hidden}
+  .enemy-decision{position:absolute;top:88px;left:50%;transform:translateX(-50%);z-index:19;display:none;flex-direction:column;gap:6px;min-width:320px;padding:10px 14px;border-radius:14px;background:rgba(18,22,32,.96);border:1px solid rgba(245,215,110,.3);box-shadow:0 12px 30px rgba(0,0,0,.45)}
+  .enemy-decision.show{display:flex}
+  .ed-title{font-size:10px;letter-spacing:3px;color:#ff8a5c;text-align:center;font-weight:800}
+  .ed-options{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+  .ed-option{font-size:11px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.12)}
+  .ed-option.chosen{background:linear-gradient(90deg,#ff8a5c,#ff5c8a);color:#fff;border-color:transparent;font-weight:700;box-shadow:0 0 16px rgba(255,92,138,.4)}
   .gfloat{position:absolute;font-size:34px;font-weight:900;text-shadow:0 4px 18px rgba(0,0,0,.6);animation:gfloatUp .9s ease-out forwards}
   @keyframes gfloatUp{0%{opacity:0;transform:translateY(10px) scale(.8)}20%{opacity:1;transform:translateY(0) scale(1.2)}100%{opacity:0;transform:translateY(-46px) scale(1)}}
   .enemy-hud{display:flex;gap:14px;align-items:center;padding:10px 14px;border-radius:16px;background:linear-gradient(180deg,rgba(40,28,60,.9),rgba(22,18,34,.9));border:1px solid rgba(245,215,110,.18);position:relative;z-index:5}
