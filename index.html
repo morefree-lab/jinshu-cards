@@ -14,7 +14,15 @@
       <div class="cover-brand">O N E L I N E .</div>
       <h1 class="cover-title">打工人<br><span>求生指南</span></h1>
       <p class="cover-sub">抽牌，出牌，活着下班。</p>
-      <button class="cover-cta" id="enterApp">开始上班 <span>→</span></button>
+      <div class="cover-actions">
+        <button class="cover-cta" id="enterApp">开始上班 →</button>
+        <button class="cover-ghost" id="rulesBtn">游戏规则</button>
+      </div>
+      <div class="cover-secondary">
+        <button id="dailyChallengeBtn">每日挑战</button>
+        <button id="collectionBtn">收集册 · <span id="hubPoints">0</span> 工分</button>
+      </div>
+      <div class="gf-daily" id="dailyStatus">今日挑战未完成 · 连胜 0 天</div>
       <div class="cover-hint">免费游玩 · 无需注册 · 一局 10 分钟</div>
     </div>
     <div class="cover-stage">
@@ -44,41 +52,6 @@
       <div class="float-dmg player-dmg" id="coverDmgPlayer">-12</div>
     </div>
   </div>
-</div>
-<div id="appView" style="display:none">
-<div class="wrap">
-  <header>
-    <div class="logo">oneline<em>.</em></div>
-    <div class="tag" style="display:flex;align-items:center;gap:10px">打工人求生指南 · 免费卡牌 Roguelike <button class="btn sm" id="backCover">← 封面</button></div>
-  </header>
-
-  <section class="game-hub">
-    <div class="section-head">
-      <div><div class="section-kicker">PLAY</div><h2>游戏娱乐</h2></div>
-      <div class="section-sub">一款主打游戏，先把这一款做精</div>
-    </div>
-    <div class="game-feature hero game-hero" id="gameBtn" role="button" tabindex="0">
-      <div class="gf-copy">
-        <div class="gf-kicker">CARD ROGUELIKE</div>
-        <div class="gf-title">打工人求生指南</div>
-        <div class="gf-desc">抽牌、看意图、打出连招，撑过老板、甲方和亲戚，活着下班。</div>
-        <div class="gf-tags"><span>20 张卡牌</span><span>遗物构筑</span><span>随机事件</span><span>多结局</span></div>
-        <div class="gf-actions">
-          <button class="gf-cta" id="startFromHub">进入游戏 →</button>
-          <button class="gf-secondary" id="rulesBtn">游戏规则</button>
-          <button class="gf-secondary" id="dailyChallengeBtn">每日挑战</button>
-          <button class="gf-secondary" id="collectionBtn">收集册 · <span id="hubPoints">0</span> 工分</button>
-        </div>
-        <div class="gf-daily" id="dailyStatus">今日挑战未完成 · 连胜 0 天</div>
-      </div>
-      <div class="gf-preview">
-        <div class="gf-boss portrait-slot" data-portrait="boss">👔</div>
-        <div class="gf-mini-cards"><span>🐟</span><span>🤯</span><span>☕</span></div>
-        <div class="gf-vs">VS</div>
-      </div>
-    </div>
-  </section>
-</div>
 </div>
 <div class="modal" id="gameModal">
   <div class="modal-box game-box">
