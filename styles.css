@@ -122,6 +122,12 @@
   .cover-sub{font-size:18px;color:var(--muted);margin:20px 0 30px;letter-spacing:1px}
   .cover-cta{font-size:18px;font-weight:800;padding:18px 44px;border-radius:999px;border:none;cursor:pointer;color:#fff;background:linear-gradient(90deg,#ff8a5c,#ff5c8a);box-shadow:0 15px 40px rgba(255,92,138,.3);transition:.2s}
   .cover-cta:hover{transform:translateY(-2px);filter:brightness(1.06)}
+  .cover-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .cover-ghost{font-size:13px;font-weight:700;padding:14px 22px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#fff;cursor:pointer}
+  .cover-ghost:hover{border-color:rgba(245,215,110,.45)}
+  .cover-secondary{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .cover-secondary button{font-size:11px;padding:7px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:rgba(255,255,255,.7);cursor:pointer}
+  .cover-secondary button:hover{border-color:rgba(245,215,110,.45);color:#fff}
   .cover-hint{font-size:12px;color:#6f7688;margin-top:14px;letter-spacing:1px}
   .cover-stage{position:relative;height:620px;border-radius:28px;background:radial-gradient(700px 420px at 50% 18%, rgba(255,138,92,.13), transparent 65%),linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.08);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5)}
   .boss-zone{position:absolute;top:26px;left:50%;transform:translateX(-50%);width:340px;display:flex;gap:12px;align-items:center;padding:14px;border-radius:18px;background:rgba(18,22,31,.88);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px);z-index:5}
