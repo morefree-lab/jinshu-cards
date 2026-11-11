@@ -157,7 +157,7 @@ const els={
   diagDownload:$("diagDownload"),diagShare:$("diagShare"),diagHint:$("diagHint"),diagName:$("diagName"),
   gameBtn:$("gameBtn"),startFromHub:$("startFromHub"),rulesBtn:$("rulesBtn"),dailyChallengeBtn:$("dailyChallengeBtn"),collectionBtn:$("collectionBtn"),hubPoints:$("hubPoints"),dailyStatus:$("dailyStatus"),
   gameModal:$("gameModal"),gameClose:$("gameClose"),gameMenu:$("gameMenu"),gameStart:$("gameStart"),
-  gameCharacter:$("gameCharacter"),characterGrid:$("characterGrid"),characterBack:$("characterBack"),characterConfirm:$("characterConfirm"),
+  gameCharacter:$("gameCharacter"),characterGrid:$("characterGrid"),characterBack:$("characterBack"),characterConfirm:$("characterConfirm"),charPoints:$("charPoints"),
   gameMulligan:$("gameMulligan"),gMulliganHand:$("gMulliganHand"),gMulliganCount:$("gMulliganCount"),
   mulliganKeep:$("mulliganKeep"),mulliganConfirm:$("mulliganConfirm"),
   gSound:$("gSound"),gSpeed:$("gSpeed"),gEmbers:$("gEmbers"),gBattleIntro:$("gBattleIntro"),gIntroKicker:$("gIntroKicker"),
@@ -172,7 +172,7 @@ const els={
   gEndTurn:$("gEndTurn"),gameReward:$("gameReward"),gRewards:$("gRewards"),gSkip:$("gSkip"),
   gameEvent:$("gameEvent"),gEventTitle:$("gEventTitle"),gEventDesc:$("gEventDesc"),gEventChoices:$("gEventChoices"),
   gameEnd:$("gameEnd"),gameEndCanvas:$("gameEndCanvas"),gameAgain:$("gameAgain"),gameSave:$("gameSave"),gameShare:$("gameShare"),gameEndHint:$("gameEndHint"),
-  collectionModal:$("collectionModal"),collectionClose:$("collectionClose"),colPoints:$("colPoints"),colProgress:$("colProgress"),collectionGrid:$("collectionGrid")
+  collectionModal:$("collectionModal"),collectionClose:$("collectionClose"),colPoints:$("colPoints"),colProgress:$("colProgress"),collectionGrid:$("collectionGrid"),collectionTabs:$("collectionTabs")
 };
 
 const state={cat:"全部",theme:0,font:"yahei",size:64,ls:0,lh:1.62,align:"center",vertical:false,showDate:true,wmOn:true,wmPos:"br",wmImage:null,bgImage:null,extra:""};
@@ -310,6 +310,13 @@ try{
 }catch(e){}
 let points=0;
 try{points=parseInt(localStorage.getItem("oneline_points")||"0",10)||0;}catch(e){}
+try{
+  if(!localStorage.getItem("oneline_welcome_bonus")){
+    points+=120;
+    localStorage.setItem("oneline_points",String(points));
+    localStorage.setItem("oneline_welcome_bonus","1");
+  }
+}catch(e){}
 function saveUnlocked(){try{localStorage.setItem("oneline_unlocked",JSON.stringify([...unlocked]));}catch(e){}}
 function savePoints(){try{localStorage.setItem("oneline_points",String(points));}catch(e){}}
 function isUnlocked(id){return unlocked.has(id);}
@@ -324,12 +331,14 @@ try{
   if(saved&&CHARACTERS.some(c=>c.id===saved)&&isUnlocked(saved))selectedCharId=saved;
 }catch(e){}
 let pendingCharacterMode="free";
+let collectionTab="characters";
 function openCharacterSelect(mode){
   pendingCharacterMode=mode||"free";
   renderCharacterSelect();
   showGameView("character");
 }
 function renderCharacterSelect(){
+  if(els.charPoints)els.charPoints.textContent=points;
   els.characterGrid.innerHTML="";
   CHARACTERS.forEach(c=>{
     const owned=isUnlocked(c.id);
@@ -340,15 +349,23 @@ function renderCharacterSelect(){
       `<div class="char-name">${c.name}</div>`+
       `<div class="char-stats">${c.hp} 精神 · 每回合抽 ${c.draw} 张</div>`+
       `<div class="char-passive">${c.passive}</div>`+
-      `<div class="char-state">${owned?(sel?"已选择":"点击选择"):`🔒 ${c.unlockCost} 工分`}</div>`;
+      `<div class="char-state">${owned?(sel?"已选择":"点击选择"):`🔒 ${c.unlockCost} 工分`}</div>`+
+      (owned?"":`<button class="char-unlock" ${points<c.unlockCost?"disabled":""}>解锁</button>`);
     d.querySelector(".char-portrait").innerHTML=c.id==="intern"?INTERN_SVG:PLAYER_SVG;
     d.onclick=()=>{
-      if(!owned){openCollection();return;}
+      if(!owned){unlockCharacter(c);return;}
       selectedCharId=c.id;
       renderCharacterSelect();
     };
     els.characterGrid.appendChild(d);
   });
+}
+function unlockCharacter(c){
+  if(isUnlocked(c.id))return;
+  if(points<c.unlockCost){flash(`工分不足，还差 ${c.unlockCost-points} 工分`);return;}
+  points-=c.unlockCost;savePoints();unlocked.add(c.id);saveUnlocked();
+  selectedCharId=c.id;renderCharacterSelect();updateHubStatus();
+  flash(`已解锁「${c.name}」`);
 }
 function confirmCharacter(){
   if(!isUnlocked(selectedCharId)){openCollection();return;}
@@ -1758,7 +1775,13 @@ function openCollection(){
 }
 function renderCollection(){
   if(els.colPoints)els.colPoints.textContent=points;
-  if(els.colProgress)els.colProgress.textContent=`已解锁 ${unlocked.size} / ${GAME_CARDS.length+RELICS.length+CHARACTERS.length}`;
+  const groups={
+    characters:{label:"角色",items:CHARACTERS,cost:c=>c.unlockCost||0},
+    cards:{label:"卡牌",items:GAME_CARDS,cost:c=>c.rare?60:30},
+    relics:{label:"遗物",items:RELICS,cost:()=>40}
+  };
+  const group=groups[collectionTab]||groups.characters;
+  if(els.colProgress)els.colProgress.textContent=`${group.label} ${group.items.filter(i=>isUnlocked(i.id)).length}/${group.items.length}`;
   els.collectionGrid.innerHTML="";
   const add=(id,name,emoji,cost)=>{
     const owned=unlocked.has(id);
@@ -1775,9 +1798,10 @@ function renderCollection(){
     }
     els.collectionGrid.appendChild(d);
   };
-  CHARACTERS.forEach(c=>add(c.id,c.name,c.emoji,c.unlockCost||0));
-  GAME_CARDS.forEach(c=>add(c.id,c.name,c.emoji,c.rare?60:30));
-  RELICS.forEach(r=>add(r.id,r.name,r.emoji,40));
+  group.items.forEach(item=>add(item.id,item.name,item.emoji,group.cost(item)));
+  if(els.collectionTabs){
+    [...els.collectionTabs.querySelectorAll("button")].forEach(b=>b.classList.toggle("on",b.dataset.tab===collectionTab));
+  }
 }
 function showEnding(defeated){
   G.running=false;G.busy=false;
@@ -1991,6 +2015,7 @@ els.gameSave.onclick=saveEnding;
 els.gameShare.onclick=shareRun;
 els.collectionClose.onclick=()=>els.collectionModal.classList.remove("show");
 els.collectionModal.addEventListener("click",e=>{if(e.target===els.collectionModal)els.collectionModal.classList.remove("show");});
+els.collectionTabs.querySelectorAll("button").forEach(b=>b.onclick=()=>{collectionTab=b.dataset.tab;renderCollection();});
 els.gameModal.addEventListener("click",e=>{if(e.target===els.gameModal)els.gameModal.classList.remove("show");});
 (function makeEmbers(){
   const box=els.gEmbers;
