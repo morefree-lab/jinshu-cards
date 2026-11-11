@@ -162,6 +162,7 @@ const els={
   mulliganKeep:$("mulliganKeep"),mulliganConfirm:$("mulliganConfirm"),
   gSound:$("gSound"),gSpeed:$("gSpeed"),gEmbers:$("gEmbers"),gBattleIntro:$("gBattleIntro"),gIntroKicker:$("gIntroKicker"),
   gIntroName:$("gIntroName"),gIntroSub:$("gIntroSub"),gCombo:$("gCombo"),gCrit:$("gCrit"),gKO:$("gKO"),
+  gEnemyDecision:$("gEnemyDecision"),gEnemyOptions:$("gEnemyOptions"),
   gameBattle:$("gameBattle"),gHp:$("gHp"),gBlock:$("gBlock"),gCoins:$("gCoins"),gEnergy:$("gEnergy"),
   gHeroPower:$("gHeroPower"),gEnemyBoard:$("gEnemyBoard"),gPlayerBoard:$("gPlayerBoard"),gBoardHint:$("gBoardHint"),gPlayerPortrait:$("gPlayerPortrait"),
   gEnemyName:$("gEnemyName"),gEnemyHp:$("gEnemyHp"),gIntent:$("gIntent"),gEnemyPower:$("gEnemyPower"),gLog:$("gLog"),gHand:$("gHand"),
@@ -1229,7 +1230,8 @@ function startBattle(prepared){
   const base=GAME_ENEMIES[G.encounter];
   const asc=G.ascension||0;
   const ehp=Math.round(base.hp*(1+0.2*asc));
-  G.enemy={name:base.name,emoji:base.emoji,tie:base.tie,hp:ehp,maxHp:ehp,strength:asc,weak:0,vulnerable:0,stun:0,charged:0,intentIndex:0,intents:base.intents.slice(),flavor:base.flavor};
+  G.enemy={name:base.name,emoji:base.emoji,tie:base.tie,hp:ehp,maxHp:ehp,strength:asc,weak:0,vulnerable:0,stun:0,charged:0,armor:0,turns:0,deadlineUsed:false,intentIndex:0,intents:base.intents.slice(),flavor:base.flavor};
+  hideEnemyDecision();
   G.enemyMinions=[];G.playerMinions=[];G.selectedMinion=-1;
   if(!prepared){
     G.hand=[];G.draw=shuffleArr(G.deck.slice());G.discard=[];
@@ -1427,11 +1429,8 @@ function attackTarget(kind,index){
   }else{
     if(taunts.length){logGame("必须先攻击嘲讽随从");return;}
     attacker.hasAttacked=true;
-    G.enemy.hp-=attacker.atk;
     logGame(`「${attacker.name}」攻击 ${G.enemy.name}，造成 ${attacker.atk} 点伤害`);
-    floatGameText(`-${attacker.atk}`,"#ff6b81","enemy");
-    impactAt("enemy");
-    playSfx("hit");
+    damageEnemyHero(attacker.atk);
   }
   G.selectedMinion=-1;
   processDeaths();
@@ -1447,6 +1446,82 @@ function useHeroPower(){
   logGame("使用英雄技能「摸鱼」，获得 4 点护盾");
   playSfx("shield");
   renderGame();
+}
+function enemyActionOptions(e){
+  if(e.name==="老板")return ["交作业","加需求","画饼","裁员","截止日"];
+  if(e.name==="甲方")return ["改稿","催稿","全盘推翻","截止日"];
+  return ["催婚","别人家的孩子","比较","截止日"];
+}
+function chooseEnemyMove(e){
+  const options=enemyActionOptions(e);
+  if(e.turns>=4&&!e.deadlineUsed)return {id:"deadline",name:"截止日",options,dmg:30};
+  if(e.name==="老板"){
+    if(G.playerMinions.length>=2)return {id:"layoff",name:"裁员",options};
+    if(G.enemyMinions.length===0)return {id:"summon",name:"加需求",options,minion:"demand"};
+    if(e.strength<3)return {id:"buff",name:"画饼",options};
+    return {id:"attack",name:"交作业",options,dmg:14};
+  }
+  if(e.name==="甲方"){
+    if(G.playerMinions.length>=2)return {id:"layoff",name:"全盘推翻",options};
+    if(G.enemyMinions.length===0)return {id:"summon",name:"改稿",options,minion:"revision"};
+    if(e.hp<e.maxHp*.5)return {id:"heal",name:"预算回血",options,heal:8};
+    return {id:"attack",name:"催稿",options,dmg:16};
+  }
+  if(G.playerMinions.length>=2)return {id:"layoff",name:"比较",options};
+  if(G.enemyMinions.length===0)return {id:"summon",name:"别人家的孩子",options,minion:"cousin"};
+  if(e.hp<e.maxHp*.6)return {id:"heal",name:"你看别人家",options,heal:8};
+  return {id:"attack",name:"催婚",options,dmg:12};
+}
+function showEnemyDecision(move){
+  if(!els.gEnemyDecision)return;
+  els.gEnemyOptions.innerHTML="";
+  (move.options||enemyActionOptions(G.enemy)).forEach(o=>{
+    const s=document.createElement("span");
+    s.className="ed-option";s.textContent=o;
+    els.gEnemyOptions.appendChild(s);
+  });
+  els.gEnemyDecision.classList.add("show");
+  setTimeout(()=>{
+    [...els.gEnemyOptions.children].forEach(s=>s.classList.toggle("chosen",s.textContent===move.name));
+  },gs(260));
+}
+function hideEnemyDecision(){
+  if(els.gEnemyDecision)els.gEnemyDecision.classList.remove("show");
+}
+function executeEnemyMove(move){
+  const e=G.enemy;
+  if(move.id==="deadline"){
+    e.deadlineUsed=true;
+    showBubble("enemy","截止日到了。");
+    enemyStrike(30,"截止日");
+    playSfx("crit");
+  }else if(move.id==="layoff"){
+    logGame(`${e.name} 使用「${move.name}」，所有随从受到 4 点伤害`);
+    G.playerMinions.forEach(m=>dealToMinion(m,4));
+    showBubble("enemy","最近人有点多。");
+    playSfx("hit");
+    processDeaths();
+  }else if(move.id==="summon"){
+    if(G.enemyMinions.length<3){
+      G.enemyMinions.push(makeMinion(move.minion));
+      logGame(`${e.name} 召唤了「${MINIONS[move.minion].name}」`);
+      showBubble("enemy","这个需求，你来接一下。");
+      playSfx("summon");
+    }else{
+      enemyStrike(12,"攻击");
+    }
+  }else if(move.id==="buff"){
+    e.strength+=3;
+    logGame(`${e.name} 加攻 +3`);
+    showBubble("enemy","年轻人，要有格局。");
+  }else if(move.id==="heal"){
+    e.hp=Math.min(e.maxHp,e.hp+(move.heal||8));
+    logGame(`${e.name} 回复 ${move.heal||8} 点`);
+    showBubble("enemy","公司不会亏待你的。");
+    playSfx("heal");
+  }else{
+    enemyStrike(move.dmg||12,"攻击");
+  }
 }
 function intentLabel(e){
   const it=e.intents[e.intentIndex],parts=it.split(":"),t=parts[0],v=+parts[1];
@@ -1468,10 +1543,11 @@ function renderGame(){
   els.gEnemyHpFill.style.width=`${Math.max(0,G.enemy.hp)/G.enemy.maxHp*100}%`;
   els.gPlayerHpFill.style.width=`${Math.max(0,G.player.hp)/G.player.maxHp*100}%`;
   els.gEnemyPortrait.style.setProperty("--tie",G.enemy.tie||"#c0392b");
-  els.gIntent.textContent="意图："+intentLabel(G.enemy);
-  els.gEnemyPower.textContent=`力量 ${G.enemy.strength}`;
-  const nextIntent=G.enemy.intents[G.enemy.intentIndex]||"";
-  els.gIntent.classList.toggle("danger",nextIntent.startsWith("charge")||nextIntent.startsWith("release"));
+  let previewName="观察中";
+  try{previewName=chooseEnemyMove(G.enemy).name;}catch(e){}
+  els.gIntent.textContent="意图："+previewName;
+  els.gEnemyPower.textContent=`力量 ${G.enemy.strength} · 护甲 ${G.enemy.armor||0}`;
+  els.gIntent.classList.toggle("danger",previewName==="截止日");
   const board=els.gameBattle.querySelector(".game-board");
   if(board)board.classList.toggle("low-hp",G.player.hp<=G.player.maxHp*.3);
   if(els.gEnergyGems){
@@ -1507,6 +1583,13 @@ function renderGame(){
 function playerDamage(base){
   let d=base;
   if(G.enemy.vulnerable>0)d=Math.round(d*1.5);
+  damageEnemyHero(d);
+}
+function damageEnemyHero(amount){
+  let d=amount;
+  const absorbed=Math.min(G.enemy.armor||0,d);
+  if(absorbed>0){G.enemy.armor-=absorbed;d-=absorbed;logGame(`护甲吸收 ${absorbed} 点`);}
+  if(d<=0){logGame("护甲挡住了这次伤害");return;}
   G.enemy.hp-=d;
   logGame(`对 ${G.enemy.name} 造成 ${d} 点伤害`);
   floatGameText(`-${d}`,"#ff6b81","enemy");
@@ -1704,33 +1787,49 @@ function endTurn(){
   showTurnBanner("敌方回合");
   logGame("—— 敌方回合 ——");
   setTimeout(()=>{
+    G.enemy.armor=(G.enemy.armor||0)+4;
+    G.enemy.turns=(G.enemy.turns||0)+1;
     G.enemy.strength+=1;
-    logGame(`${G.enemy.name} 开始加压，攻击力 +1`);
-    G.enemyMinions.forEach(m=>{m.hasAttacked=false;m.canAttack=true;});
-    enemyAct();
-    enemyMinionsAttack();
-    if(G.player.hp<=0){G.busy=false;showEnding(true);return;}
-    if(G.enemy.weak>0)G.enemy.weak--;
-    if(G.enemy.vulnerable>0)G.enemy.vulnerable--;
-    G.turn++;
-    G.combo=0;
-    if(els.gCombo)els.gCombo.classList.remove("show");
-    G.player.block=0;
-    if(G.relics.some(r=>r.id==="muyu"))G.player.block+=3;
-    G.player.maxEnergy=Math.min(5,G.player.maxEnergy+1);
-    G.player.energy=Math.max(0,G.player.maxEnergy-(G.player.nextPenalty||0));
-    G.player.nextPenalty=0;
-    G.player.heroPowerUsed=false;
-    G.playerMinions.forEach(m=>{m.hasAttacked=false;m.canAttack=true;});
-    drawCards((G.drawCount||5)+(G.relics.some(r=>r.id==="coffee")?1:0));
-    playSfx("draw");
-    G.busy=false;
-    G.deal=true;
+    logGame(`${G.enemy.name} 护甲 +4，攻击力 +1`);
     renderGame();
-    showTurnBanner("你的回合");
-  },gs(420));
+    if(G.enemy.turns===3&&!G.enemy.deadlineUsed){
+      logGame("警告：下回合是截止日");
+      showBubble("enemy","下回合是截止日，准备好了吗？");
+    }
+    G.enemyMinions.forEach(m=>{m.hasAttacked=false;m.canAttack=true;});
+    const move=chooseEnemyMove(G.enemy);
+    showEnemyDecision(move);
+    setTimeout(()=>{
+      executeEnemyMove(move);
+      if(G.player.hp<=0){G.busy=false;hideEnemyDecision();showEnding(true);return;}
+      setTimeout(()=>{
+        enemyMinionsAttack();
+        hideEnemyDecision();
+        if(G.player.hp<=0){G.busy=false;showEnding(true);return;}
+        if(G.enemy.weak>0)G.enemy.weak--;
+        if(G.enemy.vulnerable>0)G.enemy.vulnerable--;
+        G.turn++;
+        G.combo=0;
+        if(els.gCombo)els.gCombo.classList.remove("show");
+        G.player.block=0;
+        if(G.relics.some(r=>r.id==="muyu"))G.player.block+=3;
+        G.player.maxEnergy=Math.min(5,G.player.maxEnergy+1);
+        G.player.energy=Math.max(0,G.player.maxEnergy-(G.player.nextPenalty||0));
+        G.player.nextPenalty=0;
+        G.player.heroPowerUsed=false;
+        G.playerMinions.forEach(m=>{m.hasAttacked=false;m.canAttack=true;});
+        drawCards((G.drawCount||5)+(G.relics.some(r=>r.id==="coffee")?1:0));
+        playSfx("draw");
+        G.busy=false;
+        G.deal=true;
+        renderGame();
+        showTurnBanner("你的回合");
+      },gs(500));
+    },gs(700));
+  },gs(300));
 }
 function winBattle(){
+  hideEnemyDecision();
   G.running=false;
   const coins=10+G.encounter*5;
   G.player.coins+=coins;
@@ -1896,6 +1995,7 @@ function renderCollection(){
   }
 }
 function showEnding(defeated){
+  hideEnemyDecision();
   G.running=false;G.busy=false;
   if(defeated)playSfx("lose");
   const hp=Math.max(0,G.player.hp),coins=G.player.coins;
@@ -2116,6 +2216,7 @@ try{
   if(q.get("gamedeck")==="1"){openGame();startGameFast();G.encounter=1;showDeck("remove");}
   if(q.get("gameplay")==="1"){openGame();startGameFast();setTimeout(()=>playGameCard(0),300);}
   if(q.get("gameevent")==="1"){openGame();startGameFast();setTimeout(()=>showEvent(),200);}
+  if(q.get("gameenemy")==="1"){openGame();startGameFast();setTimeout(()=>endTurn(),1800);}
   if(q.get("gameend")==="1"){openGame();G.player={hp:32,maxHp:70,energy:3,maxEnergy:3,block:0,coins:42};G.encounter=3;G.turn=8;showEnding(false);}
   const direct=location.hash==="#play"||["game","dailygame","collection","characters","intern","dailyresult","gamebattle","gamemulligan","gameminion","gamebubble","gamereward","gameplay","gameevent","gameend","app"].some(k=>q.has(k));
   showCover();
