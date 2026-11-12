@@ -155,6 +155,7 @@ const els={
   diagOpts:$("diagOpts"),diagResult:$("diagResult"),diagCanvas:$("diagCanvas"),diagRetry:$("diagRetry"),
   diagDownload:$("diagDownload"),diagShare:$("diagShare"),diagHint:$("diagHint"),diagName:$("diagName"),
   gameBtn:$("gameBtn"),startFromHub:$("startFromHub"),rulesBtn:$("rulesBtn"),dailyChallengeBtn:$("dailyChallengeBtn"),collectionBtn:$("collectionBtn"),hubPoints:$("hubPoints"),dailyStatus:$("dailyStatus"),
+  orientationTip:$("orientationTip"),rotateLandscape:$("rotateLandscape"),stayPortrait:$("stayPortrait"),
   gameModal:$("gameModal"),gameClose:$("gameClose"),gameMenu:$("gameMenu"),gameStart:$("gameStart"),
   gameCharacter:$("gameCharacter"),characterGrid:$("characterGrid"),characterBack:$("characterBack"),characterConfirm:$("characterConfirm"),charPoints:$("charPoints"),
   gameBuild:$("gameBuild"),gBuildGrid:$("gBuildGrid"),buildBack:$("buildBack"),buildConfirm:$("buildConfirm"),
@@ -1462,6 +1463,32 @@ function showGameView(name){
   els.gameEvent.style.display=name==="event"?"flex":"none";
   els.gameEnd.style.display=name==="end"?"flex":"none";
 }
+function hideOrientationTip(){
+  els.orientationTip?.classList.remove("show");
+}
+function maybeShowOrientationTip(){
+  if(!els.orientationTip||innerWidth>700||innerHeight<=innerWidth)return;
+  let choice=null;
+  try{choice=sessionStorage.getItem("oneline_orientation_choice");}catch(e){}
+  if(choice)return;
+  setTimeout(()=>{
+    if(innerWidth<=700&&innerHeight>innerWidth&&!document.hidden)els.orientationTip.classList.add("show");
+  },650);
+}
+async function enterLandscapeMode(){
+  hideOrientationTip();
+  try{sessionStorage.setItem("oneline_orientation_choice","landscape");}catch(e){}
+  try{
+    if(!document.fullscreenElement&&document.documentElement.requestFullscreen){
+      await document.documentElement.requestFullscreen();
+    }
+    if(screen.orientation&&screen.orientation.lock){
+      await screen.orientation.lock("landscape");
+    }
+  }catch(e){
+    flash("请将手机横过来，页面会自动切换为横屏布局");
+  }
+}
 function openGame(){
   stopCoverLoop();
   showGameView("menu");
@@ -1625,6 +1652,7 @@ function startBattle(prepared){
   showBattleIntro();
   if(tutorialNeeded)setTimeout(()=>{G.tutorialPaused=false;updateTutorialVisuals();},gs(1900));
   setTimeout(()=>showTurnBanner("你的回合"),gs(1600));
+  maybeShowOrientationTip();
 }
 function drawCards(n){
   for(let i=0;i<n;i++){
@@ -3596,6 +3624,9 @@ els.collectionBtn.onclick=(e)=>{e.stopPropagation();openCollection();};
 els.gSound.onclick=()=>{soundOn=!soundOn;try{localStorage.setItem("oneline_sound",soundOn?"1":"0");}catch(e){}updateSoundBtn();if(soundOn)playSfx("click");};
 els.gSpeed.onclick=()=>{gameSpeed=gameSpeed===1?2:1;els.gSpeed.textContent=gameSpeed+"×";playSfx("click");};
 els.gText.onclick=()=>{largeText=!largeText;try{localStorage.setItem("oneline_large_text",largeText?"1":"0");}catch(e){}updateTextBtn();playSfx("click");};
+els.rotateLandscape.onclick=enterLandscapeMode;
+els.stayPortrait.onclick=()=>{hideOrientationTip();try{sessionStorage.setItem("oneline_orientation_choice","portrait");}catch(e){}};
+window.addEventListener("resize",()=>{if(innerWidth>innerHeight)hideOrientationTip();});
 updateSoundBtn();
 updateTextBtn();
 updateHubStatus();
