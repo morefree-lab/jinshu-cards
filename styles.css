@@ -624,3 +624,203 @@
   .rr-stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;color:rgba(255,255,255,.42);font-size:9px}
   .rr-stats b{color:#fff}
   @media(max-width:700px){.run-review{grid-template-columns:1fr}#gameEnd:has(.run-review:not([style*="display: none"])) #gameEndCanvas{max-height:24vh}}
+
+  /* Mobile-first game shell: keep controls reachable and avoid horizontal clipping. */
+  @media(max-width:700px){
+    html,body{width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%}
+    body{min-height:100svh}
+    button,.game-card,.route-card,.build-card,.core-card{touch-action:manipulation}
+    #gameModal{padding:0;align-items:stretch}
+    #gameModal .modal-box{width:100%;max-width:none;height:100dvh;max-height:100dvh;border-radius:0;border-left:0;border-right:0;padding:calc(env(safe-area-inset-top,0px) + 6px) 10px calc(env(safe-area-inset-bottom,0px) + 10px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+    .modal-head{position:sticky;top:calc(-1 * (env(safe-area-inset-top,0px) + 6px));z-index:120;background:rgba(23,26,33,.98);padding:8px 0;gap:6px;flex-wrap:nowrap;min-width:0}
+    .modal-head>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+    .modal-head>div{flex:0 0 auto;gap:5px!important}
+    .modal-head .btn.sm{min-width:40px;min-height:40px;padding:7px 9px;font-size:12px}
+    .modal-head #gameClose{min-width:52px}
+    .game-view{width:100%;min-width:0;max-width:100%;gap:10px}
+    .game-board{width:100%;min-width:0;max-width:100%;padding:8px 8px 66px}
+    .modal-actions{position:sticky;bottom:calc(-1 * (env(safe-area-inset-bottom,0px) + 10px));z-index:110;background:linear-gradient(180deg,rgba(23,26,33,.82),rgba(23,26,33,.99) 35%);padding:10px 0 calc(env(safe-area-inset-bottom,0px) + 4px);gap:8px}
+    .modal-actions .btn{min-height:46px;font-size:14px;padding:10px 14px;flex:1 1 140px}
+    .btn.big{min-height:48px;font-size:15px;padding:12px 22px}
+    .game-title{font-size:22px;line-height:1.25}
+    .game-sub{font-size:11px;line-height:1.55}
+    .game-brief{padding:16px 14px}
+    .brief-title{font-size:26px;line-height:1.2}
+    .brief-steps{grid-template-columns:1fr;gap:7px;margin:12px 0 8px}
+    .brief-step{padding:9px 11px}
+    .brief-step b{font-size:15px;margin:1px 0}
+    .brief-step p{font-size:10px}
+    .brief-stats{grid-template-columns:1fr 1fr;gap:6px}
+    .brief-stats div{padding:8px;font-size:10px}
+    .brief-stats span{font-size:9px}
+    .character-grid,.build-grid,.route-grid,.core-grid{grid-template-columns:1fr;gap:9px}
+    .char-card{padding:12px}
+    .char-portrait{width:64px;height:64px}
+    .build-card,.core-card{min-height:auto;padding:14px}
+    .build-card .bc-name,.core-card .cc-name{font-size:18px}
+    .build-card .bc-desc,.core-card .cc-desc{font-size:11px;line-height:1.55}
+    .build-card .bc-count{font-size:8px;line-height:1.5}
+    .route-card{min-height:auto;padding:14px}
+    .route-card .rc-title{font-size:17px}
+    .route-card .rc-desc{font-size:11px;line-height:1.55;margin-top:8px}
+    .route-progress{padding:7px 5px;gap:3px}
+    .route-dot{width:24px;height:24px;font-size:8px}
+    .route-line{width:12px}
+    .game-rewards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;overflow:visible;padding:2px 0 6px}
+    .game-rewards .game-card{width:auto;flex:auto;min-height:170px;padding:8px}
+    .game-card{flex:0 0 116px;width:116px;padding:8px}
+    .game-card .cost{width:23px;height:23px;font-size:11px;top:6px;right:6px}
+    .game-card .cicon{font-size:22px;margin-top:12px}
+    .game-card .cname{font-size:12px;line-height:1.3}
+    .game-card .cdesc{font-size:10.5px;line-height:1.42}
+    .game-card .arch-chip{font-size:8px;left:5px;top:6px}
+    .reward-build{font-size:9px;gap:5px;padding:7px 8px}
+    .level-rating{flex-wrap:wrap;font-size:10px;gap:7px}
+    .enemy-hud{display:grid;grid-template-columns:42px minmax(0,1fr);padding:7px 8px;gap:8px;border-radius:13px}
+    .enemy-portrait{width:42px!important;height:42px!important;flex-basis:42px!important;font-size:23px}
+    .enemy-name{font-size:14px;gap:5px;min-width:0}
+    .enemy-level{font-size:8px;max-width:72%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+    .game-hp{height:13px}
+    .intent-chip{margin-top:4px;padding:3px 7px;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+    .enemy-power{font-size:8px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .minion-row{min-height:58px!important;gap:5px}
+    .minion{padding:4px}
+    .minion .mname{font-size:9.5px}
+    .minion .memoji{font-size:18px;margin:1px 0}
+    .minion .mstats{font-size:11px}
+    .battle-log{height:25px!important;padding:0 8px;font-size:9.5px}
+    .player-hud{display:grid;grid-template-columns:42px minmax(0,1fr);padding:7px 8px;gap:8px;border-radius:13px}
+    .player-portrait{width:42px!important;height:42px!important;flex-basis:42px!important;font-size:22px}
+    .player-line{font-size:11px;gap:6px}
+    .energy-line{font-size:10px;gap:4px;margin-top:4px;flex-wrap:wrap}
+    .energy-gems i{width:8px;height:8px}
+    .hero-power{min-height:40px;margin-left:2px;padding:6px 9px;font-size:10px}
+    .relic-row{gap:4px;max-height:24px;overflow:hidden}
+    .arch-chip{font-size:7px;padding:2px 5px}
+    .game-hand{max-width:100%;min-width:0;padding:3px 0 5px;gap:6px;scroll-snap-type:x proximity}
+    .game-hand .game-card{scroll-snap-align:start}
+    .board-bottom{gap:7px;position:fixed;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);z-index:170;padding:6px;border:1px solid rgba(245,215,110,.16);border-radius:13px;background:rgba(12,15,22,.96);box-shadow:0 -10px 28px rgba(0,0,0,.5);backdrop-filter:blur(10px)}
+    .turn-forecast{min-height:44px;padding:5px 7px;gap:6px}
+    .turn-forecast .tf-kicker{font-size:8px;letter-spacing:.5px}
+    .turn-forecast b{font-size:18px}
+    .turn-forecast #gForecastText{font-size:8.5px;white-space:normal;line-height:1.3;max-height:24px}
+    #gEndTurn{min-width:112px;min-height:46px;padding:8px 12px;font-size:13px}
+    .tutorial-tip{left:10px;right:10px;top:auto;bottom:186px;max-width:none;transform:none;padding:9px 11px;gap:7px}
+    .tutorial-tip.show{transform:none}
+    .tutorial-tip b{font-size:9px;letter-spacing:1px}
+    .tutorial-tip span{font-size:10px}
+    .target-hint{bottom:102px;max-width:calc(100% - 30px);font-size:9px}
+    .enemy-decision{top:48px;left:8px;right:8px;width:auto;transform:none;padding:9px;gap:8px;max-height:320px;overflow:auto}
+    .enemy-decision.show{transform:none}
+    .ed-head{gap:8px}
+    .ed-avatar{width:34px;height:34px;flex-basis:34px;font-size:20px}
+    .ed-title{font-size:7px;letter-spacing:1.5px}
+    .ed-thought{font-size:10px;line-height:1.4}
+    .ed-time{font-size:8px;padding:3px 6px}
+    .ed-options{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+    .ed-option{min-height:72px;padding:6px}
+    .ed-option b{font-size:10px}
+    .ed-option small{font-size:7px;line-height:1.35}
+    .enemy-card-cast{width:118px;min-height:78px;padding:9px}
+    .speech{max-width:180px;font-size:10px;padding:8px}
+    .speech.player{left:16px;bottom:145px}
+    .speech.enemy{right:16px;top:82px}
+    .turn-banner{font-size:25px;letter-spacing:3px}
+    .combo{right:18px;font-size:20px}
+    .run-rating{flex-wrap:wrap;gap:7px;font-size:9px;padding:8px}
+    .run-rating .stars{font-size:20px}
+    .run-review{padding:10px;gap:8px}
+    .rr-title{font-size:17px}
+    .rr-summary,.rr-advice{font-size:10px}
+    .collection-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+    #collectionModal{padding:0;align-items:stretch}
+    #collectionModal .modal-box{width:100%;max-width:none;height:100dvh;max-height:none;border-radius:0;padding:8px 10px calc(env(safe-area-inset-bottom,0px) + 10px)}
+    #collectionModal .modal-head{position:sticky;top:-8px;z-index:20;background:rgba(23,26,33,.98);padding:8px 0}
+    #gSkip{position:sticky;bottom:54px;z-index:29;width:100%;min-height:44px;background:#171a21;box-shadow:0 -8px 18px rgba(0,0,0,.28)}
+    #gameReward .field.row{position:sticky;bottom:0;z-index:30;background:#171a21;padding:8px 0 2px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    #gameReward .field.row .btn{width:100%;min-height:44px;font-size:13px}
+  }
+
+  @media(max-width:430px){
+    #coverView{min-height:100svh;padding:22px 15px 34px;align-items:flex-start}
+    .cover-inner{grid-template-columns:1fr;gap:17px}
+    .cover-brand{font-size:11px;letter-spacing:5px}
+    .cover-title{font-size:clamp(44px,12.4vw,54px);margin-top:14px;letter-spacing:-2px}
+    .cover-sub{font-size:15px;margin:13px 0 19px}
+    .cover-actions{gap:8px}
+    .cover-cta{min-height:50px;padding:13px 24px;font-size:16px}
+    .cover-ghost{min-height:48px;padding:12px 16px;font-size:12px}
+    .cover-secondary{gap:7px;margin-top:10px}
+    .cover-secondary button{min-height:42px;padding:8px 11px;font-size:11px}
+    .cover-hint{font-size:11px;line-height:1.5}
+    .cover-stage{height:340px;border-radius:20px}
+    .boss-zone{width:calc(100% - 28px)}
+    .boss-avatar{width:52px;height:52px;flex-basis:52px;font-size:28px}
+    .player-zone{width:155px;top:92px;left:12px}
+    .hand{right:8px;bottom:14px}
+    .cover-caption{font-size:9px;bottom:108px}
+    .stage-floor{bottom:108px}
+    #gameModal .modal-box{padding-left:8px;padding-right:8px}
+    .game-board{padding:7px}
+    .enemy-hud,.player-hud{padding:6px}
+    .game-title{font-size:20px}
+    .route-card,.build-card,.core-card{padding:12px}
+    .game-rewards{grid-template-columns:1fr 1fr}
+    .game-rewards .game-card{min-height:164px}
+    .game-card{flex-basis:116px;width:116px}
+    #gEndTurn{min-width:102px;padding:8px 10px;font-size:12px}
+    .turn-forecast .tf-kicker{display:none}
+    .turn-forecast #gForecastText{font-size:8px}
+  }
+  @media(max-width:430px) and (max-height:720px){
+    .cover-stage{height:300px}
+    .cover-caption,.stage-floor{bottom:101px}
+    .hand{bottom:10px}
+    .player-zone{top:82px}
+  }
+
+  @media(max-width:900px) and (max-height:560px) and (orientation:landscape){
+    #gameModal{padding:0;align-items:stretch}
+    #gameModal .modal-box{width:100%;max-width:none;height:100dvh;max-height:100dvh;border-radius:0;padding:4px 8px;overflow:auto}
+    .modal-head{position:sticky;top:-4px;padding:5px 0}
+    .modal-head .btn.sm{min-width:40px;min-height:40px;padding:7px 9px}
+    .cover-secondary button{min-height:40px;padding:8px 11px}
+    .game-board{padding:6px 6px 60px}
+    .enemy-hud,.player-hud{padding:5px 7px}
+    .minion-row{min-height:52px!important}
+    .game-hand .game-card{flex-basis:96px;width:96px}
+    .game-card .cdesc{display:none}
+    .game-card .cicon{margin-top:9px}
+    .battle-log{display:none}
+    .board-bottom{position:fixed;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);padding:6px;border-radius:13px;background:rgba(12,15,22,.96)}
+    .hero-power{min-height:40px}
+    #gEndTurn{position:static;min-width:116px;min-height:46px;box-shadow:none}
+    .route-grid,.build-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  }
+  #gText.on{background:rgba(245,215,110,.14);border-color:rgba(245,215,110,.55);color:#f5d76e}
+  body.large-text .game-sub,body.large-text .brief-more-body,body.large-text .rr-summary{font-size:14px;line-height:1.7}
+  body.large-text .game-card .cname{font-size:15px}
+  body.large-text .game-card .cdesc{font-size:12.5px;line-height:1.5}
+  body.large-text .arch-chip,body.large-text .reward-build,body.large-text .level-rating{font-size:10px}
+  body.large-text .route-card .rc-desc,body.large-text .build-card .bc-desc,body.large-text .core-card .cc-desc{font-size:14px;line-height:1.7}
+  body.large-text .minion .mname,body.large-text .battle-log,body.large-text .enemy-power{font-size:12px}
+  body.large-text .player-line,body.large-text .energy-line{font-size:12px}
+  body.large-text .btn{font-size:15px}
+  @media(max-width:700px){
+    body.large-text .game-card{flex:0 0 138px;width:138px}
+    body.large-text .game-rewards{grid-template-columns:1fr}
+    body.large-text .game-rewards .game-card{min-height:0}
+    body.large-text .game-card .cicon{font-size:28px}
+    body.large-text .minion .mname{font-size:10.5px}
+    body.large-text .minion .mstats{font-size:12px}
+    body.large-text .enemy-power{font-size:10px}
+    body.large-text .battle-log{font-size:10px}
+    body.large-text .player-line{font-size:12px}
+    body.large-text .energy-line{font-size:11px}
+    body.large-text .turn-forecast #gForecastText{font-size:10px;max-height:32px}
+    body.large-text .route-card .rc-desc,body.large-text .build-card .bc-desc,body.large-text .core-card .cc-desc{font-size:12.5px}
+  }
+  button:focus-visible,.game-card:focus-visible,.route-card:focus-visible,.build-card:focus-visible,.core-card:focus-visible{outline:3px solid #f5d76e;outline-offset:3px}
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}
+  }

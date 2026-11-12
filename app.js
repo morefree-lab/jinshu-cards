@@ -160,7 +160,7 @@ const els={
   gameBuild:$("gameBuild"),gBuildGrid:$("gBuildGrid"),buildBack:$("buildBack"),buildConfirm:$("buildConfirm"),
   gameMulligan:$("gameMulligan"),gMulliganHand:$("gMulliganHand"),gMulliganCount:$("gMulliganCount"),
   mulliganKeep:$("mulliganKeep"),mulliganConfirm:$("mulliganConfirm"),
-  gSound:$("gSound"),gSpeed:$("gSpeed"),gEmbers:$("gEmbers"),gBattleIntro:$("gBattleIntro"),gIntroKicker:$("gIntroKicker"),
+  gSound:$("gSound"),gSpeed:$("gSpeed"),gText:$("gText"),gEmbers:$("gEmbers"),gBattleIntro:$("gBattleIntro"),gIntroKicker:$("gIntroKicker"),
   gIntroName:$("gIntroName"),gIntroSub:$("gIntroSub"),gCombo:$("gCombo"),gCrit:$("gCrit"),gKO:$("gKO"),
   gEnemyDecision:$("gEnemyDecision"),gEnemyOptions:$("gEnemyOptions"),gEnemyThought:$("gEnemyThought"),gEnemyClock:$("gEnemyClock"),gEnemyAvatar:$("gEnemyAvatar"),
   gameBattle:$("gameBattle"),gHp:$("gHp"),gBlock:$("gBlock"),gCoins:$("gCoins"),gEnergy:$("gEnergy"),
@@ -607,6 +607,8 @@ const EVENTS=[
 
 let audioCtx=null,masterGain=null,soundOn=true;
 try{soundOn=localStorage.getItem("oneline_sound")!=="0";}catch(e){}
+let largeText=false;
+try{largeText=localStorage.getItem("oneline_large_text")==="1";}catch(e){}
 function initAudio(){
   try{
     if(!audioCtx){
@@ -665,6 +667,14 @@ function playSfx(type){
   else if(type==="click"){tone(880,.04,"square",.02);}
 }
 function updateSoundBtn(){if(els.gSound)els.gSound.textContent=soundOn?"🔊":"🔇";}
+function updateTextBtn(){
+  document.body.classList.toggle("large-text",largeText);
+  if(els.gText){
+    els.gText.textContent=largeText?"A−":"A+";
+    els.gText.classList.toggle("on",largeText);
+    els.gText.title=largeText?"切换标准字号":"切换大字号";
+  }
+}
 
 function dateKey(){
   const n=new Date();const p=x=>String(x).padStart(2,"0");
@@ -3463,7 +3473,9 @@ els.dailyChallengeBtn.onclick=(e)=>{e.stopPropagation();beginMode("daily");};
 els.collectionBtn.onclick=(e)=>{e.stopPropagation();openCollection();};
 els.gSound.onclick=()=>{soundOn=!soundOn;try{localStorage.setItem("oneline_sound",soundOn?"1":"0");}catch(e){}updateSoundBtn();if(soundOn)playSfx("click");};
 els.gSpeed.onclick=()=>{gameSpeed=gameSpeed===1?2:1;els.gSpeed.textContent=gameSpeed+"×";playSfx("click");};
+els.gText.onclick=()=>{largeText=!largeText;try{localStorage.setItem("oneline_large_text",largeText?"1":"0");}catch(e){}updateTextBtn();playSfx("click");};
 updateSoundBtn();
+updateTextBtn();
 updateHubStatus();
 els.gameClose.onclick=()=>{els.gameModal.classList.remove("show");startCoverLoop();};
 els.gameStart.onclick=()=>{seenRules=true;try{localStorage.setItem("oneline_seen_rules","1");}catch(e){}openCharacterSelect(pendingCharacterMode||"free");};
