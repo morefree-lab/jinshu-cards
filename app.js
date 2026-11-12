@@ -173,6 +173,7 @@ const els={
   gRelics:$("gRelics"),
   gEndTurn:$("gEndTurn"),gForecast:$("gForecast"),gForecastValue:$("gForecastValue"),gForecastText:$("gForecastText"),
   gameReward:$("gameReward"),gLevelRating:$("gLevelRating"),gRewardBuild:$("gRewardBuild"),gRewards:$("gRewards"),gSkip:$("gSkip"),gRemove:$("gRemove"),gUpgrade:$("gUpgrade"),
+  gameRoute:$("gameRoute"),gRouteTitle:$("gRouteTitle"),gRouteSub:$("gRouteSub"),gRouteProgress:$("gRouteProgress"),gRouteGrid:$("gRouteGrid"),
   gameDeck:$("gameDeck"),gDeckTitle:$("gDeckTitle"),gDeckSub:$("gDeckSub"),gDeckList:$("gDeckList"),gDeckCancel:$("gDeckCancel"),
   gameEvent:$("gameEvent"),gEventTitle:$("gEventTitle"),gEventDesc:$("gEventDesc"),gEventChoices:$("gEventChoices"),
   gameEnd:$("gameEnd"),gameEndCanvas:$("gameEndCanvas"),gameRunRating:$("gameRunRating"),gameReview:$("gameReview"),gameAgain:$("gameAgain"),gameSave:$("gameSave"),gameShare:$("gameShare"),gameEndHint:$("gameEndHint"),
@@ -309,6 +310,11 @@ const GAME_ENEMIES=[
   {name:"甲方",emoji:"📋",tie:"#3b6ea5",hp:74,starters:["revision","cousin"],mechanic:"会改高手牌费用，逼你重排出牌顺序",intents:["attack:14","summon:revision","attack:18","charge:34","release"],flavor:"再改一版……"},
   {name:"亲戚",emoji:"🧧",tie:"#d9a441",hp:90,starters:["cousin","revision"],mechanic:"你铺得越多，它回复和加攻越高",intents:["attack:11","summon:cousin","heal:8","charge:30","release"],flavor:"怎么还不结婚……"}
 ];
+const ROUTE_OPTIONS={
+  stable:{name:"稳定项目",type:"SAFE",icon:"🛡",color:"#6ec6ff",desc:"敌人生命 -10%，进入下一关前回复 8 点精神值。",badge:"低风险 · 稳血线"},
+  urgent:{name:"紧急需求",type:"RISK",icon:"🔥",color:"#ff8a5c",desc:"敌人生命 +12%、攻击 +1，但下一张奖励必为稀有牌，并额外获得 1 星。",badge:"高风险 · 高回报"},
+  training:{name:"进修冲刺",type:"BUILD",icon:"📚",color:"#b998ff",desc:"随机升级牌组中一张未升级卡，下一场开局额外获得 8 点护盾。",badge:"强化构筑"}
+};
 const MINIONS={
   intern:{name:"实习生",emoji:"🧑‍💼",atk:1,hp:3,taunt:true},
   coffee:{name:"咖啡机",emoji:"☕",atk:0,hp:4,deathrattle:{draw:1}},
@@ -1331,6 +1337,7 @@ function showGameView(name){
   els.gameMulligan.style.display=name==="mulligan"?"flex":"none";
   els.gameBattle.style.display=name==="battle"?"flex":"none";
   els.gameReward.style.display=name==="reward"?"flex":"none";
+  els.gameRoute.style.display=name==="route"?"flex":"none";
   els.gameDeck.style.display=name==="deck"?"flex":"none";
   els.gameEvent.style.display=name==="event"?"flex":"none";
   els.gameEnd.style.display=name==="end"?"flex":"none";
@@ -1353,6 +1360,11 @@ function startGame(daily=false,charId=selectedCharId){
   G.rewarded=false;G.lastPoints=0;G.streak=0;
   G.player={hp:char.hp,maxHp:char.hp,energy:3,maxEnergy:3,block:0,coins:0,heroPowerUsed:false,nextPenalty:0};
   G.deck=createStarterDeck(char,G.build).map(id=>cloneGameCard(GAME_CARDS.find(c=>c.id===id)));
+  const lateEnemies=shuffleArr(["老板","甲方","亲戚"]).slice(0,2);
+  G.enemySequence=["老板","甲方","亲戚",...lateEnemies];
+  G.routeHistory=[];
+  G.pendingNode=null;
+  G.currentNode={type:"start",name:"试岗项目"};
   G.encounter=0;G.log=[];G.running=false;G.ending=null;G.busy=false;G.relics=[];G.combo=0;G.fatigue=0;
   G.stageRatings=[];
   G.lastBattleRating=null;
@@ -1405,9 +1417,15 @@ function startGameFast(daily=false){
   G.mulliganSelected.clear();
   confirmMulligan();
 }
+function battleBase(){
+  const name=G.enemySequence?.[G.encounter]||GAME_ENEMIES[Math.min(G.encounter,GAME_ENEMIES.length-1)].name;
+  return GAME_ENEMIES.find(enemy=>enemy.name===name)||GAME_ENEMIES[0];
+}
 function startBattle(prepared){
-  const base=GAME_ENEMIES[G.encounter];
+  const base=battleBase();
   const asc=G.ascension||0;
+  const route=G.pendingNode||G.currentNode||{type:"start",name:"试岗项目"};
+  const elite=G.encounter>=3;
   const firstBattle=G.encounter===0&&asc===0;
   let stage1Losses=0,stage1Clear=false;
   try{
@@ -1416,12 +1434,17 @@ function startBattle(prepared){
   }catch(e){}
   const coachMode=firstBattle&&!stage1Clear&&stage1Losses>=2;
   G.coachMode=coachMode;
-  const ehp=Math.round(base.hp*(1+0.2*asc));
-  G.enemy={name:base.name,emoji:base.emoji,tie:base.tie,hp:ehp,maxHp:ehp,strength:asc,weak:0,vulnerable:0,stun:0,charged:0,armor:0,turns:0,deadlineUsed:false,intentIndex:0,intents:base.intents.slice(),flavor:base.flavor,firstBattle};
+  const stageMult=(G.encounter===3?1.08:G.encounter>=4?1.16:1)*(route.hpMult||1);
+  const ehp=Math.round(base.hp*(1+0.2*asc)*stageMult);
+  const strengthBonus=(elite?1:0)+(route.strengthBonus||0);
+  G.enemy={name:base.name,baseName:base.name,emoji:base.emoji,tie:base.tie,hp:ehp,maxHp:ehp,strength:asc+strengthBonus,weak:0,vulnerable:0,stun:0,charged:0,armor:0,turns:0,deadlineUsed:false,intentIndex:0,intents:base.intents.slice(),flavor:base.flavor,firstBattle,mechanic:base.mechanic,routeTitle:route.name,elite};
+  G.currentNode=route;
+  G.pendingNode=null;
   G.deck.forEach(card=>card.costPenalty=0);
   hideEnemyDecision();
   G.enemyMinions=[];G.playerMinions=[];G.selectedMinion=-1;
-  const starterKeys=coachMode?(base.starters||[]).slice(0,1):(base.starters||[]);
+  let starterKeys=coachMode?(base.starters||[]).slice(0,1):(base.starters||[]);
+  if(elite&&starterKeys.length<3)starterKeys=[...starterKeys,base.starters[0]];
   G.enemyMinions=starterKeys.map(k=>{
     const m=makeMinion(k);
     m.justSummoned=true;
@@ -1451,6 +1474,10 @@ function startBattle(prepared){
   if(coachMode){
     G.player.block+=8;
     logGame("教练模式：额外获得 8 点护盾，老板少召唤一个需求");
+  }
+  if(route.startBlock){
+    G.player.block+=route.startBlock;
+    logGame(`路线加成：开局获得 ${route.startBlock} 点护盾`);
   }
   if(archetypeCoreActive("shield")){
     G.player.block+=4;
@@ -1525,7 +1552,7 @@ function showBattleIntro(){
   els.gIntroName.textContent=G.enemy.name;
   els.gIntroSub.textContent=G.enemy.firstBattle
     ?"试岗提示：先解需求，积压 3 轮才会合并。"
-    :GAME_ENEMIES[G.encounter]?.mechanic||G.enemy.flavor;
+    :G.enemy.mechanic||G.enemy.flavor;
   b.classList.remove("show");
   void b.offsetWidth;
   b.classList.add("show");
@@ -2116,7 +2143,7 @@ function renderGame(){
   if(els.gEnemyLevel){
     els.gEnemyLevel.textContent=G.enemy.firstBattle
       ? `第 1 关 · ${G.coachMode?"教练模式":"试岗局"}`
-      : `第 ${G.encounter+1} 关 · ${["热身","加压","决胜"][G.encounter]||"加班"}${G.ascension?` · 进阶 ${G.ascension}`:""}`;
+      : `第 ${G.encounter+1}/5 关 · ${G.enemy.elite?"精英":"常规"}${G.enemy.routeTitle?" · "+G.enemy.routeTitle:""}${G.ascension?` · 进阶 ${G.ascension}`:""}`;
   }
   els.gEnemyHp.textContent=`${Math.max(0,G.enemy.hp)}/${G.enemy.maxHp}`;
   els.gEnemyHpFill.style.width=`${Math.max(0,G.enemy.hp)/G.enemy.maxHp*100}%`;
@@ -2132,7 +2159,7 @@ function renderGame(){
   els.gIntent.textContent=`预判：${previewName}${previewForecast?" · "+previewForecast:""}`;
   const mechanicShort=G.enemy.name==="老板"?"需求积压会合并":G.enemy.name==="甲方"?"手牌会被改价":"随从越多回复越强";
   els.gEnemyPower.textContent=`力量 ${G.enemy.strength} · 护甲 ${G.enemy.armor||0} · ${mechanicShort}`;
-  els.gEnemyPower.title=GAME_ENEMIES[G.encounter]?.mechanic||"";
+  els.gEnemyPower.title=G.enemy.mechanic||"";
   els.gIntent.classList.toggle("danger",previewName.includes("截止日"));
   updateForecast();
   const board=els.gameBattle.querySelector(".game-board");
@@ -2553,10 +2580,12 @@ function rateCurrentBattle(){
   let stars=1;
   if(hpPct>=.5)stars++;
   if(G.turn<=4||kills>=3)stars++;
+  if(G.currentNode?.bonusStars)stars=Math.min(3,stars+G.currentNode.bonusStars);
   const notes=[];
   if(hpPct>=.5)notes.push("精神值保持过半");
   if(G.turn<=4)notes.push("四回合内解决");
   else if(kills>=3)notes.push(`解掉 ${kills} 个随从`);
+  if(G.currentNode?.bonusStars)notes.push("冒险项目加成");
   return {stars,hpPct,turns:G.turn,kills,notes};
 }
 function winBattle(){
@@ -2580,8 +2609,8 @@ function winBattle(){
   setTimeout(()=>{
     if(board)board.classList.remove("ko-zoom");
     if(els.gKO)els.gKO.classList.remove("show");
-    if(G.encounter>=GAME_ENEMIES.length)showEnding(false);
-    else showEvent();
+    if(G.encounter>=5)showEnding(false);
+    else showReward();
   },gs(950));
 }
 function showDeck(mode){
@@ -2601,7 +2630,7 @@ function showDeck(mode){
         G.deck[idx]=upgradeCard(card);
         logGame(`升级了「${card.name}」`);
       }
-      startBattle();
+      afterReward();
     };
     els.gDeckList.appendChild(b);
   });
@@ -2628,6 +2657,60 @@ function showEvent(){
   });
   showGameView("event");
 }
+function showRoute(){
+  const nextName=G.enemySequence?.[G.encounter]||"老板";
+  const nextEnemy=GAME_ENEMIES.find(enemy=>enemy.name===nextName)||GAME_ENEMIES[0];
+  const finalNode=G.encounter>=4;
+  els.gRouteTitle.textContent=finalNode?"终局会议，怎么进场？":"下一站，接哪个项目？";
+  els.gRouteSub.textContent=`下一关：${nextEnemy.name} · ${finalNode?"终局强度":"第 "+(G.encounter+1)+" / 5 关"}。选择会影响这一战和战利品。`;
+  els.gRouteProgress.innerHTML=Array.from({length:5},(_,index)=>{
+    const cls=index<G.encounter?"done":index===G.encounter?"current":"";
+    const label=index===4?"终":"N"+(index+1);
+    return `${index?'<span class="route-line"></span>':""}<span class="route-dot ${cls}">${label}</span>`;
+  }).join("");
+  els.gRouteGrid.innerHTML="";
+  const routes=[
+    {...ROUTE_OPTIONS.stable,hpMult:.9,heal:8},
+    {...ROUTE_OPTIONS.urgent,hpMult:1.12,strengthBonus:1,rareReward:true,bonusStars:1},
+    {...ROUTE_OPTIONS.training,startBlock:8}
+  ];
+  routes.forEach((route,index)=>{
+    const b=document.createElement("button");
+    b.className="route-card";
+    b.style.setProperty("--route-color",route.color);
+    b.style.setProperty("--route-glow",hexA(route.color,.15));
+    b.style.setProperty("--i",index);
+    const enemyTag=finalNode?"终局变体":G.encounter===3?"精英变体":"常规遭遇";
+    b.innerHTML=`<div class="rc-type">${route.type} // ${enemyTag}</div><div class="rc-icon">${route.icon}</div><div class="rc-title">${route.name}</div><div class="rc-enemy">对手：${nextEnemy.name} ${nextEnemy.emoji}</div><div class="rc-desc">${route.desc}</div><div class="rc-badge">${route.badge}</div>`;
+    b.onclick=()=>chooseRoute(route);
+    els.gRouteGrid.appendChild(b);
+  });
+  showGameView("route");
+}
+function chooseRoute(route){
+  if(route.heal){
+    const before=G.player.hp;
+    G.player.hp=Math.min(G.player.maxHp,G.player.hp+route.heal);
+    flash(`稳定项目：回复 ${G.player.hp-before} 点精神值`);
+  }
+  if(route.startBlock){
+    const candidates=G.deck.filter(card=>!card.upgraded);
+    if(candidates.length){
+      const card=shuffleArr(candidates)[0];
+      const index=G.deck.indexOf(card);
+      G.deck[index]=upgradeCard(card);
+      flash(`进修完成：「${card.name}」已升级`);
+    }
+  }
+  G.routeHistory=(G.routeHistory||[]);
+  G.routeHistory.push({type:route.type,name:route.name});
+  G.pendingNode=route;
+  startBattle();
+}
+function afterReward(){
+  if(G.encounter>=5){showEnding(false);return;}
+  showRoute();
+}
 function showReward(){
   G.busy=false;
   showGameView("reward");
@@ -2646,7 +2729,11 @@ function showReward(){
   }
   els.gRewards.innerHTML="";
   const choices=Object.keys(ARCHETYPES).map(key=>{
-    const pool=GAME_CARDS.filter(c=>isUnlocked(c.id)&&CARD_ARCHETYPE[c.id]===key);
+    let pool=GAME_CARDS.filter(c=>isUnlocked(c.id)&&CARD_ARCHETYPE[c.id]===key);
+    if(G.currentNode?.rareReward){
+      const rare=pool.filter(c=>c.rare);
+      if(rare.length)pool=rare;
+    }
     return shuffleArr(pool)[0];
   }).filter(Boolean);
   choices.forEach((card,idx)=>{
@@ -2665,7 +2752,7 @@ function showReward(){
         logGame(`${ARCHETYPES[key].name}核心已激活`);
         flash(`${ARCHETYPES[key].icon} ${ARCHETYPES[key].name}核心激活`);
       }
-      startBattle();
+      afterReward();
     };
     els.gRewards.appendChild(b);
   });
@@ -2675,7 +2762,7 @@ function showReward(){
     const b=document.createElement("button");
     b.className="game-card relic-card";
     b.innerHTML=`<div class="cicon">${relic.emoji}</div><div class="cname">${relic.name}</div><div class="cdesc">${relic.desc}</div>`;
-    b.onclick=()=>{G.relics.push(relic);logGame(`获得遗物「${relic.name}」`);startBattle();};
+    b.onclick=()=>{G.relics.push(relic);logGame(`获得遗物「${relic.name}」`);afterReward();};
     els.gRewards.appendChild(b);
   }
 }
@@ -2905,7 +2992,7 @@ function drawEndingCard(cv,ending,line,grade){
   const stats=[
     ["精神值",`${Math.max(0,G.player.hp)} / ${G.player.maxHp}`],
     ["存款",`${G.player.coins}`],
-    ["击败",`${Math.min(G.encounter,3)} / 3`],
+    ["击败",`${Math.min(G.encounter,5)} / 5`],
     ["坚持回合",`${G.turn}`]
   ];
   ctx.font='400 36px "Microsoft YaHei",sans-serif';
@@ -3033,7 +3120,7 @@ els.mulliganConfirm.onclick=confirmMulligan;
 els.gHeroPower.onclick=useHeroPower;
 els.gameBattle.querySelector(".enemy-hud").onclick=()=>attackTarget("hero");
 els.gEndTurn.onclick=endTurn;
-els.gSkip.onclick=()=>{G.player.hp=Math.min(G.player.maxHp,G.player.hp+15);logGame("跳过奖励，回复 15 点精神值");startBattle();};
+els.gSkip.onclick=()=>{G.player.hp=Math.min(G.player.maxHp,G.player.hp+15);logGame("跳过奖励，回复 15 点精神值");afterReward();};
 els.gRemove.onclick=()=>showDeck("remove");
 els.gUpgrade.onclick=()=>showDeck("upgrade");
 els.gDeckCancel.onclick=()=>showGameView("reward");
@@ -3069,13 +3156,14 @@ try{
   if(q.get("gameminion")==="1"){openGame();startGameFast();G.playerMinions=[makeMinion("intern"),makeMinion("printer")];G.enemyMinions=[makeMinion("demand")];G.playerMinions.forEach(m=>{m.canAttack=true;m.hasAttacked=false;});renderGame();setTimeout(()=>{selectMinion(0);attackTarget("minion",0);},600);}
   if(q.get("gamebubble")==="1"){openGame();startGameFast();setTimeout(()=>showBubble("player","谁也别拦我，我今天就要发疯！"),300);setTimeout(()=>showBubble("enemy","这个需求，今天必须上线。"),900);}
   if(q.get("gamereward")==="1"){openGame();startGameFast();G.encounter=1;G.lastBattleRating={stars:3,hpPct:.7,turns:4,kills:3,notes:["精神值保持过半","四回合内解决"]};G.stageRatings=[G.lastBattleRating];showReward();}
+  if(q.get("route")==="1"){openGame();startGameFast();G.encounter=1;showRoute();}
   if(q.get("gamedeck")==="1"){openGame();startGameFast();G.encounter=1;showDeck("remove");}
   if(q.get("gameplay")==="1"){openGame();startGameFast();setTimeout(()=>playGameCard(0),300);}
   if(q.get("gameevent")==="1"){openGame();startGameFast();setTimeout(()=>showEvent(),200);}
   if(q.get("gameenemy")==="1"){openGame();startGameFast();setTimeout(()=>endTurn(),1800);}
   if(q.get("gamedefeat")==="1"){openGame();startGameFast();setTimeout(()=>{G.turn=4;G.player.hp=0;G.enemyMinions=[makeMinion("demand"),makeMinion("demand"),makeMinion("demand")];G.battleStats={damageTaken:47,damageDealt:29,cardsPlayed:8,minionKills:0,minionLosses:2,demandTicks:6,wastedEnergy:9,blocked:8,blockGained:17,handBurned:1};showEnding(true);},300);}
-  if(q.get("gameend")==="1"){openGame();G.player={hp:32,maxHp:70,energy:3,maxEnergy:3,block:0,coins:42};G.encounter=3;G.turn=8;G.build="combo";G.stageRatings=[{stars:3},{stars:2},{stars:3}];showEnding(false);}
-  const direct=location.hash==="#play"||["game","dailygame","collection","characters","build","intern","dailyresult","gamebattle","gamemulligan","gameminion","gamebubble","gamereward","gameplay","gameevent","gameend","app"].some(k=>q.has(k));
+  if(q.get("gameend")==="1"){openGame();G.player={hp:32,maxHp:70,energy:3,maxEnergy:3,block:0,coins:42};G.encounter=5;G.turn=8;G.build="combo";G.stageRatings=[{stars:3},{stars:2},{stars:3},{stars:2},{stars:3}];showEnding(false);}
+  const direct=location.hash==="#play"||["game","dailygame","collection","characters","build","intern","dailyresult","gamebattle","gamemulligan","gameminion","gamebubble","gamereward","route","gameplay","gameevent","gameend","app"].some(k=>q.has(k));
   showCover();
   if(direct)stopCoverLoop();
 }catch(e){}

@@ -23,7 +23,7 @@
         <button id="collectionBtn">收集册 · <span id="hubPoints">0</span> 工分</button>
       </div>
       <div class="gf-daily" id="dailyStatus">今日挑战未完成 · 连胜 0 天</div>
-      <div class="cover-hint">免费游玩 · 第一关新人保护 · 三场遭遇</div>
+      <div class="cover-hint">免费游玩 · 第一关新人保护 · 五场遭遇</div>
     </div>
     <div class="cover-stage">
       <div class="boss-zone" id="coverBoss">
@@ -73,7 +73,7 @@
         <div><b>护盾</b><span>抵挡伤害，回合开始重置</span></div>
         <div><b>存款</b><span>影响最终结局评级</span></div>
       </div>
-      <div class="brief-goal">第一关是试岗局，带 <b>新人保护</b>；撑过老板 → 甲方 → 亲戚，再从进阶模式继续加难度。</div>
+      <div class="brief-goal">第一关是带 <b>新人保护</b> 的试岗局；完成五个战斗节点，每一站都能重新选择风险和奖励。</div>
       <details class="brief-more">
         <summary>规则详情</summary>
         <div class="brief-more-body">
@@ -87,7 +87,7 @@
           <p><b>关卡评价：</b>剩余精神值越多、解决得越快，星级越高；三关总星数和历史最佳会保存在本机。</p>
           <p><b>难度递进：</b>第一关首轮只挨一次敌方动作，伤害和护甲成长也更低；第二关开始逐步满场铺压。</p>
           <p><b>战后成长：</b>每场胜利后可以选新卡、遗物，或回血；还会遇到随机事件。</p>
-          <p><b>失败条件：</b>精神值归零。撑过三场遭遇即可结算战绩。</p>
+          <p><b>失败条件：</b>精神值归零。完成五个战斗节点即可结算战绩。</p>
         </div>
       </details>
       <div class="brief-actions">
@@ -192,6 +192,15 @@
         <button class="btn" id="gRemove">删一张牌</button>
         <button class="btn" id="gUpgrade">升级一张牌</button>
       </div>
+    </div>
+    <div class="game-view" id="gameRoute" style="display:none">
+      <div class="route-head">
+        <div class="route-kicker">NEXT ASSIGNMENT // 路线选择</div>
+        <div class="game-title" id="gRouteTitle">下一站，接哪个项目？</div>
+        <div class="game-sub" id="gRouteSub">不同项目会改变下一场敌人强度和奖励质量。</div>
+      </div>
+      <div class="route-progress" id="gRouteProgress"></div>
+      <div class="route-grid" id="gRouteGrid"></div>
     </div>
     <div class="game-view" id="gameDeck" style="display:none">
       <div class="game-title" id="gDeckTitle"></div>

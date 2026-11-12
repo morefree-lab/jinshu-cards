@@ -407,6 +407,24 @@
   .level-rating{display:flex;justify-content:center;align-items:center;gap:10px;font-size:11px;color:rgba(255,255,255,.54)}
   .level-rating .stars{font-size:24px;letter-spacing:3px;color:#f5d76e;text-shadow:0 0 18px rgba(245,215,110,.35)}
   .level-rating b{color:#fff}
+  .route-head{text-align:center}
+  .route-kicker{font-size:9px;letter-spacing:4px;color:#ff8a5c;font-weight:900;margin-bottom:5px}
+  .route-progress{display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07)}
+  .route-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:8px;color:rgba(255,255,255,.35)}
+  .route-dot.done{background:rgba(124,224,168,.13);border-color:rgba(124,224,168,.45);color:#7ce0a8}
+  .route-dot.current{background:rgba(245,215,110,.16);border-color:#f5d76e;color:#f5d76e;box-shadow:0 0 18px rgba(245,215,110,.3)}
+  .route-line{width:28px;height:1px;background:rgba(255,255,255,.12)}
+  .route-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .route-card{position:relative;min-height:190px;padding:18px 16px;border-radius:17px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(145deg,rgba(30,34,50,.97),rgba(15,18,27,.99));cursor:pointer;transition:.2s;overflow:hidden;text-align:left;color:#fff}
+  .route-card::before{content:"";position:absolute;inset:0;background:radial-gradient(220px 140px at 82% 0%,var(--route-glow,rgba(245,215,110,.14)),transparent 72%);pointer-events:none}
+  .route-card:hover{transform:translateY(-5px);border-color:var(--route-color,#f5d76e);box-shadow:0 16px 34px rgba(0,0,0,.4)}
+  .route-card .rc-type{font-size:9px;font-weight:900;letter-spacing:2px;color:var(--route-color,#f5d76e)}
+  .route-card .rc-icon{font-size:30px;margin-top:12px}
+  .route-card .rc-title{font-size:18px;font-weight:900;margin-top:7px}
+  .route-card .rc-enemy{font-size:11px;color:rgba(255,255,255,.55);margin-top:4px}
+  .route-card .rc-desc{font-size:11px;line-height:1.6;color:rgba(255,255,255,.68);margin-top:14px}
+  .route-card .rc-badge{display:inline-block;margin-top:12px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1);font-size:9px;color:var(--route-color,#f5d76e)}
+  @media(max-width:700px){.route-grid{grid-template-columns:1fr}.route-card{min-height:140px}.route-line{width:12px}}
   .portrait-slot{overflow:hidden;padding:0!important;background:transparent!important}
   .portrait-slot svg{width:100%;height:100%;display:block}
   .enemy-portrait svg,.player-portrait svg{animation:breathe 3.4s ease-in-out infinite;transform-origin:50% 80%}
