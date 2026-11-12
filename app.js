@@ -169,10 +169,11 @@ const els={
   gTurnBanner:$("gTurnBanner"),gFloatLayer:$("gFloatLayer"),gEnergyGems:$("gEnergyGems"),
   gPlayerBubble:$("gPlayerBubble"),gEnemyBubble:$("gEnemyBubble"),gHurtFlash:$("gHurtFlash"),
   gRelics:$("gRelics"),
-  gEndTurn:$("gEndTurn"),gameReward:$("gameReward"),gRewards:$("gRewards"),gSkip:$("gSkip"),gRemove:$("gRemove"),gUpgrade:$("gUpgrade"),
+  gEndTurn:$("gEndTurn"),gForecast:$("gForecast"),gForecastValue:$("gForecastValue"),gForecastText:$("gForecastText"),
+  gameReward:$("gameReward"),gRewardBuild:$("gRewardBuild"),gRewards:$("gRewards"),gSkip:$("gSkip"),gRemove:$("gRemove"),gUpgrade:$("gUpgrade"),
   gameDeck:$("gameDeck"),gDeckTitle:$("gDeckTitle"),gDeckSub:$("gDeckSub"),gDeckList:$("gDeckList"),gDeckCancel:$("gDeckCancel"),
   gameEvent:$("gameEvent"),gEventTitle:$("gEventTitle"),gEventDesc:$("gEventDesc"),gEventChoices:$("gEventChoices"),
-  gameEnd:$("gameEnd"),gameEndCanvas:$("gameEndCanvas"),gameAgain:$("gameAgain"),gameSave:$("gameSave"),gameShare:$("gameShare"),gameEndHint:$("gameEndHint"),
+  gameEnd:$("gameEnd"),gameEndCanvas:$("gameEndCanvas"),gameReview:$("gameReview"),gameAgain:$("gameAgain"),gameSave:$("gameSave"),gameShare:$("gameShare"),gameEndHint:$("gameEndHint"),
   collectionModal:$("collectionModal"),collectionClose:$("collectionClose"),colPoints:$("colPoints"),colProgress:$("colProgress"),collectionGrid:$("collectionGrid"),collectionTabs:$("collectionTabs")
 };
 
@@ -289,6 +290,17 @@ const GAME_CARDS=[
   {id:"c28",name:"甩锅",cost:1,type:"attack",desc:"弃 1 张牌，造成 8 点伤害。",dmg:8,discardRandom:1,emoji:"🍳",rare:true},
   {id:"c29",name:"加班",cost:0,type:"skill",desc:"获得 2 法力，下回合少 2 法力。消耗。",energy:2,nextPenalty:2,exhaust:true,emoji:"🌃",rare:true}
 ];
+const ARCHETYPES={
+  combo:{name:"嘴炮连招",short:"连招",icon:"💬",coreAt:8,desc:"连续出牌叠高 COMBO，用攻击节奏压制对手。"},
+  shield:{name:"护盾反击",short:"护盾",icon:"🛡",coreAt:8,desc:"先叠护盾再反击，把敌方的爆发变成你的节奏。"},
+  burst:{name:"发疯爆发",short:"爆发",icon:"🔥",coreAt:4,desc:"用高伤和自损牌抢回合，在精神值见底前结束战斗。"}
+};
+const CARD_ARCHETYPE={
+  c1:"combo",c2:"combo",c3:"shield",c4:"burst",c5:"burst",c6:"combo",c7:"combo",
+  c8:"shield",c9:"combo",c10:"shield",c11:"shield",c12:"shield",c13:"shield",c14:"combo",
+  c15:"shield",c16:"shield",c17:"combo",c18:"shield",c19:"burst",c20:"shield",c21:"shield",
+  c22:"burst",c23:"shield",c24:"shield",c25:"burst",c26:"shield",c27:"combo",c28:"burst",c29:"combo"
+};
 const GAME_START_DECK=["c1","c1","c1","c1","c8","c8","c9","c3","c2","c12","c17","c21","c23"];
 const GAME_ENEMIES=[
   {name:"老板",emoji:"👔",tie:"#c0392b",hp:58,starters:["demand","demand"],intents:["attack:12","summon:demand","charge:30","release"],flavor:"画饼中……"},
@@ -1150,6 +1162,26 @@ function shareDiag(){
 let G={player:null,deck:[],hand:[],draw:[],discard:[],enemy:null,encounter:0,turn:1,running:false,log:[],ending:null,busy:false,relics:[],deal:false,combo:0,playerMinions:[],enemyMinions:[],selectedMinion:-1,mulliganHand:[],mulliganDraw:[],mulliganSelected:new Set(),pendingMulligan:false};
 let gameSpeed=1;
 function gs(ms){return Math.max(120,Math.round(ms/gameSpeed));}
+function cardArchetype(card){
+  const key=CARD_ARCHETYPE[card?.id]||"combo";
+  return {key,...ARCHETYPES[key]};
+}
+function archetypeCount(key){
+  return (G.deck||[]).filter(card=>CARD_ARCHETYPE[card.id]===key).length;
+}
+function archetypeCoreActive(key){
+  return archetypeCount(key)>=(ARCHETYPES[key]?.coreAt||8);
+}
+function archetypeBadge(card){
+  const arch=cardArchetype(card);
+  return `<span class="arch-chip arch-${arch.key}">${arch.icon} ${arch.short}</span>`;
+}
+function archetypeSummary(){
+  return Object.entries(ARCHETYPES).map(([key,arch])=>{
+    const count=archetypeCount(key),active=count>=arch.coreAt;
+    return `<span class="arch-chip arch-${key}${active?" active":""}" title="${arch.desc}">${arch.icon} ${arch.short} <b>${count}/${arch.coreAt}</b>${active?" · 核心":""}</span>`;
+  }).join("");
+}
 function showGameView(name){
   els.gameMenu.style.display=name==="menu"?"flex":"none";
   els.gameCharacter.style.display=name==="character"?"flex":"none";
@@ -1178,6 +1210,7 @@ function startGame(daily=false,charId=selectedCharId){
   G.player={hp:char.hp,maxHp:char.hp,energy:3,maxEnergy:3,block:0,coins:0,heroPowerUsed:false,nextPenalty:0};
   G.deck=char.deck.map(id=>GAME_CARDS.find(c=>c.id===id));
   G.encounter=0;G.log=[];G.running=false;G.ending=null;G.busy=false;G.relics=[];G.combo=0;G.fatigue=0;
+  G.runStats={damageTaken:0,damageDealt:0,cardsPlayed:0,minionKills:0,minionLosses:0,demandTicks:0,wastedEnergy:0,blocked:0,handBurned:0};
   G.playerMinions=[];G.enemyMinions=[];G.selectedMinion=-1;
   const shuffled=shuffleArr(G.deck.slice());
   G.mulliganHand=shuffled.slice(0,G.drawCount);
@@ -1192,8 +1225,8 @@ function showMulligan(){
   els.gMulliganHand.innerHTML="";
   G.mulliganHand.forEach((card,i)=>{
     const b=document.createElement("button");
-    b.className="game-card "+card.type+(card.rare?" rare":"");
-    b.innerHTML=`<span class="cost">${card.cost}</span><div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
+    b.className="game-card "+card.type+(card.rare?" rare":"")+" arch-"+cardArchetype(card).key;
+    b.innerHTML=`${archetypeBadge(card)}<span class="cost">${card.cost}</span><div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
     b.onclick=()=>{
       if(G.mulliganSelected.has(i))G.mulliganSelected.delete(i);
       else if(G.mulliganSelected.size<2)G.mulliganSelected.add(i);
@@ -1240,6 +1273,8 @@ function startBattle(prepared){
     m.canAttack=false;
     return m;
   });
+  G.battleStats={damageTaken:0,damageDealt:0,cardsPlayed:0,minionKills:0,minionLosses:0,demandTicks:0,wastedEnergy:0,blocked:0,blockGained:0,handBurned:0};
+  G.firstAttackUsed=false;
   if(!prepared){
     G.hand=[];G.draw=shuffleArr(G.deck.slice());G.discard=[];
     drawCards(G.drawCount||5);
@@ -1249,6 +1284,10 @@ function startBattle(prepared){
   if(firstBattle){
     G.player.block+=6;
     logGame("新人保护：获得 6 点护盾，第一轮敌方只会执行一个动作");
+  }
+  if(archetypeCoreActive("shield")){
+    G.player.block+=4;
+    logGame("护盾反击核心：开局额外获得 4 点护盾");
   }
   if(G.relics.some(r=>r.id==="thermos"))G.player.block+=8;
   if(G.relics.some(r=>r.id==="muyu"))G.player.block+=3;
@@ -1277,6 +1316,7 @@ function drawCards(n){
     const card=G.draw.pop();
     if(G.hand.length>=7){
       G.discard.push(card);
+      if(G.battleStats)G.battleStats.handBurned=(G.battleStats.handBurned||0)+1;
       logGame(`手牌已满，「${card.name}」被挤掉了`);
       continue;
     }
@@ -1524,6 +1564,7 @@ function combat(a,b,side="enemy",attackerEl,targetEl){
 function processDeaths(){
   const deadPlayers=G.playerMinions.filter(m=>m.hp<=0);
   G.playerMinions=G.playerMinions.filter(m=>m.hp>0);
+  if(G.battleStats&&deadPlayers.length)G.battleStats.minionLosses+=deadPlayers.length;
   deadPlayers.forEach(m=>{
     logGame(`「${m.name}」倒下了`);
     if(m.deathrattle){
@@ -1534,6 +1575,7 @@ function processDeaths(){
   });
   const deadEnemies=G.enemyMinions.filter(m=>m.hp<=0);
   G.enemyMinions=G.enemyMinions.filter(m=>m.hp>0);
+  if(G.battleStats&&deadEnemies.length)G.battleStats.minionKills+=deadEnemies.length;
   deadEnemies.forEach(m=>logGame(`「${m.name}」倒下了`));
 }
 async function attackTarget(kind,index){
@@ -1569,10 +1611,12 @@ async function attackTarget(kind,index){
 }
 function useHeroPower(){
   if(!G.running||G.busy||G.player.heroPowerUsed||G.player.energy<2)return;
+  const gain=4+(archetypeCoreActive("shield")?2:0);
   G.player.energy-=2;
-  G.player.block+=4;
+  G.player.block+=gain;
+  if(G.battleStats)G.battleStats.blockGained=(G.battleStats.blockGained||0)+gain;
   G.player.heroPowerUsed=true;
-  logGame("使用英雄技能「摸鱼」，获得 4 点护盾");
+  logGame(`使用英雄技能「摸鱼」，获得 ${gain} 点护盾`);
   playSfx("shield");
   renderGame();
 }
@@ -1779,6 +1823,57 @@ function intentLabel(e){
   if(t==="summon")return `召唤 ${MINIONS[parts[1]]?.name||""}`;
   return it;
 }
+function estimateIncomingTurn(){
+  const e=G.enemy;
+  if(!e)return {total:0,hpLoss:0,direct:0,passive:0,minions:0,plan:"无",blocked:0,lethal:false};
+  if(e.stun>0)return {total:0,hpLoss:0,direct:0,passive:0,minions:0,plan:"已读不回 · 敌方跳过",blocked:0,lethal:false};
+  const previewEnemy={...e,turns:(e.turns||0)+1};
+  const plan=chooseEnemyMove(previewEnemy);
+  let strength=e.strength||0,direct=0,passive=0,minions=0;
+  let summonDemand=false;
+  const playerBoardHp=G.playerMinions.map(m=>m.hp);
+  for(const action of plan.actions){
+    if(action.kind==="strike"||action.kind==="deadline"){
+      let hit=(action.amount||0)+strength;
+      if(e.weak>0)hit=Math.round(hit*.75);
+      direct+=hit;
+    }else if(action.kind==="buff"){
+      strength+=action.amount||0;
+    }else if(action.kind==="summon"&&action.minion==="demand"){
+      summonDemand=true;
+    }else if(action.kind==="sweep"){
+      playerBoardHp.forEach((hp,index)=>playerBoardHp[index]=hp-(action.amount||0));
+    }
+  }
+  const demandHit=Math.min(4,2+G.encounter);
+  passive+=G.enemyMinions.filter(m=>m.key==="demand").length*demandHit;
+  if(summonDemand)passive+=demandHit;
+  const minionsWillHitHero=!playerBoardHp.some(hp=>hp>0)||G.player.hp<=14;
+  if(minionsWillHitHero){
+    for(const m of G.enemyMinions){
+      if(m.key==="revision")minions+=m.atk+2;
+      else if(m.key!=="demand"&&m.atk>0)minions+=m.atk;
+    }
+  }
+  const total=direct+passive+minions;
+  const blocked=Math.min(G.player.block,total);
+  const hpLoss=Math.max(0,total-blocked);
+  return {total,hpLoss,direct,passive,minions,plan:plan.name,blocked,lethal:hpLoss>=G.player.hp};
+}
+function updateForecast(){
+  if(!els.gForecast)return;
+  const f=estimateIncomingTurn();
+  els.gForecastValue.textContent=f.hpLoss?`-${f.hpLoss}`:"0";
+  const parts=[];
+  if(f.direct)parts.push(`敌方卡 ${f.direct}`);
+  if(f.passive)parts.push(`需求 ${f.passive}`);
+  if(f.minions)parts.push(`随从 ${f.minions}`);
+  if(f.blocked)parts.push(`护盾挡 ${f.blocked}`);
+  const prefix=f.plan&&f.plan!=="无"?`「${f.plan}」`: "";
+  els.gForecastText.textContent=(prefix+(parts.length?` · ${parts.join(" · ")}`:" · 当前不会掉精神值"))+(f.lethal?" · 可能下班":"");
+  els.gForecast.classList.toggle("lethal",f.lethal);
+  els.gForecast.classList.toggle("warn",!f.lethal&&f.hpLoss>=12);
+}
 function renderGame(){
   els.gHp.textContent=`${Math.max(0,G.player.hp)}/${G.player.maxHp}`;
   els.gBlock.textContent=G.player.block;
@@ -1804,6 +1899,7 @@ function renderGame(){
   els.gIntent.textContent=`预判：${previewName}${previewForecast?" · "+previewForecast:""}`;
   els.gEnemyPower.textContent=`力量 ${G.enemy.strength} · 护甲 ${G.enemy.armor||0}`;
   els.gIntent.classList.toggle("danger",previewName.includes("截止日"));
+  updateForecast();
   const board=els.gameBattle.querySelector(".game-board");
   if(board)board.classList.toggle("low-hp",G.player.hp<=G.player.maxHp*.3);
   if(els.gEnergyGems){
@@ -1815,7 +1911,7 @@ function renderGame(){
     }
   }
   if(els.gRelics){
-    els.gRelics.innerHTML=G.relics.map(r=>`<span class="relic-chip" title="${r.desc}">${r.emoji} ${r.name}</span>`).join("");
+    els.gRelics.innerHTML=archetypeSummary()+G.relics.map(r=>`<span class="relic-chip" title="${r.desc}">${r.emoji} ${r.name}</span>`).join("");
   }
   if(els.gHeroPower)els.gHeroPower.disabled=!G.running||G.player.heroPowerUsed||G.player.energy<2;
   if(els.gEndTurn){
@@ -1827,8 +1923,8 @@ function renderGame(){
   G.hand.forEach((card,i)=>{
     const b=document.createElement("button");
     const full=card.type==="minion"&&G.playerMinions.length>=3;
-    b.className="game-card "+card.type+(card.rare?" rare":"")+(G.player.energy<card.cost||full?" disabled":"");
-    b.innerHTML=`<span class="cost">${card.cost}</span><div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
+    b.className="game-card "+card.type+(card.rare?" rare":"")+" arch-"+cardArchetype(card).key+(G.player.energy<card.cost||full?" disabled":"");
+    b.innerHTML=`${archetypeBadge(card)}<span class="cost">${card.cost}</span><div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
     b.style.setProperty("--i",i);
     b.onclick=()=>playGameCard(i);
     els.gHand.appendChild(b);
@@ -1851,6 +1947,7 @@ function damageEnemyHero(amount){
   if(absorbed>0){G.enemy.armor-=absorbed;d-=absorbed;logGame(`护甲吸收 ${absorbed} 点`);}
   if(d<=0){logGame("护甲挡住了这次伤害");return;}
   G.enemy.hp-=d;
+  if(G.battleStats)G.battleStats.damageDealt+=d;
   logGame(`对 ${G.enemy.name} 造成 ${d} 点伤害`);
   floatGameText(`-${d}`,"#ff6b81","enemy");
   if(d>=12&&els.gCrit){
@@ -1903,6 +2000,7 @@ function resolveCard(i){
   G.player.energy-=card.cost;
   G.hand.splice(i,1);
   if(!card.exhaust)G.discard.push(card);
+  if(G.battleStats)G.battleStats.cardsPlayed++;
   logGame(`打出「${card.name}」`);
   showBubble("player",CARD_LINES[card.id]||"……");
   if(card.type==="minion"){
@@ -1913,24 +2011,38 @@ function resolveCard(i){
     playSfx("summon");
     if(m.battlecry){
       if(m.battlecry.dmg)playerDamage(m.battlecry.dmg);
-      if(m.battlecry.block){G.player.block+=m.battlecry.block;playSfx("shield");}
+      if(m.battlecry.block){
+        const gain=m.battlecry.block+(archetypeCoreActive("shield")?2:0);
+        G.player.block+=gain;
+        if(G.battleStats)G.battleStats.blockGained+=gain;
+        playSfx("shield");
+      }
       if(m.battlecry.draw)drawCards(m.battlecry.draw);
     }
     G.combo++;
-    if(G.combo%3===0){showCombo(`COMBO ×${G.combo} · 攻击 +2`);playSfx("combo");}
+    if(G.combo%3===0){showCombo(`COMBO ×${G.combo} · 攻击 ${archetypeCoreActive("combo")?"+3":"+2"}`);playSfx("combo");}
     if(G.enemy.hp<=0){winBattle();return;}
     renderGame();
     return;
   }
   if(card.dmg){
-    const comboBonus=Math.min(6,Math.floor((G.combo+1)/3)*2);
-    let d=card.dmg+comboBonus;
+    const comboStep=archetypeCoreActive("combo")?3:2;
+    const comboBonus=Math.min(9,Math.floor((G.combo+1)/3)*comboStep);
+    const burstBonus=!G.firstAttackUsed&&archetypeCoreActive("burst")?4:0;
+    G.firstAttackUsed=true;
+    let d=card.dmg+comboBonus+burstBonus;
     if(card.execute&&G.enemy.hp<G.enemy.maxHp/2)d+=card.execute;
     if(comboBonus)showCombo(`COMBO ×${G.combo} · +${comboBonus} 伤害`);
+    if(burstBonus)showCombo(`发疯爆发核心 · +${burstBonus} 伤害`);
     playerDamage(d);
   }
   if(card.heal){G.player.hp=Math.min(G.player.maxHp,G.player.hp+card.heal);playSfx("heal");}
-  if(card.block){G.player.block+=card.block;playSfx("shield");}
+  if(card.block){
+    const gain=card.block+(archetypeCoreActive("shield")?2:0);
+    G.player.block+=gain;
+    if(G.battleStats)G.battleStats.blockGained+=gain;
+    playSfx("shield");
+  }
   if(card.coins)G.player.coins+=card.coins;
   if(card.energy)G.player.energy+=card.energy;
   if(card.draw)drawCards(card.draw);
@@ -1993,6 +2105,10 @@ function damagePlayerHero(amount,label){
   G.player.block-=blocked;
   const dmg=Math.max(0,d-blocked);
   G.player.hp-=dmg;
+  if(G.battleStats){
+    G.battleStats.damageTaken+=dmg;
+    G.battleStats.blocked+=blocked;
+  }
   logGame(`${label} ${d}，护盾挡下 ${blocked}，你受到 ${dmg} 点伤害`);
   floatGameText(`-${dmg}`,"#ff8a5c","player");
   impactAt("player");
@@ -2031,6 +2147,7 @@ async function enemyMinionsAttack(){
       await waitGame(150);
       launchAttackTrail(els.gEnemyBoard.children[i],els.gPlayerPortrait,"#ff8a5c");
       G.enemy.strength+=1;
+      if(G.battleStats)G.battleStats.demandTicks++;
       damagePlayerHero(demandHit,"「需求」突然变更");
       logGame("「需求」让敌方攻击力永久 +1");
     }else if(m.key==="revision"){
@@ -2081,36 +2198,46 @@ async function endTurn(){
   board?.classList.add("enemy-turn");
   try{
     await waitGame(420);
-    const armorGain=G.enemy.firstBattle?(G.enemy.turns===0?1:2):3+Math.min(2,G.ascension||0);
-    G.enemy.armor=(G.enemy.armor||0)+armorGain;
-    G.enemy.turns=(G.enemy.turns||0)+1;
-    logGame(`${G.enemy.name} 进入工作状态，护甲 +${armorGain}`);
-    renderGame();
-    if(G.enemy.turns===2&&!G.enemy.deadlineUsed){
-      logGame("警告：下回合是截止日");
-      showBubble("enemy","下回合是截止日，准备好了吗？");
-    }
-    G.enemyMinions.forEach(m=>{m.hasAttacked=false;m.canAttack=true;});
-    const plans=buildEnemyPlans(G.enemy);
-    const plan=await showEnemyDecision(plans);
-    hideEnemyDecision();
-    for(const action of plan.actions){
-      if(!G.running)return;
-      await executeEnemyAction(action);
+    if(G.enemy.stun>0){
+      G.enemy.stun--;
+      logGame(`${G.enemy.name} 被「已读不回」，本回合无法行动`);
+      showBubble("enemy",ENEMY_LINES[G.enemy.name]?.stun||"？？？");
+      showTurnBanner("敌方已读不回");
+      renderGame();
+      await waitGame(900);
+    }else{
+      const armorGain=G.enemy.firstBattle?(G.enemy.turns===0?1:2):3+Math.min(2,G.ascension||0);
+      G.enemy.armor=(G.enemy.armor||0)+armorGain;
+      G.enemy.turns=(G.enemy.turns||0)+1;
+      logGame(`${G.enemy.name} 进入工作状态，护甲 +${armorGain}`);
+      renderGame();
+      if(G.enemy.turns===2&&!G.enemy.deadlineUsed){
+        logGame("警告：下回合是截止日");
+        showBubble("enemy","下回合是截止日，准备好了吗？");
+      }
+      G.enemyMinions.forEach(m=>{m.hasAttacked=false;m.canAttack=true;});
+      const plans=buildEnemyPlans(G.enemy);
+      const plan=await showEnemyDecision(plans);
+      hideEnemyDecision();
+      for(const action of plan.actions){
+        if(!G.running)return;
+        await executeEnemyAction(action);
+        if(G.player.hp<=0){
+          G.busy=false;
+          showEnding(true);
+          return;
+        }
+      }
+      await enemyMinionsAttack();
       if(G.player.hp<=0){
         G.busy=false;
         showEnding(true);
         return;
       }
     }
-    await enemyMinionsAttack();
-    if(G.player.hp<=0){
-      G.busy=false;
-      showEnding(true);
-      return;
-    }
     if(G.enemy.weak>0)G.enemy.weak--;
     if(G.enemy.vulnerable>0)G.enemy.vulnerable--;
+    if(G.battleStats)G.battleStats.wastedEnergy+=Math.max(0,G.player.energy);
     G.turn++;
     G.combo=0;
     if(els.gCombo)els.gCombo.classList.remove("show");
@@ -2120,6 +2247,7 @@ async function endTurn(){
     G.player.energy=Math.max(0,G.player.maxEnergy-(G.player.nextPenalty||0));
     G.player.nextPenalty=0;
     G.player.heroPowerUsed=false;
+    G.firstAttackUsed=false;
     G.playerMinions.forEach(m=>{m.hasAttacked=false;m.canAttack=true;});
     drawCards((G.refillCount||3)+(G.relics.some(r=>r.id==="coffee")?1:0));
     playSfx("draw");
@@ -2159,8 +2287,8 @@ function showDeck(mode){
   els.gDeckList.innerHTML="";
   G.deck.forEach((card,idx)=>{
     const b=document.createElement("button");
-    b.className="game-card "+card.type+(card.rare?" rare":"")+(mode==="upgrade"&&card.upgraded?" disabled":"");
-    b.innerHTML=`<span class="cost">${card.cost}</span><div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
+    b.className="game-card "+card.type+(card.rare?" rare":"")+" arch-"+cardArchetype(card).key+(mode==="upgrade"&&card.upgraded?" disabled":"");
+    b.innerHTML=`${archetypeBadge(card)}<span class="cost">${card.cost}</span><div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
     b.onclick=()=>{
       if(mode==="remove"){
         const removed=G.deck.splice(idx,1)[0];
@@ -2200,13 +2328,31 @@ function showEvent(){
 function showReward(){
   G.busy=false;
   showGameView("reward");
+  if(els.gRewardBuild){
+    els.gRewardBuild.innerHTML=`<b>当前构筑</b>${archetypeSummary()}<span>每一类各提供一张，选牌会逐步激活流派核心。</span>`;
+  }
   els.gRewards.innerHTML="";
-  shuffleArr(GAME_CARDS.filter(c=>isUnlocked(c.id))).slice(0,3).forEach((card,idx)=>{
+  const choices=Object.keys(ARCHETYPES).map(key=>{
+    const pool=GAME_CARDS.filter(c=>isUnlocked(c.id)&&CARD_ARCHETYPE[c.id]===key);
+    return shuffleArr(pool)[0];
+  }).filter(Boolean);
+  choices.forEach((card,idx)=>{
     const b=document.createElement("button");
-    b.className="game-card "+card.type+(card.rare?" rare":"");
+    b.className="game-card "+card.type+(card.rare?" rare":"")+" arch-"+cardArchetype(card).key;
     b.style.setProperty("--i",idx);
-    b.innerHTML=`<span class="cost">${card.cost}</span><div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
-    b.onclick=()=>{G.deck.push(card);logGame(`获得新卡「${card.name}」`);startBattle();};
+    b.innerHTML=`${archetypeBadge(card)}<span class="cost">${card.cost}</span><div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
+    b.onclick=()=>{
+      const key=cardArchetype(card).key;
+      const wasCore=archetypeCoreActive(key);
+      G.deck.push(card);
+      const nowCore=archetypeCoreActive(key);
+      logGame(`获得新卡「${card.name}」`);
+      if(!wasCore&&nowCore){
+        logGame(`${ARCHETYPES[key].name}核心已激活`);
+        flash(`${ARCHETYPES[key].icon} ${ARCHETYPES[key].name}核心激活`);
+      }
+      startBattle();
+    };
     els.gRewards.appendChild(b);
   });
   const available=RELICS.filter(r=>!G.relics.some(x=>x.id===r.id)&&isUnlocked(r.id));
@@ -2284,7 +2430,9 @@ function renderCollection(){
     const owned=unlocked.has(id);
     const d=document.createElement("div");
     d.className="collection-item"+(owned?" owned":"");
-    d.innerHTML=`<div class="ci-emoji">${emoji}</div><div class="ci-name">${name}</div>`+
+    const archKey=CARD_ARCHETYPE[id];
+    const archHtml=archKey?`<div class="arch-chip arch-${archKey}">${ARCHETYPES[archKey].icon} ${ARCHETYPES[archKey].short}</div>`:"";
+    d.innerHTML=`<div class="ci-emoji">${emoji}</div><div class="ci-name">${name}</div>${archHtml}`+
       (owned?`<div class="ci-cost">已拥有</div>`:`<div class="ci-cost">${cost} 工分</div><button ${points<cost?"disabled":""}>解锁</button>`);
     if(!owned){
       d.querySelector("button").onclick=()=>{
@@ -2300,6 +2448,43 @@ function renderCollection(){
     [...els.collectionTabs.querySelectorAll("button")].forEach(b=>b.classList.toggle("on",b.dataset.tab===collectionTab));
   }
 }
+function buildDefeatReview(){
+  const s=G.battleStats||{damageTaken:0,damageDealt:0,cardsPlayed:0,minionKills:0,minionLosses:0,demandTicks:0,wastedEnergy:0,blocked:0,blockGained:0,handBurned:0};
+  const demandLeft=G.enemyMinions.filter(m=>m.key==="demand").length;
+  const defenseInHand=G.hand.filter(c=>c.block||c.heal).slice(0,2).map(c=>`「${c.name}」`);
+  const causes=[];
+  let advice="";
+  if(s.demandTicks>=3||demandLeft>=2){
+    causes.push("需求滚雪球");
+    advice=`你让「需求」累计触发了 ${s.demandTicks} 次。下次先用低费随从站场，再让随从优先撞掉需求，别把所有攻击牌都丢给敌人本体。`;
+  }else if(defenseInHand.length&&s.blocked<18){
+    causes.push("防御牌留在手里");
+    advice=`${defenseInHand.join("、")}还没交出去。看到受击预判变红时，先叠护盾或用「摸鱼」，再考虑输出。`;
+  }else if(s.handBurned>=2){
+    causes.push("手牌溢出");
+    advice="你的手牌被塞满了，关键牌被挤进弃牌堆。每回合先打掉低费或抽牌牌，给下一轮抽牌留位置。";
+  }else if(s.wastedEnergy>=8){
+    causes.push("法力闲置");
+    advice=`本关有 ${s.wastedEnergy} 点法力没用掉。结束回合前，至少把剩余法力转成护盾、伤害或随从攻击。`;
+  }else if(s.minionKills===0&&s.minionLosses>=2){
+    causes.push("场面交换失衡");
+    advice="随从不是摆设。先用自己的随从换掉敌方随从，可以同时减少直伤和敌方的滚雪球速度。";
+  }else{
+    causes.push("硬吃敌方爆发");
+    advice="下一局留意结束回合按钮旁的受击预判：如果预计掉血超过当前精神值，就必须先防守或处理敌方场面。";
+  }
+  if(defenseInHand.length&&!causes.includes("防御牌留在手里"))causes.push("还有防御牌未打出");
+  if(s.damageTaken>=35)causes.push("承伤过高");
+  if(s.minionLosses>=3)causes.push("随从损失偏多");
+  return `<div class="rr-main">
+    <div class="rr-kicker">POST-MORTEM // 本局复盘</div>
+    <div class="rr-title">这波不是运气，是节奏漏了一拍</div>
+    <div class="rr-summary">第 ${G.encounter+1} 关 · ${G.enemy.name} · 第 ${G.turn} 回合倒下。受击预判、解场和资源使用会决定你能不能活着下班。</div>
+    <div class="rr-causes">${causes.slice(0,3).map(c=>`<span class="rr-cause">${c}</span>`).join("")}</div>
+    <div class="rr-stats"><span>造成伤害 <b>${s.damageDealt}</b></span><span>承受伤害 <b>${s.damageTaken}</b></span><span>护盾吸收 <b>${s.blocked}</b></span><span>击杀随从 <b>${s.minionKills}</b></span></div>
+  </div>
+  <div class="rr-advice"><b>下一局这样做</b>${advice}</div>`;
+}
 function showEnding(defeated){
   hideEnemyDecision();
   G.running=false;G.busy=false;
@@ -2313,6 +2498,16 @@ function showEnding(defeated){
   else{ending="苟到下班";line="今天也平安地下班了，明天继续。";grade="B";}
   G.ending={ending,line,grade};
   finishRun(defeated);
+  if(els.gameReview){
+    if(defeated){
+      els.gameReview.innerHTML=buildDefeatReview();
+      els.gameReview.style.display="grid";
+      els.gameEndCanvas.style.maxHeight="32vh";
+    }else{
+      els.gameReview.style.display="none";
+      els.gameEndCanvas.style.maxHeight="60vh";
+    }
+  }
   if(els.gameEndHint){
     els.gameEndHint.textContent=`工分 +${G.lastPoints||0}${G.isDaily?` · 每日挑战 · 连胜 ${G.streak||1} 天`:""} · 进阶 ${ascension}`;
   }
@@ -2523,6 +2718,7 @@ try{
   if(q.get("gameplay")==="1"){openGame();startGameFast();setTimeout(()=>playGameCard(0),300);}
   if(q.get("gameevent")==="1"){openGame();startGameFast();setTimeout(()=>showEvent(),200);}
   if(q.get("gameenemy")==="1"){openGame();startGameFast();setTimeout(()=>endTurn(),1800);}
+  if(q.get("gamedefeat")==="1"){openGame();startGameFast();setTimeout(()=>{G.turn=4;G.player.hp=0;G.enemyMinions=[makeMinion("demand"),makeMinion("demand"),makeMinion("demand")];G.battleStats={damageTaken:47,damageDealt:29,cardsPlayed:8,minionKills:0,minionLosses:2,demandTicks:6,wastedEnergy:9,blocked:8,blockGained:17,handBurned:1};showEnding(true);},300);}
   if(q.get("gameend")==="1"){openGame();G.player={hp:32,maxHp:70,energy:3,maxEnergy:3,block:0,coins:42};G.encounter=3;G.turn=8;showEnding(false);}
   const direct=location.hash==="#play"||["game","dailygame","collection","characters","intern","dailyresult","gamebattle","gamemulligan","gameminion","gamebubble","gamereward","gameplay","gameevent","gameend","app"].some(k=>q.has(k));
   showCover();
