@@ -160,7 +160,7 @@ const els={
   gameBuild:$("gameBuild"),gBuildGrid:$("gBuildGrid"),buildBack:$("buildBack"),buildConfirm:$("buildConfirm"),
   gameMulligan:$("gameMulligan"),gMulliganHand:$("gMulliganHand"),gMulliganCount:$("gMulliganCount"),
   mulliganKeep:$("mulliganKeep"),mulliganConfirm:$("mulliganConfirm"),
-  gSound:$("gSound"),gSpeed:$("gSpeed"),gText:$("gText"),gEmbers:$("gEmbers"),gBattleIntro:$("gBattleIntro"),gIntroKicker:$("gIntroKicker"),
+  gSound:$("gSound"),gSpeed:$("gSpeed"),gText:$("gText"),gEmbers:$("gEmbers"),gBattleIntro:$("gBattleIntro"),gIntroAvatar:$("gIntroAvatar"),gIntroKicker:$("gIntroKicker"),gUltimateAlert:$("gUltimateAlert"),
   gIntroName:$("gIntroName"),gIntroSub:$("gIntroSub"),gCombo:$("gCombo"),gCrit:$("gCrit"),gKO:$("gKO"),
   gEnemyDecision:$("gEnemyDecision"),gEnemyOptions:$("gEnemyOptions"),gEnemyThought:$("gEnemyThought"),gEnemyClock:$("gEnemyClock"),gEnemyAvatar:$("gEnemyAvatar"),
   gameBattle:$("gameBattle"),gHp:$("gHp"),gBlock:$("gBlock"),gCoins:$("gCoins"),gEnergy:$("gEnergy"),
@@ -492,53 +492,131 @@ function mulberry32(a){
 function rand(){return G&&G.rng?G.rng():Math.random();}
 function dailySeed(){return "oneline-"+dateKey();}
 
-const BOSS_SVG=`<svg viewBox="0 0 200 200" class="portrait-svg" aria-hidden="true">
+const BOSS_SVG=`<svg viewBox="0 0 240 240" class="portrait-svg portrait-boss" aria-hidden="true">
 <defs>
-<radialGradient id="bossBg" cx="50%" cy="30%" r="75%"><stop offset="0%" stop-color="#5a2436"/><stop offset="100%" stop-color="#160e1c"/></radialGradient>
-<linearGradient id="bossSuit" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2b2b36"/><stop offset="100%" stop-color="#101016"/></linearGradient>
+<radialGradient id="bossBg" cx="50%" cy="28%" r="78%"><stop offset="0%" stop-color="#7b2b40"/><stop offset="56%" stop-color="#2d1626"/><stop offset="100%" stop-color="#0c0911"/></radialGradient>
+<linearGradient id="bossSuit" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#393644"/><stop offset="55%" stop-color="#1d1b26"/><stop offset="100%" stop-color="#0c0c12"/></linearGradient>
+<linearGradient id="bossShirt" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fffdf2"/><stop offset="100%" stop-color="#c8c1b5"/></linearGradient>
+<linearGradient id="bossSkin" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffd2aa"/><stop offset="65%" stop-color="#eeb68e"/><stop offset="100%" stop-color="#bd7e62"/></linearGradient>
+<linearGradient id="bossHair" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3c3035"/><stop offset="100%" stop-color="#120f15"/></linearGradient>
+<filter id="bossGlow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
 </defs>
-<rect width="200" height="200" fill="url(#bossBg)"/>
-<path d="M34 200 Q40 152 72 140 L100 132 L128 140 Q160 152 166 200 Z" fill="url(#bossSuit)"/>
-<path d="M78 136 L100 154 L122 136 L116 200 L84 200 Z" fill="#f1eee6"/>
-<path d="M96 150 L104 150 L109 168 L100 192 L91 168 Z" fill="var(--tie,#c0392b)"/>
-<rect x="89" y="112" width="22" height="26" rx="9" fill="#d8a078"/>
-<path d="M61 74 Q61 42 100 40 Q139 42 139 74 L137 98 Q133 126 100 132 Q67 126 63 98 Z" fill="#f0c39b"/>
-<ellipse cx="60" cy="92" rx="7" ry="11" fill="#dfa77d"/><ellipse cx="140" cy="92" rx="7" ry="11" fill="#dfa77d"/>
-<path d="M57 78 Q50 38 100 30 Q150 38 143 78 Q133 54 100 50 Q67 54 57 78 Z" fill="#17141a"/>
-<path d="M62 58 Q84 40 118 44 Q140 48 144 64 Q124 52 100 52 Q78 52 62 58 Z" fill="#2b2430" opacity=".75"/>
-<path d="M74 76 L92 72" stroke="#17141a" stroke-width="4" stroke-linecap="round"/>
-<path d="M108 72 L126 76" stroke="#17141a" stroke-width="4" stroke-linecap="round"/>
-<g fill="none" stroke="#d9b45a" stroke-width="2.4"><rect x="70" y="80" width="26" height="17" rx="6"/><rect x="104" y="80" width="26" height="17" rx="6"/><path d="M96 88 L104 88"/><path d="M70 86 L61 84"/><path d="M130 86 L139 84"/></g>
-<ellipse cx="83" cy="89" rx="4" ry="3" fill="#351b1b"/><ellipse cx="117" cy="89" rx="4" ry="3" fill="#351b1b"/>
-<circle cx="84.5" cy="88" r="1.1" fill="#fff"/><circle cx="118.5" cy="88" r="1.1" fill="#fff"/>
-<path d="M100 92 L98 103 L103 103" fill="none" stroke="#c98a63" stroke-width="2" stroke-linecap="round"/>
-<path d="M88 111 Q100 119 116 108" fill="none" stroke="#7a3b35" stroke-width="3" stroke-linecap="round"/>
-<path d="M64 101 Q74 113 87 115" fill="none" stroke="#d79b73" stroke-width="3" opacity=".55"/>
+<rect width="240" height="240" rx="34" fill="url(#bossBg)"/>
+<circle class="portrait-aura" cx="120" cy="110" r="94" fill="none" stroke="rgba(255,182,111,.3)" stroke-width="1.5" stroke-dasharray="4 9"/>
+<path d="M16 44 H74 M8 231 L66 202 M224 35 L170 66" stroke="rgba(255,170,120,.18)" stroke-width="2"/>
+<g opacity=".22" fill="#f1b76d"><circle cx="35" cy="87" r="2"/><circle cx="205" cy="111" r="3"/><circle cx="197" cy="57" r="1.5"/><circle cx="49" cy="158" r="1.5"/></g>
+<path d="M42 240 Q48 178 82 159 L120 146 L158 159 Q192 178 198 240 Z" fill="url(#bossSuit)"/>
+<path d="M91 147 L120 170 L149 147 L150 240 L90 240 Z" fill="url(#bossShirt)"/>
+<path d="M111 168 L120 160 L129 168 L126 181 L120 207 L114 181 Z" fill="var(--tie,#c0392b)"/>
+<path d="M93 148 L120 171 L103 177 L84 160 Z" fill="#17151c" opacity=".72"/><path d="M147 148 L120 171 L137 177 L156 160 Z" fill="#17151c" opacity=".72"/>
+<path d="M77 150 Q96 164 102 190" stroke="#4b4655" stroke-width="3" fill="none"/>
+<path d="M163 150 Q144 164 138 190" stroke="#4b4655" stroke-width="3" fill="none"/>
+<path d="M109 127 L132 127 L132 151 L120 161 L108 151 Z" fill="url(#bossSkin)"/>
+<ellipse cx="120" cy="94" rx="52" ry="62" fill="url(#bossSkin)"/>
+<ellipse cx="69" cy="108" rx="9" ry="14" fill="#d89471"/><ellipse cx="171" cy="108" rx="9" ry="14" fill="#d89471"/>
+<path d="M64 88 Q59 36 120 31 Q181 36 176 88 Q160 56 124 52 Q87 55 64 88 Z" fill="url(#bossHair)"/>
+<path d="M70 67 Q94 41 130 44 Q163 47 175 71 Q146 54 119 55 Q93 55 70 67 Z" fill="#554650" opacity=".65"/>
+<path d="M84 86 Q104 78 115 87" stroke="#24181b" stroke-width="5" stroke-linecap="round" fill="none"/>
+<path d="M126 87 Q138 78 157 86" stroke="#24181b" stroke-width="5" stroke-linecap="round" fill="none"/>
+<g class="portrait-eyes" fill="none" stroke="#d7ad59" stroke-width="3">
+<rect x="79" y="91" width="32" height="24" rx="8"/><rect x="128" y="91" width="32" height="24" rx="8"/>
+<path d="M111 101 H128 M79 98 L67 96 M160 98 L171 96"/>
+</g>
+<ellipse cx="95" cy="102" rx="5" ry="4" fill="#1b1013"/><ellipse cx="144" cy="102" rx="5" ry="4" fill="#1b1013"/>
+<circle cx="97" cy="100.5" r="1.4" fill="#fff"/><circle cx="146" cy="100.5" r="1.4" fill="#fff"/>
+<path d="M119 101 L115 116 L123 117" fill="none" stroke="#b9785e" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M102 133 Q120 142 140 130" fill="none" stroke="#74362f" stroke-width="4" stroke-linecap="round"/>
+<path d="M96 135 Q120 151 146 129" fill="none" stroke="#f3c5a4" stroke-width="2" opacity=".5"/>
+<path d="M75 121 Q87 133 96 134 M165 120 Q153 133 144 134" stroke="#c78669" stroke-width="3" fill="none" opacity=".55"/>
+<g class="portrait-spark" stroke="#ffd27b" stroke-width="2" stroke-linecap="round" opacity=".7" filter="url(#bossGlow)">
+<path d="M184 87 L196 78"/><path d="M47 75 L35 66"/><path d="M197 135 L208 142"/>
+</g>
 </svg>`;
 
-const PLAYER_SVG=`<svg viewBox="0 0 200 200" class="portrait-svg" aria-hidden="true">
+const PLAYER_SVG=`<svg viewBox="0 0 240 240" class="portrait-svg portrait-player" aria-hidden="true">
 <defs>
-<radialGradient id="playerBg" cx="50%" cy="30%" r="75%"><stop offset="0%" stop-color="#21475a"/><stop offset="100%" stop-color="#0c1620"/></radialGradient>
-<linearGradient id="hoodie" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2e4d68"/><stop offset="100%" stop-color="#152130"/></linearGradient>
+<radialGradient id="playerBg" cx="50%" cy="26%" r="80%"><stop offset="0%" stop-color="#285d79"/><stop offset="58%" stop-color="#14283a"/><stop offset="100%" stop-color="#080d13"/></radialGradient>
+<linearGradient id="hoodie" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#416f91"/><stop offset="60%" stop-color="#203a54"/><stop offset="100%" stop-color="#111c2a"/></linearGradient>
+<linearGradient id="playerSkin" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffd4b2"/><stop offset="100%" stop-color="#e4a77f"/></linearGradient>
+<linearGradient id="playerHair" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#493442"/><stop offset="100%" stop-color="#19131b"/></linearGradient>
 </defs>
-<rect width="200" height="200" fill="url(#playerBg)"/>
-<path d="M34 200 Q40 152 72 140 L100 132 L128 140 Q160 152 166 200 Z" fill="url(#hoodie)"/>
-<path d="M72 140 Q100 162 128 140 Q124 172 100 178 Q76 172 72 140 Z" fill="#22384f"/>
-<path d="M88 160 L84 190" stroke="#9fc7e0" stroke-width="3" stroke-linecap="round"/><path d="M112 160 L116 190" stroke="#9fc7e0" stroke-width="3" stroke-linecap="round"/>
-<rect x="89" y="112" width="22" height="26" rx="9" fill="#e7b38c"/>
-<path d="M60 74 Q60 42 100 40 Q140 42 140 74 L138 100 Q134 128 100 134 Q66 128 62 100 Z" fill="#f3c9a4"/>
-<ellipse cx="60" cy="92" rx="7" ry="11" fill="#e3aa81"/><ellipse cx="140" cy="92" rx="7" ry="11" fill="#e3aa81"/>
-<path d="M55 82 Q46 34 100 30 Q154 34 145 82 Q137 58 118 50 Q112 66 100 50 Q86 66 78 50 Q62 60 55 82 Z" fill="#241c26"/>
-<path d="M66 62 Q84 42 106 46 Q128 48 141 66 Q120 54 100 54 Q80 54 66 62 Z" fill="#3a2c3c" opacity=".75"/>
-<path d="M74 79 Q84 75 92 79" fill="none" stroke="#241c26" stroke-width="3" stroke-linecap="round"/><path d="M108 79 Q116 75 126 79" fill="none" stroke="#241c26" stroke-width="3" stroke-linecap="round"/>
-<ellipse cx="82" cy="93" rx="6" ry="7" fill="#2a1d22"/><ellipse cx="118" cy="93" rx="6" ry="7" fill="#2a1d22"/>
-<circle cx="84" cy="91" r="1.8" fill="#fff"/><circle cx="120" cy="91" r="1.8" fill="#fff"/>
-<path d="M76 103 Q82 106 88 103" fill="none" stroke="#b06a7a" stroke-width="2" opacity=".5"/><path d="M112 103 Q118 106 124 103" fill="none" stroke="#b06a7a" stroke-width="2" opacity=".5"/>
-<ellipse cx="71" cy="107" rx="7" ry="3.5" fill="#e88a9a" opacity=".4"/><ellipse cx="129" cy="107" rx="7" ry="3.5" fill="#e88a9a" opacity=".4"/>
-<path d="M92 119 Q100 115 108 119" fill="none" stroke="#8a4a4a" stroke-width="3" stroke-linecap="round"/>
-<g transform="translate(138,158)"><rect width="24" height="28" rx="4" fill="#f2ead8"/><path d="M24 7 Q35 7 35 17 Q35 25 24 25" fill="none" stroke="#f2ead8" stroke-width="4"/><rect width="24" height="6" fill="#c0392b"/></g>
+<rect width="240" height="240" rx="34" fill="url(#playerBg)"/>
+<circle class="portrait-aura" cx="120" cy="111" r="94" fill="none" stroke="rgba(115,210,255,.36)" stroke-width="1.5" stroke-dasharray="3 8"/>
+<g opacity=".3" stroke="#78c9f0" stroke-width="1"><path d="M22 80 H67 M173 43 L213 66 M26 173 L63 197 M204 174 L176 198"/></g>
+<path d="M38 240 Q45 176 79 159 L120 147 L161 159 Q195 176 202 240 Z" fill="url(#hoodie)"/>
+<path d="M78 158 Q120 186 162 158 Q156 195 145 207 L95 207 Q84 194 78 158 Z" fill="#1b3046"/>
+<path d="M86 166 Q120 185 154 166" stroke="#7bbde1" stroke-width="3" fill="none" opacity=".7"/>
+<path d="M97 166 L93 213 M143 166 L147 213" stroke="#a7d7ec" stroke-width="3" stroke-linecap="round"/>
+<path d="M110 128 L130 128 L131 151 L120 161 L109 151 Z" fill="url(#playerSkin)"/>
+<ellipse cx="120" cy="95" rx="51" ry="61" fill="url(#playerSkin)"/>
+<ellipse cx="70" cy="108" rx="8" ry="14" fill="#dda17c"/><ellipse cx="170" cy="108" rx="8" ry="14" fill="#dda17c"/>
+<path d="M63 87 Q57 35 119 29 Q183 33 177 90 Q160 56 126 51 Q94 48 74 67 Q68 74 63 87 Z" fill="url(#playerHair)"/>
+<path d="M70 64 Q93 42 123 46 Q157 47 173 73 Q144 56 119 57 Q90 58 70 64 Z" fill="#6a4d60" opacity=".7"/>
+<path d="M82 84 Q103 76 115 85 M126 85 Q140 76 159 84" stroke="#2b1d24" stroke-width="4" stroke-linecap="round" fill="none"/>
+<g class="portrait-eyes"><ellipse cx="95" cy="99" rx="8" ry="9" fill="#21151d"/><ellipse cx="145" cy="99" rx="8" ry="9" fill="#21151d"/><circle cx="97" cy="96" r="2.5" fill="#fff"/><circle cx="147" cy="96" r="2.5" fill="#fff"/></g>
+<path d="M119 102 L115 117 L123 117" stroke="#bc7e63" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<ellipse cx="81" cy="116" rx="9" ry="4" fill="#ea8b9c" opacity=".32"/><ellipse cx="159" cy="116" rx="9" ry="4" fill="#ea8b9c" opacity=".32"/>
+<path d="M102 132 Q120 142 140 130" stroke="#823e4c" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+<path d="M57 114 Q39 120 34 145 Q58 149 70 132 Z" fill="#203a54"/><path d="M183 114 Q201 120 206 145 Q182 149 170 132 Z" fill="#203a54"/>
+<path d="M42 127 Q31 139 39 151 Q49 142 51 130" fill="#65a9cc" opacity=".8"/><path d="M198 127 Q209 139 201 151 Q191 142 189 130" fill="#65a9cc" opacity=".8"/>
+<g transform="translate(172 171)" class="portrait-spark"><rect width="26" height="34" rx="5" fill="#e8f3f5"/><path d="M26 8 Q38 8 38 20 Q38 29 26 29" fill="none" stroke="#e8f3f5" stroke-width="4"/><rect width="26" height="7" fill="#ff5c8a"/></g>
 </svg>`;
 
+const CLIENT_SVG=`<svg viewBox="0 0 240 240" class="portrait-svg portrait-client" aria-hidden="true">
+<defs>
+<radialGradient id="clientBg" cx="50%" cy="28%" r="78%"><stop offset="0%" stop-color="#275f93"/><stop offset="60%" stop-color="#142844"/><stop offset="100%" stop-color="#080d18"/></radialGradient>
+<linearGradient id="clientCoat" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5b86af"/><stop offset="100%" stop-color="#172b46"/></linearGradient>
+<linearGradient id="clientSkin" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffdbc0"/><stop offset="100%" stop-color="#dca27d"/></linearGradient>
+</defs>
+<rect width="240" height="240" rx="34" fill="url(#clientBg)"/>
+<circle class="portrait-aura" cx="120" cy="112" r="94" fill="none" stroke="rgba(111,196,255,.42)" stroke-width="1.5" stroke-dasharray="3 8"/>
+<path d="M18 73 H71 M180 42 L217 66 M214 183 L176 203" stroke="rgba(127,204,255,.2)" stroke-width="2"/>
+<path d="M39 240 Q48 180 80 159 L120 148 L160 159 Q194 179 202 240 Z" fill="url(#clientCoat)"/>
+<path d="M91 151 L120 172 L149 151 L156 240 L84 240 Z" fill="#dfe9f0"/>
+<path d="M91 151 L120 172 L105 186 L86 160 Z M149 151 L120 172 L136 187 L157 160 Z" fill="#213b58"/>
+<path d="M108 128 L132 128 L132 151 L120 161 L108 151 Z" fill="url(#clientSkin)"/>
+<ellipse cx="120" cy="94" rx="50" ry="60" fill="url(#clientSkin)"/>
+<ellipse cx="70" cy="106" rx="8" ry="13" fill="#d89d79"/><ellipse cx="170" cy="106" rx="8" ry="13" fill="#d89d79"/>
+<path d="M62 86 Q57 32 121 28 Q184 33 178 90 Q164 58 131 50 Q105 44 79 59 Q69 68 62 86 Z" fill="#262532"/>
+<path d="M65 63 Q101 36 148 48 Q176 54 181 78 Q143 55 108 60 Q83 65 65 79 Z" fill="#49506b"/>
+<path d="M84 88 Q104 77 115 88 M126 88 Q144 76 159 87" stroke="#20202a" stroke-width="4" fill="none" stroke-linecap="round"/>
+<g class="portrait-eyes"><ellipse cx="96" cy="102" rx="7" ry="8" fill="#182536"/><ellipse cx="145" cy="102" rx="7" ry="8" fill="#182536"/><circle cx="98" cy="99" r="2" fill="#bde8ff"/><circle cx="147" cy="99" r="2" fill="#bde8ff"/></g>
+<path d="M120 103 L116 118 L123 118" stroke="#b97961" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+<path d="M103 130 Q121 140 142 128" stroke="#74394c" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+<path d="M73 121 Q85 132 95 133 M168 120 Q155 132 145 132" stroke="#c78b73" stroke-width="2.5" fill="none" opacity=".55"/>
+<g transform="translate(43 164) rotate(-8)"><rect width="56" height="65" rx="7" fill="#dce9f2" stroke="#6fa8d3" stroke-width="2"/><rect x="8" y="10" width="40" height="7" rx="2" fill="#6f96b8"/><rect x="8" y="24" width="31" height="4" rx="2" fill="#9ab5ca"/><circle cx="42" cy="49" r="7" fill="#4e8fca"/></g>
+<path d="M190 78 L202 68 M194 143 L207 150" stroke="#8ad4ff" stroke-width="2" opacity=".7"/>
+</svg>`;
+const RELATIVE_SVG=`<svg viewBox="0 0 240 240" class="portrait-svg portrait-relative" aria-hidden="true">
+<defs>
+<radialGradient id="relativeBg" cx="50%" cy="27%" r="80%"><stop offset="0%" stop-color="#765121"/><stop offset="58%" stop-color="#322313"/><stop offset="100%" stop-color="#100d09"/></radialGradient>
+<linearGradient id="relativeCoat" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#8e5e36"/><stop offset="100%" stop-color="#402819"/></linearGradient>
+<linearGradient id="relativeSkin" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f2cdb0"/><stop offset="100%" stop-color="#c88c67"/></linearGradient>
+</defs>
+<rect width="240" height="240" rx="34" fill="url(#relativeBg)"/>
+<circle class="portrait-aura" cx="120" cy="112" r="94" fill="none" stroke="rgba(255,208,111,.4)" stroke-width="1.5" stroke-dasharray="3 8"/>
+<g opacity=".34" fill="#ffd76a"><path d="M32 47 l5 10 10 5 -10 5 -5 10 -5-10 -10-5 10-5z"/><path d="M203 73 l3 7 7 3 -7 3 -3 7 -3-7 -7-3 7-3z"/></g>
+<path d="M38 240 Q48 179 80 158 L120 147 L160 158 Q194 178 202 240 Z" fill="url(#relativeCoat)"/>
+<path d="M91 151 L120 168 L149 151 L158 240 L82 240 Z" fill="#7c4035"/>
+<path d="M80 167 Q97 183 120 173 Q143 183 160 167" stroke="#d6a65b" stroke-width="4" fill="none"/>
+<path d="M108 128 L132 128 L132 151 L120 160 L108 151 Z" fill="url(#relativeSkin)"/>
+<ellipse cx="120" cy="95" rx="50" ry="59" fill="url(#relativeSkin)"/>
+<ellipse cx="69" cy="105" rx="8" ry="13" fill="#c98c68"/><ellipse cx="171" cy="105" rx="8" ry="13" fill="#c98c68"/>
+<path d="M64 83 Q68 42 104 34 Q153 29 178 67 Q171 84 160 99 Q157 65 130 55 Q103 47 82 62 Q71 70 64 83 Z" fill="#d5d0c7"/>
+<path d="M68 73 Q84 44 121 39 Q157 39 174 67 Q142 53 109 57 Q86 61 68 73 Z" fill="#eee9df"/>
+<path d="M84 86 Q104 78 115 86 M126 86 Q143 77 158 86" stroke="#62554e" stroke-width="4" fill="none" stroke-linecap="round"/>
+<g class="portrait-eyes"><ellipse cx="96" cy="99" rx="6" ry="6" fill="#3b2c26"/><ellipse cx="145" cy="99" rx="6" ry="6" fill="#3b2c26"/><circle cx="97.5" cy="97" r="1.5" fill="#fff"/><circle cx="146.5" cy="97" r="1.5" fill="#fff"/></g>
+<path d="M120 102 L116 116 L124 117" stroke="#b2765e" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+<path d="M99 128 Q120 141 145 125" stroke="#763d39" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+<path d="M72 116 Q83 130 94 132 M168 115 Q157 130 146 131" stroke="#b57b65" stroke-width="2.5" fill="none" opacity=".6"/>
+<g transform="translate(177 169) rotate(8)"><rect width="29" height="45" rx="4" fill="#d83446"/><rect x="6" y="9" width="17" height="27" rx="2" fill="#ffd76a"/><circle cx="14.5" cy="47" r="5" fill="#a7182e"/></g>
+<path d="M183 74 L197 62 M192 139 L207 145" stroke="#ffd76a" stroke-width="2" opacity=".7"/>
+</svg>`;
+function portraitFor(name){
+  if(name==="甲方")return CLIENT_SVG;
+  if(name==="亲戚")return RELATIVE_SVG;
+  return BOSS_SVG;
+}
 const INTERN_SVG=PLAYER_SVG
   .replaceAll("playerBg","internBg")
   .replaceAll("hoodie","internHoodie")
@@ -1484,6 +1562,10 @@ function startBattle(prepared){
   G.enemy={name:base.name,baseName:base.name,emoji:base.emoji,tie:base.tie,hp:ehp,maxHp:ehp,strength:asc+strengthBonus,weak:0,vulnerable:0,stun:0,charged:0,armor:0,turns:0,deadlineUsed:false,phase:1,phaseFlags:{},ultimate:0,intentIndex:0,intents:base.intents.slice(),flavor:base.flavor,firstBattle,mechanic:base.mechanic,routeTitle:route.name,elite,variant};
   if(elite&&base.name==="甲方")G.enemy.rewritePower=2;
   if(elite&&base.name==="亲戚")G.enemy.healBonus=2;
+  if(els.gEnemyPortrait){
+    els.gEnemyPortrait.innerHTML=portraitFor(base.name);
+    els.gEnemyPortrait.dataset.enemy=base.name;
+  }
   G.currentNode=route;
   G.pendingNode=null;
   G.pendingCardIndex=-1;
@@ -1596,6 +1678,7 @@ function showTurnBanner(text){
 function showBattleIntro(){
   const b=els.gBattleIntro;
   if(!b)return;
+  if(els.gIntroAvatar)els.gIntroAvatar.innerHTML=portraitFor(G.enemy.name);
   els.gIntroKicker.textContent=`ENCOUNTER ${G.encounter+1}${G.enemy.firstBattle?" · 试岗局":""}`;
   els.gIntroName.textContent=G.enemy.name;
   els.gIntroSub.textContent=G.enemy.firstBattle
@@ -1722,6 +1805,39 @@ function showSweepWave(){
   wave.className="sweep-wave";
   board.appendChild(wave);
   setTimeout(()=>wave.remove(),gs(760));
+}
+function showCardCastFx(card){
+  const board=els.gameBattle.querySelector(".game-board");
+  if(!board)return;
+  const arch=cardArchetype(card);
+  const ring=document.createElement("div");
+  ring.className="card-cast-fx";
+  ring.style.setProperty("--fx-color",arch.color);
+  board.appendChild(ring);
+  const callout=document.createElement("div");
+  callout.className="card-callout";
+  callout.style.setProperty("--fx-color",arch.color);
+  callout.innerHTML=`<b>${card.name}</b><span>${arch.name} · ${arch.short.toUpperCase()}</span>`;
+  board.appendChild(callout);
+  els.gPlayerPortrait.classList.remove("casting");
+  void els.gPlayerPortrait.offsetWidth;
+  els.gPlayerPortrait.classList.add("casting");
+  setTimeout(()=>ring.remove(),gs(760));
+  setTimeout(()=>callout.remove(),gs(860));
+  setTimeout(()=>els.gPlayerPortrait.classList.remove("casting"),gs(680));
+}
+function showPhaseTransition(phase,name){
+  const board=els.gameBattle.querySelector(".game-board");
+  if(!board)return;
+  const el=document.createElement("div");
+  el.className="phase-transition";
+  el.innerHTML=`<small>ENEMY PHASE ${phase}</small><b>${name}</b><span>敌方战术已切换</span>`;
+  board.appendChild(el);
+  els.gEnemyPortrait.classList.remove("phase-enter");
+  void els.gEnemyPortrait.offsetWidth;
+  els.gEnemyPortrait.classList.add("phase-enter");
+  setTimeout(()=>el.remove(),gs(1400));
+  setTimeout(()=>els.gEnemyPortrait.classList.remove("phase-enter"),gs(1050));
 }
 function makeMinion(key){
   const d=MINIONS[key];
@@ -2167,8 +2283,8 @@ function checkEnemyPhase(){
       if(e.phase===3)e.strength+=2;
     }
     logGame(`${e.name} 进入阶段 ${e.phase}「${name}」`);
+    showPhaseTransition(e.phase,name);
     showBubble("enemy",e.name==="老板"?"今天全员加班。":e.name==="甲方"?"方向全错，推翻重做。":"都别走，继续聊聊。");
-    showTurnBanner(`阶段 ${e.phase} · ${name}`);
     playSfx("crit");
     renderGame();
   }
@@ -2288,6 +2404,11 @@ function renderGame(){
   updateForecast();
   const board=els.gameBattle.querySelector(".game-board");
   if(board)board.classList.toggle("low-hp",G.player.hp<=G.player.maxHp*.3);
+  if(board)board.classList.toggle("ultimate-ready",G.enemy.ultimate>0);
+  if(els.gUltimateAlert){
+    els.gUltimateAlert.classList.toggle("show",G.enemy.ultimate>0);
+    els.gUltimateAlert.querySelector("span").textContent=G.enemy.ultimate===1?"本回合释放 · 重击可打断":G.enemy.ultimate===2?"正在蓄力 · 重击可打断":"终极动作蓄力中";
+  }
   if(els.gEnergyGems){
     els.gEnergyGems.innerHTML="";
     for(let i=0;i<G.player.maxEnergy;i++){
@@ -2437,6 +2558,7 @@ function resolveCard(i,target=null){
   if(G.battleStats)G.battleStats.cardsPlayed++;
   logGame(`打出「${card.name}」`);
   showBubble("player",CARD_LINES[card.id]||"……");
+  showCardCastFx(card);
   if(card.type==="minion"){
     const m=makeMinion(card.minion);
     if(card.upgraded){
