@@ -148,6 +148,7 @@
         <div class="speech player" id="gPlayerBubble"></div>
         <div class="speech enemy" id="gEnemyBubble"></div>
         <div class="tutorial-tip" id="gTutorialTip"><b>试岗教学</b><span id="gTutorialText">先打出一张随从牌。</span></div>
+        <div class="target-hint" id="gTargetHint">选择敌方目标 · 再次点击攻击牌取消</div>
         <div class="hurt-flash" id="gHurtFlash"></div>
         <div class="enemy-hud">
           <div class="enemy-portrait portrait-slot" id="gEnemyPortrait" data-portrait="boss">👔</div>
@@ -202,11 +203,28 @@
       <div class="route-progress" id="gRouteProgress"></div>
       <div class="route-grid" id="gRouteGrid"></div>
     </div>
+    <div class="game-view" id="gameCore" style="display:none">
+      <div class="route-head">
+        <div class="route-kicker">CORE AWAKENING // 流派觉醒</div>
+        <div class="game-title" id="gCoreTitle">选择核心方向</div>
+        <div class="game-sub">核心只会选择一次，它会改变这一局的打法，而不只是增加数值。</div>
+      </div>
+      <div class="core-grid" id="gCoreChoices"></div>
+    </div>
     <div class="game-view" id="gameDeck" style="display:none">
       <div class="game-title" id="gDeckTitle"></div>
       <div class="game-sub" id="gDeckSub"></div>
       <div class="game-rewards" id="gDeckList"></div>
       <button class="btn" id="gDeckCancel">返回</button>
+    </div>
+    <div class="game-view" id="gameUpgrade" style="display:none">
+      <div class="route-head">
+        <div class="route-kicker">UPGRADE LAB // 卡牌升级</div>
+        <div class="game-title" id="gUpgradeTitle">选择升级方向</div>
+        <div class="game-sub" id="gUpgradeSub">同一张牌可以走爆发方向，也可以降低费用。</div>
+      </div>
+      <div class="core-grid" id="gUpgradeChoices"></div>
+      <button class="btn" id="gUpgradeBack">返回牌组</button>
     </div>
     <div class="game-view" id="gameEvent" style="display:none">
       <div class="game-title" id="gEventTitle"></div>

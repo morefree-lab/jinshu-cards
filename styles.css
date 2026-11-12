@@ -339,6 +339,7 @@
   .game-card.tutorial-highlight{animation:tutorialCard 1s ease-in-out infinite;border-color:#6ec6ff!important;box-shadow:0 0 24px rgba(110,198,255,.45)!important}
   .game-card.defense-hint{animation:defenseCard .9s ease-in-out infinite;border-color:#7ce0a8!important;box-shadow:0 0 22px rgba(124,224,168,.42)!important}
   .game-card.recommended{border-color:#f5d76e!important;box-shadow:0 0 28px rgba(245,215,110,.28)!important}
+  .game-card.targeting{border-color:#ff6b81!important;box-shadow:0 0 26px rgba(255,107,129,.5)!important;transform:translateY(-10px) scale(1.04)!important}
   .recommend-tag{position:absolute;right:7px;bottom:7px;z-index:3;font-size:8px;font-weight:900;color:#21180a;background:#f5d76e;border-radius:999px;padding:3px 6px}
   @keyframes tutorialCard{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
   @keyframes defenseCard{0%,100%{box-shadow:0 0 12px rgba(124,224,168,.18)}50%{box-shadow:0 0 28px rgba(124,224,168,.52)}}
@@ -382,6 +383,8 @@
   .minion.selected{border-color:#f5d76e;box-shadow:0 0 22px rgba(245,215,110,.5)}
   .minion.targetable{border-color:#ff6b81;box-shadow:0 0 22px rgba(255,107,129,.5);animation:targetPulse .8s infinite}
   .minion.tutorial-target{border-color:#6ec6ff!important;box-shadow:0 0 26px rgba(110,198,255,.58)!important;animation:tutorialTarget .9s ease-in-out infinite}
+  .minion.spell-target{border-color:#ff6b81!important;box-shadow:0 0 24px rgba(255,107,129,.5)!important;animation:targetPulse .8s infinite;cursor:crosshair}
+  .enemy-hud.spell-target{border-color:#ff6b81!important;box-shadow:0 0 26px rgba(255,107,129,.42)!important;cursor:crosshair}
   @keyframes tutorialTarget{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
   .minion.danger-minion{border-color:rgba(255,92,92,.55);box-shadow:0 0 14px rgba(255,92,92,.2)}
   .minion.summoned{animation:summonPop .5s ease-out}
@@ -425,6 +428,14 @@
   .route-card .rc-desc{font-size:11px;line-height:1.6;color:rgba(255,255,255,.68);margin-top:14px}
   .route-card .rc-badge{display:inline-block;margin-top:12px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1);font-size:9px;color:var(--route-color,#f5d76e)}
   @media(max-width:700px){.route-grid{grid-template-columns:1fr}.route-card{min-height:140px}.route-line{width:12px}}
+  .core-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .core-card{min-height:180px;padding:22px;border-radius:18px;border:1px solid color-mix(in srgb,var(--core-color,#f5d76e) 48%,transparent);background:radial-gradient(260px 160px at 80% 0%,color-mix(in srgb,var(--core-color,#f5d76e) 15%,transparent),transparent 72%),linear-gradient(145deg,#202538,#11141e);color:#fff;text-align:left;cursor:pointer;transition:.2s}
+  .core-card:hover{transform:translateY(-5px);box-shadow:0 16px 36px rgba(0,0,0,.42),0 0 24px color-mix(in srgb,var(--core-color,#f5d76e) 18%,transparent)}
+  .core-card .cc-icon{font-size:34px}
+  .core-card .cc-name{font-size:22px;font-weight:900;margin-top:10px;color:var(--core-color,#f5d76e)}
+  .core-card .cc-desc{font-size:12px;line-height:1.7;color:rgba(255,255,255,.7);margin-top:10px}
+  .core-card .cc-badge{display:inline-block;margin-top:14px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.06);font-size:9px;color:var(--core-color,#f5d76e)}
+  @media(max-width:700px){.core-grid{grid-template-columns:1fr}.core-card{min-height:140px}}
   .portrait-slot{overflow:hidden;padding:0!important;background:transparent!important}
   .portrait-slot svg{width:100%;height:100%;display:block}
   .enemy-portrait svg,.player-portrait svg{animation:breathe 3.4s ease-in-out infinite;transform-origin:50% 80%}
@@ -440,6 +451,8 @@
   .tutorial-tip.show{opacity:1;transform:translate(-50%,0) scale(1)}
   .tutorial-tip b{font-size:10px;letter-spacing:2px;color:#6ec6ff;white-space:nowrap}
   .tutorial-tip span{font-size:11px;color:rgba(255,255,255,.86);line-height:1.45}
+  .target-hint{position:absolute;left:50%;bottom:86px;z-index:34;padding:7px 12px;border-radius:999px;background:rgba(38,15,23,.97);border:1px solid rgba(255,107,129,.55);color:#ffadba;font-size:10px;font-weight:800;letter-spacing:.5px;opacity:0;transform:translate(-50%,8px);pointer-events:none;transition:.18s}
+  .target-hint.show{opacity:1;transform:translate(-50%,0)}
   .hurt-flash{position:absolute;inset:0;background:radial-gradient(circle,rgba(255,60,80,.32),transparent 70%);opacity:0;pointer-events:none;z-index:12;transition:.12s}
   .hurt-flash.on{opacity:1}
   .game-board.low-hp::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 120px rgba(255,30,60,.4);animation:lowPulse 1.5s ease-in-out infinite;z-index:9}

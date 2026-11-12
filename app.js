@@ -169,12 +169,14 @@ const els={
   gEnemyPortrait:$("gEnemyPortrait"),gEnemyHpFill:$("gEnemyHpFill"),gPlayerHpFill:$("gPlayerHpFill"),
   gTurnBanner:$("gTurnBanner"),gFloatLayer:$("gFloatLayer"),gEnergyGems:$("gEnergyGems"),
   gPlayerBubble:$("gPlayerBubble"),gEnemyBubble:$("gEnemyBubble"),gHurtFlash:$("gHurtFlash"),
-  gTutorialTip:$("gTutorialTip"),gTutorialText:$("gTutorialText"),
+  gTutorialTip:$("gTutorialTip"),gTutorialText:$("gTutorialText"),gTargetHint:$("gTargetHint"),
   gRelics:$("gRelics"),
   gEndTurn:$("gEndTurn"),gForecast:$("gForecast"),gForecastValue:$("gForecastValue"),gForecastText:$("gForecastText"),
   gameReward:$("gameReward"),gLevelRating:$("gLevelRating"),gRewardBuild:$("gRewardBuild"),gRewards:$("gRewards"),gSkip:$("gSkip"),gRemove:$("gRemove"),gUpgrade:$("gUpgrade"),
   gameRoute:$("gameRoute"),gRouteTitle:$("gRouteTitle"),gRouteSub:$("gRouteSub"),gRouteProgress:$("gRouteProgress"),gRouteGrid:$("gRouteGrid"),
+  gameCore:$("gameCore"),gCoreTitle:$("gCoreTitle"),gCoreChoices:$("gCoreChoices"),
   gameDeck:$("gameDeck"),gDeckTitle:$("gDeckTitle"),gDeckSub:$("gDeckSub"),gDeckList:$("gDeckList"),gDeckCancel:$("gDeckCancel"),
+  gameUpgrade:$("gameUpgrade"),gUpgradeTitle:$("gUpgradeTitle"),gUpgradeSub:$("gUpgradeSub"),gUpgradeChoices:$("gUpgradeChoices"),gUpgradeBack:$("gUpgradeBack"),
   gameEvent:$("gameEvent"),gEventTitle:$("gEventTitle"),gEventDesc:$("gEventDesc"),gEventChoices:$("gEventChoices"),
   gameEnd:$("gameEnd"),gameEndCanvas:$("gameEndCanvas"),gameRunRating:$("gameRunRating"),gameReview:$("gameReview"),gameAgain:$("gameAgain"),gameSave:$("gameSave"),gameShare:$("gameShare"),gameEndHint:$("gameEndHint"),
   collectionModal:$("collectionModal"),collectionClose:$("collectionClose"),colPoints:$("colPoints"),colProgress:$("colProgress"),collectionGrid:$("collectionGrid"),collectionTabs:$("collectionTabs")
@@ -298,6 +300,20 @@ const ARCHETYPES={
   shield:{name:"护盾反击",short:"护盾",icon:"🛡",coreAt:8,color:"#6ec6ff",desc:"先叠护盾再反击，把敌方的爆发变成你的节奏。"},
   burst:{name:"发疯爆发",short:"爆发",icon:"🔥",coreAt:4,color:"#ff8a5c",desc:"用高伤和自损牌抢回合，在精神值见底前结束战斗。"}
 };
+const CORE_BRANCHES={
+  combo:[
+    {id:"tempo",name:"即兴连打",icon:"⚡",desc:"每回合第一张牌额外累计 1 层 COMBO。"},
+    {id:"finisher",name:"收尾暴击",icon:"🎯",desc:"COMBO 达到 3 后，攻击牌额外造成 3 点伤害。"}
+  ],
+  shield:[
+    {id:"retain",name:"半盾留存",icon:"🔒",desc:"回合结束时保留一半护盾，进入敌方回合。"},
+    {id:"counter",name:"护盾反震",icon:"💢",desc:"结束回合时，按剩余护盾的一半反击敌方英雄。"}
+  ],
+  burst:[
+    {id:"desperate",name:"背水一战",icon:"🩸",desc:"精神值低于 35% 时，攻击牌额外造成 5 点伤害。"},
+    {id:"overdraft",name:"风险透支",icon:"🔋",desc:"自损牌优先消耗护盾，护盾不足才扣精神值。"}
+  ]
+};
 const CARD_ARCHETYPE={
   c1:"combo",c2:"combo",c3:"shield",c4:"burst",c5:"burst",c6:"combo",c7:"combo",
   c8:"shield",c9:"combo",c10:"shield",c11:"shield",c12:"shield",c13:"shield",c14:"combo",
@@ -315,6 +331,13 @@ const ROUTE_OPTIONS={
   urgent:{name:"紧急需求",type:"RISK",icon:"🔥",color:"#ff8a5c",desc:"敌人生命 +12%、攻击 +1，但下一张奖励必为稀有牌，并额外获得 1 星。",badge:"高风险 · 高回报"},
   training:{name:"进修冲刺",type:"BUILD",icon:"📚",color:"#b998ff",desc:"随机升级牌组中一张未升级卡，下一场开局额外获得 8 点护盾。",badge:"强化构筑"}
 };
+const ACHIEVEMENTS=[
+  {id:"clock_out",name:"活着下班",desc:"首次完成五节点路线",test:s=>s.victory},
+  {id:"steady",name:"情绪稳定",desc:"以 50 点以上精神值通关",test:s=>s.victory&&s.hp>=50},
+  {id:"combo",name:"嘴炮大师",desc:"单回合打出 COMBO ×6",test:s=>s.maxCombo>=6},
+  {id:"cleaner",name:"需求终结者",desc:"击败「最终需求」",test:s=>s.finalDemandKills>0},
+  {id:"star",name:"五星打工人",desc:"单局累计获得 12 星",test:s=>s.stars>=12}
+];
 const MINIONS={
   intern:{name:"实习生",emoji:"🧑‍💼",atk:1,hp:3,taunt:true},
   coffee:{name:"咖啡机",emoji:"☕",atk:0,hp:4,deathrattle:{draw:1}},
@@ -1210,7 +1233,7 @@ function shareDiag(){
   }
 }
 
-let G={player:null,deck:[],hand:[],draw:[],discard:[],enemy:null,encounter:0,turn:1,running:false,log:[],ending:null,busy:false,relics:[],deal:false,combo:0,playerMinions:[],enemyMinions:[],selectedMinion:-1,mulliganHand:[],mulliganDraw:[],mulliganSelected:new Set(),pendingMulligan:false,tutorialStep:-1,coachMode:false};
+let G={player:null,deck:[],hand:[],draw:[],discard:[],enemy:null,encounter:0,turn:1,running:false,log:[],ending:null,busy:false,relics:[],deal:false,combo:0,playerMinions:[],enemyMinions:[],selectedMinion:-1,pendingCardIndex:-1,mulliganHand:[],mulliganDraw:[],mulliganSelected:new Set(),pendingMulligan:false,tutorialStep:-1,coachMode:false};
 let gameSpeed=1;
 let cardUid=0;
 function gs(ms){return Math.max(120,Math.round(ms/gameSpeed));}
@@ -1218,7 +1241,9 @@ function cloneGameCard(card){
   return {...card,_uid:++cardUid,costPenalty:0};
 }
 function effectiveCost(card){
-  return Math.max(0,(card?.cost||0)+(card?.costPenalty||0));
+  let cost=(card?.cost||0)+(card?.costPenalty||0);
+  if(G?.running&&G.currentNode?.riskRule==="combo_tax"&&(G.cardsThisTurn||0)===0)cost+=1;
+  return Math.max(0,cost);
 }
 function costBadge(card){
   const penalty=card?.costPenalty||0;
@@ -1233,6 +1258,9 @@ function archetypeCount(key){
 }
 function archetypeCoreActive(key){
   return archetypeCount(key)>=(ARCHETYPES[key]?.coreAt||8);
+}
+function dominantArchetype(){
+  return Object.keys(ARCHETYPES).sort((a,b)=>archetypeCount(b)-archetypeCount(a))[0]||selectedBuild;
 }
 function createStarterDeck(char,buildKey){
   const ids=char.deck.slice();
@@ -1264,7 +1292,9 @@ function archetypeBadge(card){
 function archetypeSummary(){
   return Object.entries(ARCHETYPES).map(([key,arch])=>{
     const count=archetypeCount(key),active=count>=arch.coreAt;
-    return `<span class="arch-chip arch-${key}${active?" active":""}" title="${arch.desc}">${arch.icon} ${arch.short} <b>${count}/${arch.coreAt}</b>${active?" · 核心":""}</span>`;
+    const branchId=G.coreBranches?.[key];
+    const branch=CORE_BRANCHES[key]?.find(item=>item.id===branchId);
+    return `<span class="arch-chip arch-${key}${active?" active":""}" title="${branch?.desc||arch.desc}">${arch.icon} ${arch.short} <b>${count}/${arch.coreAt}</b>${branch?` · ${branch.name}`:active?" · 核心":""}</span>`;
   }).join("");
 }
 function recommendedArchetypeKey(){
@@ -1338,7 +1368,9 @@ function showGameView(name){
   els.gameBattle.style.display=name==="battle"?"flex":"none";
   els.gameReward.style.display=name==="reward"?"flex":"none";
   els.gameRoute.style.display=name==="route"?"flex":"none";
+  els.gameCore.style.display=name==="core"?"flex":"none";
   els.gameDeck.style.display=name==="deck"?"flex":"none";
+  els.gameUpgrade.style.display=name==="upgrade"?"flex":"none";
   els.gameEvent.style.display=name==="event"?"flex":"none";
   els.gameEnd.style.display=name==="end"?"flex":"none";
 }
@@ -1365,10 +1397,11 @@ function startGame(daily=false,charId=selectedCharId){
   G.routeHistory=[];
   G.pendingNode=null;
   G.currentNode={type:"start",name:"试岗项目"};
+  G.coreBranches={};
   G.encounter=0;G.log=[];G.running=false;G.ending=null;G.busy=false;G.relics=[];G.combo=0;G.fatigue=0;
   G.stageRatings=[];
   G.lastBattleRating=null;
-  G.runStats={damageTaken:0,damageDealt:0,cardsPlayed:0,minionKills:0,minionLosses:0,demandTicks:0,wastedEnergy:0,blocked:0,handBurned:0};
+  G.runStats={damageTaken:0,damageDealt:0,cardsPlayed:0,minionKills:0,minionLosses:0,demandTicks:0,wastedEnergy:0,blocked:0,handBurned:0,maxCombo:0,finalDemandKills:0};
   G.playerMinions=[];G.enemyMinions=[];G.selectedMinion=-1;
   const shuffled=shuffleArr(G.deck.slice());
   G.mulliganHand=shuffled.slice(0,G.drawCount);
@@ -1440,6 +1473,7 @@ function startBattle(prepared){
   G.enemy={name:base.name,baseName:base.name,emoji:base.emoji,tie:base.tie,hp:ehp,maxHp:ehp,strength:asc+strengthBonus,weak:0,vulnerable:0,stun:0,charged:0,armor:0,turns:0,deadlineUsed:false,intentIndex:0,intents:base.intents.slice(),flavor:base.flavor,firstBattle,mechanic:base.mechanic,routeTitle:route.name,elite};
   G.currentNode=route;
   G.pendingNode=null;
+  G.pendingCardIndex=-1;
   G.deck.forEach(card=>card.costPenalty=0);
   hideEnemyDecision();
   G.enemyMinions=[];G.playerMinions=[];G.selectedMinion=-1;
@@ -1451,8 +1485,9 @@ function startBattle(prepared){
     m.canAttack=false;
     return m;
   });
-  G.battleStats={damageTaken:0,damageDealt:0,cardsPlayed:0,minionKills:0,minionLosses:0,demandTicks:0,wastedEnergy:0,blocked:0,blockGained:0,handBurned:0};
+  G.battleStats={damageTaken:0,damageDealt:0,cardsPlayed:0,minionKills:0,minionLosses:0,demandTicks:0,wastedEnergy:0,blocked:0,blockGained:0,handBurned:0,maxCombo:0,finalDemandKills:0};
   G.firstAttackUsed=false;
+  G.cardsThisTurn=0;
   if(!prepared){
     G.hand=[];G.draw=shuffleArr(G.deck.slice());G.discard=[];
     drawCards(G.drawCount||5);
@@ -1681,8 +1716,10 @@ function makeMinion(key){
 }
 function renderMinions(){
   const tauntExists=G.enemyMinions.some(m=>m.taunt);
+  const spellTarget=G.pendingCardIndex>=0;
   const hud=els.gameBattle.querySelector(".enemy-hud");
   if(hud)hud.classList.toggle("targetable",G.selectedMinion>=0&&!tauntExists);
+  if(hud)hud.classList.toggle("spell-target",spellTarget);
   const build=(container,list,side)=>{
     container.innerHTML="";
     for(let i=0;i<3;i++){
@@ -1699,9 +1736,13 @@ function renderMinions(){
         if(m.justSummoned){d.classList.add("summoned");m.justSummoned=false;}
         if(side==="player"&&G.selectedMinion===i)d.classList.add("selected");
         if(side==="enemy"&&G.selectedMinion>=0&&(tauntExists?m.taunt:true))d.classList.add("targetable");
+        if(side==="enemy"&&spellTarget)d.classList.add("spell-target");
         const label=m.key==="demand"?`需求·积压${m.age||0}/${demandMergeAge()}`:m.key==="finaldemand"?"最终需求·高压":m.key==="revision"?"改稿·成长":m.key==="cousin"?"别人家的孩子·回血":m.name;
         d.innerHTML=`<div class="mname">${label}</div><div class="memoji">${m.emoji}</div><div class="mstats"><span class="matk">${m.atk}</span><span class="mhp">${m.hp}</span></div>`;
-        d.onclick=side==="player"?()=>selectMinion(i):()=>attackTarget("minion",i);
+        d.onclick=side==="player"?()=>{if(G.pendingCardIndex<0)selectMinion(i);}:()=>{
+          if(G.pendingCardIndex>=0)playGameCard(G.pendingCardIndex,{kind:"minion",index:i});
+          else attackTarget("minion",i);
+        };
       }
       container.appendChild(d);
     }
@@ -1709,10 +1750,11 @@ function renderMinions(){
   build(els.gEnemyBoard,G.enemyMinions,"enemy");
   build(els.gPlayerBoard,G.playerMinions,"player");
   if(els.gBoardHint){
-    els.gBoardHint.textContent=G.selectedMinion>=0&&G.playerMinions[G.selectedMinion]
+    els.gBoardHint.textContent=spellTarget?"攻击牌瞄准中：点击敌方英雄或随从":G.selectedMinion>=0&&G.playerMinions[G.selectedMinion]
       ? `已选择「${G.playerMinions[G.selectedMinion].name}」，点击敌方目标`
       : "点击自己的随从，再点敌方目标";
   }
+  els.gTargetHint?.classList.toggle("show",spellTarget);
 }
 function selectMinion(i){
   if(!G.running||G.busy)return;
@@ -1765,12 +1807,17 @@ function processDeaths(){
     if(m.deathrattle){
       if(m.deathrattle.draw)drawCards(m.deathrattle.draw);
       if(m.deathrattle.coins)G.player.coins+=m.deathrattle.coins;
-      if(m.deathrattle.heal)G.player.hp=Math.min(G.player.maxHp,G.player.hp+m.deathrattle.heal);
+      if(m.deathrattle.heal){
+        const heal=G.currentNode?.riskRule==="heal_cut"?Math.ceil(m.deathrattle.heal*.5):m.deathrattle.heal;
+        G.player.hp=Math.min(G.player.maxHp,G.player.hp+heal);
+      }
     }
   });
   const deadEnemies=G.enemyMinions.filter(m=>m.hp<=0);
   G.enemyMinions=G.enemyMinions.filter(m=>m.hp>0);
   if(G.battleStats&&deadEnemies.length)G.battleStats.minionKills+=deadEnemies.length;
+  if(G.battleStats&&deadEnemies.some(m=>m.key==="finaldemand"))G.battleStats.finalDemandKills+=1;
+  if(G.runStats&&deadEnemies.some(m=>m.key==="finaldemand"))G.runStats.finalDemandKills=(G.runStats.finalDemandKills||0)+1;
   deadEnemies.forEach(m=>logGame(`「${m.name}」倒下了`));
 }
 async function attackTarget(kind,index){
@@ -1807,7 +1854,7 @@ async function attackTarget(kind,index){
 }
 function useHeroPower(){
   if(!G.running||G.busy||G.player.heroPowerUsed||G.player.energy<2)return;
-  const gain=4+(archetypeCoreActive("shield")?2:0);
+  const gain=Math.max(0,4+(archetypeCoreActive("shield")?2:0)-(G.currentNode?.riskRule==="shield_cut"?2:0));
   G.player.energy-=2;
   G.player.block+=gain;
   if(G.battleStats)G.battleStats.blockGained=(G.battleStats.blockGained||0)+gain;
@@ -2185,10 +2232,10 @@ function renderGame(){
   G.hand.forEach((card,i)=>{
     const b=document.createElement("button");
     const full=card.type==="minion"&&G.playerMinions.length>=3;
-    b.className="game-card "+card.type+(card.rare?" rare":"")+" arch-"+cardArchetype(card).key+(G.player.energy<effectiveCost(card)||full?" disabled":"");
+    b.className="game-card "+card.type+(card.rare?" rare":"")+" arch-"+cardArchetype(card).key+(G.player.energy<effectiveCost(card)||full?" disabled":"")+(G.pendingCardIndex===i?" targeting":"");
     b.innerHTML=`${archetypeBadge(card)}${costBadge(card)}<div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
     b.style.setProperty("--i",i);
-    b.onclick=()=>playGameCard(i);
+    b.onclick=()=>selectCardForPlay(i);
     els.gHand.appendChild(b);
   });
   if(G.deal){
@@ -2224,10 +2271,33 @@ function damageEnemyHero(amount){
   const ebar=els.gEnemyHpFill.parentElement;
   if(ebar){ebar.classList.remove("damage");void ebar.offsetWidth;ebar.classList.add("damage");}
 }
-function playGameCard(i){
+function cardNeedsTarget(card){
+  return card?.type==="attack"&&!!card.dmg;
+}
+function selectCardForPlay(i){
   if(!G.running||G.busy)return;
   const card=G.hand[i];
   if(!card||G.player.energy<effectiveCost(card))return;
+  if(G.pendingCardIndex===i){
+    G.pendingCardIndex=-1;
+    renderGame();
+    return;
+  }
+  if(cardNeedsTarget(card)){
+    G.pendingCardIndex=i;
+    G.selectedMinion=-1;
+    playSfx("click");
+    renderGame();
+    return;
+  }
+  playGameCard(i);
+}
+function playGameCard(i,target=null){
+  if(!G.running||G.busy)return;
+  const card=G.hand[i];
+  if(!card||G.player.energy<effectiveCost(card))return;
+  if(cardNeedsTarget(card)&&!target)target={kind:"hero"};
+  G.pendingCardIndex=-1;
   G.busy=true;
   playSfx("whoosh");
   const el=els.gHand.children[i];
@@ -2254,13 +2324,26 @@ function playGameCard(i){
       setTimeout(()=>ghost.remove(),gs(450));
     }
   }
-  setTimeout(()=>{G.busy=false;resolveCard(i);},gs(420));
+  setTimeout(()=>{G.busy=false;resolveCard(i,target);},gs(420));
 }
-function resolveCard(i){
+function advanceCombo(){
+  const tempo=G.coreBranches?.combo==="tempo"&&(G.cardsThisTurn||0)===0;
+  G.combo+=(tempo?2:1);
+  G.cardsThisTurn=(G.cardsThisTurn||0)+1;
+  if(G.battleStats)G.battleStats.maxCombo=Math.max(G.battleStats.maxCombo||0,G.combo);
+  if(G.runStats)G.runStats.maxCombo=Math.max(G.runStats.maxCombo||0,G.combo);
+}
+function resolveCard(i,target=null){
   if(!G.running)return;
   const card=G.hand[i];
   if(!card)return;
   if(card.type==="minion"&&G.playerMinions.length>=3){logGame("随从位已满");return;}
+  const targetMinion=target?.kind==="minion"?G.enemyMinions[target.index]:null;
+  if(cardNeedsTarget(card)&&target?.kind==="minion"&&!targetMinion){
+    logGame("目标已经不存在，请重新选择");
+    renderGame();
+    return;
+  }
   G.player.energy-=effectiveCost(card);
   G.hand.splice(i,1);
   if(!card.exhaust)G.discard.push(card);
@@ -2269,14 +2352,17 @@ function resolveCard(i){
   showBubble("player",CARD_LINES[card.id]||"……");
   if(card.type==="minion"){
     const m=makeMinion(card.minion);
-    if(card.upgraded){m.atk+=1;m.hp+=1;m.maxHp+=1;}
+    if(card.upgraded){
+      const atkGain=card.upgradeAtk??1,hpGain=card.upgradeHp??1;
+      m.atk+=atkGain;m.hp+=hpGain;m.maxHp+=hpGain;
+    }
     G.playerMinions.push(m);
     logGame(`召唤「${m.name}」`);
     playSfx("summon");
     if(m.battlecry){
       if(m.battlecry.dmg)playerDamage(m.battlecry.dmg);
       if(m.battlecry.block){
-        const gain=m.battlecry.block+(archetypeCoreActive("shield")?2:0);
+        const gain=Math.max(0,m.battlecry.block+(archetypeCoreActive("shield")?2:0)-(G.currentNode?.riskRule==="shield_cut"?2:0));
         G.player.block+=gain;
         if(G.battleStats)G.battleStats.blockGained+=gain;
         playSfx("shield");
@@ -2284,7 +2370,7 @@ function resolveCard(i){
       if(m.battlecry.draw)drawCards(m.battlecry.draw);
     }
     if(G.tutorialStep===0)setTutorialStep(1);
-    G.combo++;
+    advanceCombo();
     if(G.combo%3===0){showCombo(`COMBO ×${G.combo} · 攻击 ${archetypeCoreActive("combo")?"+3":"+2"}`);playSfx("combo");}
     if(G.enemy.hp<=0){winBattle();return;}
     renderGame();
@@ -2294,16 +2380,36 @@ function resolveCard(i){
     const comboStep=archetypeCoreActive("combo")?3:2;
     const comboBonus=Math.min(9,Math.floor((G.combo+1)/3)*comboStep);
     const burstBonus=!G.firstAttackUsed&&archetypeCoreActive("burst")?4:0;
+    const finisherBonus=G.coreBranches?.combo==="finisher"&&G.combo>=3?3:0;
+    const desperateBonus=G.coreBranches?.burst==="desperate"&&G.player.hp<=G.player.maxHp*.35?5:0;
     G.firstAttackUsed=true;
-    let d=card.dmg+comboBonus+burstBonus;
+    let d=card.dmg+comboBonus+burstBonus+finisherBonus+desperateBonus;
     if(card.execute&&G.enemy.hp<G.enemy.maxHp/2)d+=card.execute;
     if(comboBonus)showCombo(`COMBO ×${G.combo} · +${comboBonus} 伤害`);
     if(burstBonus)showCombo(`发疯爆发核心 · +${burstBonus} 伤害`);
-    playerDamage(d);
+    if(finisherBonus)showCombo(`收尾暴击 · +${finisherBonus} 伤害`);
+    if(desperateBonus)showCombo(`背水一战 · +${desperateBonus} 伤害`);
+    if(targetMinion){
+      let finalDamage=d;
+      if(G.enemy.vulnerable>0)finalDamage=Math.round(finalDamage*1.5);
+      const dealt=dealToMinion(targetMinion,finalDamage);
+      const targetEl=els.gEnemyBoard.children[target.index];
+      launchAttackTrail(els.gHand.children[i]||els.gPlayerPortrait,targetEl,"#ff8a5c");
+      impactAtElement(targetEl,"#ff8a5c",true);
+      floatAtElement(dealt?`-${dealt}`:"SHIELD",dealt?"#ff6b81":"#f5d76e",targetEl);
+      logGame(`「${card.name}」对「${targetMinion.name}」造成 ${dealt} 点伤害`);
+      playSfx("hit");
+    }else{
+      playerDamage(d);
+    }
   }
-  if(card.heal){G.player.hp=Math.min(G.player.maxHp,G.player.hp+card.heal);playSfx("heal");}
+  if(card.heal){
+    const heal=G.currentNode?.riskRule==="heal_cut"?Math.ceil(card.heal*.5):card.heal;
+    G.player.hp=Math.min(G.player.maxHp,G.player.hp+heal);
+    playSfx("heal");
+  }
   if(card.block){
-    const gain=card.block+(archetypeCoreActive("shield")?2:0);
+    const gain=Math.max(0,card.block+(archetypeCoreActive("shield")?2:0)-(G.currentNode?.riskRule==="shield_cut"?2:0));
     G.player.block+=gain;
     if(G.battleStats)G.battleStats.blockGained+=gain;
     playSfx("shield");
@@ -2320,11 +2426,21 @@ function resolveCard(i){
     }
   }
   if(card.nextPenalty)G.player.nextPenalty=(G.player.nextPenalty||0)+card.nextPenalty;
-  if(card.selfDmg)G.player.hp-=card.selfDmg;
+  if(card.selfDmg){
+    let selfLoss=card.selfDmg;
+    if(G.coreBranches?.burst==="overdraft"&&G.player.block>0){
+      const absorbed=Math.min(G.player.block,selfLoss);
+      G.player.block-=absorbed;
+      selfLoss-=absorbed;
+      logGame(`风险透支：护盾抵消 ${absorbed} 点自损`);
+    }
+    G.player.hp-=selfLoss;
+  }
   if(card.vuln)G.enemy.vulnerable+=card.vuln;
   if(card.weak)G.enemy.weak+=card.weak;
   if(card.stun)G.enemy.stun+=card.stun;
-  G.combo++;
+  if(targetMinion)processDeaths();
+  advanceCombo();
   if(G.combo%3===0){
     showCombo(`COMBO ×${G.combo} · 攻击 +2`);
     playSfx("combo");
@@ -2492,6 +2608,7 @@ async function triggerEnemyMechanic(){
 }
 async function endTurn(){
   if(!G.running||G.busy)return;
+  G.pendingCardIndex=-1;
   if(G.tutorialStep===1){
     G.tutorialWaiting=true;
     els.gTutorialTip?.classList.remove("show");
@@ -2505,6 +2622,17 @@ async function endTurn(){
   board?.classList.add("enemy-turn");
   try{
     await waitGame(420);
+    if(G.coreBranches?.shield==="counter"&&G.player.block>0){
+      const counter=Math.floor(G.player.block*.5);
+      if(counter>0){
+        logGame(`护盾反震：对 ${G.enemy.name} 造成 ${counter} 点伤害`);
+        floatGameText(`-${counter}`,"#6ec6ff","enemy");
+        damageEnemyHero(counter);
+        renderGame();
+        await waitGame(360);
+        if(G.enemy.hp<=0){G.busy=false;winBattle();return;}
+      }
+    }
     if(G.enemy.stun>0){
       G.enemy.stun--;
       logGame(`${G.enemy.name} 被「已读不回」，本回合无法行动`);
@@ -2549,13 +2677,14 @@ async function endTurn(){
     G.turn++;
     G.combo=0;
     if(els.gCombo)els.gCombo.classList.remove("show");
-    G.player.block=0;
+    G.player.block=G.coreBranches?.shield==="retain"?Math.floor(G.player.block*.5):0;
     if(G.relics.some(r=>r.id==="muyu"))G.player.block+=3;
     G.player.maxEnergy=Math.min(5,G.player.maxEnergy+1);
     G.player.energy=Math.max(0,G.player.maxEnergy-(G.player.nextPenalty||0));
     G.player.nextPenalty=0;
     G.player.heroPowerUsed=false;
     G.firstAttackUsed=false;
+    G.cardsThisTurn=0;
     G.playerMinions.forEach(m=>{m.hasAttacked=false;m.canAttack=true;});
     drawCards((G.refillCount||3)+(G.relics.some(r=>r.id==="coffee")?1:0));
     if(G.tutorialWaiting){
@@ -2615,7 +2744,7 @@ function winBattle(){
 }
 function showDeck(mode){
   els.gDeckTitle.textContent=mode==="remove"?"删一张牌":"升级一张牌";
-  els.gDeckSub.textContent=mode==="remove"?"从牌组中永久移除一张牌。":"让一张牌变强：伤害/治疗/护盾 +2，随从 +1/+1。";
+  els.gDeckSub.textContent=mode==="remove"?"从牌组中永久移除一张牌。":"选择一张牌，再决定走“强化”还是“低耗”方向。";
   els.gDeckList.innerHTML="";
   G.deck.forEach((card,idx)=>{
     const b=document.createElement("button");
@@ -2627,8 +2756,8 @@ function showDeck(mode){
         logGame(`删除了「${removed.name}」`);
       }else{
         if(card.upgraded)return;
-        G.deck[idx]=upgradeCard(card);
-        logGame(`升级了「${card.name}」`);
+        openUpgradeChoice(idx);
+        return;
       }
       afterReward();
     };
@@ -2636,12 +2765,72 @@ function showDeck(mode){
   });
   showGameView("deck");
 }
+function upgradeOptions(card){
+  const heavy={...card,upgraded:true,upgradeKind:"heavy",name:card.name+"+"};
+  const efficient={...card,upgraded:true,upgradeKind:"efficient",name:card.name+"+"};
+  const heavyGains=[];
+  const efficientGains=[];
+  if(card.dmg){heavy.dmg+=3;heavyGains.push("伤害 +3");}
+  if(card.heal){heavy.heal+=3;heavyGains.push("回复 +3");}
+  if(card.block){heavy.block+=3;heavyGains.push("护盾 +3");}
+  if(card.draw){heavy.draw+=1;heavyGains.push("抽牌 +1");}
+  if(card.energy){heavy.energy+=1;heavyGains.push("能量 +1");}
+  if(card.coins){heavy.coins+=5;heavyGains.push("存款 +5");}
+  if(card.weak){heavy.weak+=1;heavyGains.push("虚弱 +1");}
+  if(card.vuln){heavy.vuln+=1;heavyGains.push("易伤 +1");}
+  if(card.type==="minion"){
+    heavy.upgradeAtk=2;heavy.upgradeHp=2;
+    heavyGains.push("随从 +2/+2");
+    efficient.upgradeAtk=0;efficient.upgradeHp=1;
+    efficientGains.push("随从生命 +1");
+  }
+  if(card.cost>0){
+    efficient.cost=Math.max(0,card.cost-1);
+    efficientGains.push("费用 -1");
+  }else{
+    if(card.nextPenalty){
+      efficient.nextPenalty=Math.max(0,card.nextPenalty-1);
+      efficientGains.push("下回合代价 -1");
+    }else{
+      efficient.draw=(efficient.draw||0)+1;
+      efficientGains.push("额外抽 1 张");
+    }
+  }
+  if(!heavyGains.length&&card.type!=="minion"){
+    heavy.draw=(heavy.draw||0)+1;
+    heavyGains.push("额外抽 1 张");
+  }
+  heavy.desc=`${card.desc}｜强化：${heavyGains.join("、")||"效果提升"}`;
+  efficient.desc=`${card.desc}｜低耗：${efficientGains.join("、")}`;
+  return [heavy,efficient];
+}
 function upgradeCard(card){
-  const copy={...card,upgraded:true,name:card.name+"+",desc:card.desc+"（升级）"};
-  if(copy.dmg)copy.dmg+=2;
-  if(copy.heal)copy.heal+=2;
-  if(copy.block)copy.block+=2;
-  return copy;
+  return upgradeOptions(card)[0];
+}
+function openUpgradeChoice(index){
+  const card=G.deck[index];
+  if(!card)return;
+  const options=upgradeOptions(card);
+  els.gUpgradeTitle.textContent=`「${card.name}」升级方向`;
+  els.gUpgradeSub.textContent="强化方向提高主要效果；低耗方向降低费用，改变出牌节奏。";
+  els.gUpgradeChoices.innerHTML="";
+  options.forEach((option,i)=>{
+    const arch=cardArchetype(option);
+    const b=document.createElement("button");
+    b.className="core-card";
+    b.style.setProperty("--core-color",arch.color);
+    b.innerHTML=`<div class="cc-icon">${i===0?"💥":"⚡"}</div><div class="cc-name">${i===0?"强化":"低耗"}</div><div class="cc-desc">${option.desc}</div><div class="cc-badge">${i===0?"更高上限":"更快节奏"}</div>`;
+    b.onclick=()=>chooseCardUpgrade(index,i);
+    els.gUpgradeChoices.appendChild(b);
+  });
+  showGameView("upgrade");
+}
+function chooseCardUpgrade(index,optionIndex){
+  const card=G.deck[index];
+  if(!card)return;
+  G.deck[index]=upgradeOptions(card)[optionIndex]||upgradeCard(card);
+  logGame(`「${card.name}」升级为「${G.deck[index].name}」`);
+  afterReward();
 }
 function showEvent(){
   const ev=EVENTS[Math.floor(rand()*EVENTS.length)];
@@ -2669,9 +2858,16 @@ function showRoute(){
     return `${index?'<span class="route-line"></span>':""}<span class="route-dot ${cls}">${label}</span>`;
   }).join("");
   els.gRouteGrid.innerHTML="";
+  const dominant=dominantArchetype();
+  const riskMap={
+    combo:{rule:"combo_tax",text:"本关每回合第一张牌费用 +1"},
+    shield:{rule:"shield_cut",text:"本关卡牌和技能护盾效果 -2"},
+    burst:{rule:"heal_cut",text:"本关卡牌回复效果减半"}
+  };
+  const risk=riskMap[dominant];
   const routes=[
     {...ROUTE_OPTIONS.stable,hpMult:.9,heal:8},
-    {...ROUTE_OPTIONS.urgent,hpMult:1.12,strengthBonus:1,rareReward:true,bonusStars:1},
+    {...ROUTE_OPTIONS.urgent,hpMult:1.12,strengthBonus:1,rareReward:true,bonusStars:1,riskRule:risk.rule,desc:`${ROUTE_OPTIONS.urgent.desc} 当前牌组风险：${risk.text}`},
     {...ROUTE_OPTIONS.training,startBlock:8}
   ];
   routes.forEach((route,index)=>{
@@ -2706,6 +2902,29 @@ function chooseRoute(route){
   G.routeHistory.push({type:route.type,name:route.name});
   G.pendingNode=route;
   startBattle();
+}
+function showCoreChoice(key){
+  const arch=ARCHETYPES[key];
+  const branches=CORE_BRANCHES[key]||[];
+  els.gCoreTitle.textContent=`${arch.icon} ${arch.name} · 核心觉醒`;
+  els.gCoreChoices.innerHTML="";
+  branches.forEach(branch=>{
+    const b=document.createElement("button");
+    b.className="core-card";
+    b.style.setProperty("--core-color",arch.color);
+    b.innerHTML=`<div class="cc-icon">${branch.icon}</div><div class="cc-name">${branch.name}</div><div class="cc-desc">${branch.desc}</div><div class="cc-badge">本局只能选择一次</div>`;
+    b.onclick=()=>chooseCoreBranch(key,branch.id);
+    els.gCoreChoices.appendChild(b);
+  });
+  showGameView("core");
+}
+function chooseCoreBranch(key,branchId){
+  const branch=CORE_BRANCHES[key].find(item=>item.id===branchId);
+  G.coreBranches=(G.coreBranches||{});
+  G.coreBranches[key]=branchId;
+  logGame(`${ARCHETYPES[key].name}觉醒：${branch.name}`);
+  flash(`${branch.icon} ${branch.name}`);
+  afterReward();
 }
 function afterReward(){
   if(G.encounter>=5){showEnding(false);return;}
@@ -2750,9 +2969,10 @@ function showReward(){
       logGame(`获得新卡「${card.name}」`);
       if(!wasCore&&nowCore){
         logGame(`${ARCHETYPES[key].name}核心已激活`);
-        flash(`${ARCHETYPES[key].icon} ${ARCHETYPES[key].name}核心激活`);
+        showCoreChoice(key);
+      }else{
+        afterReward();
       }
-      afterReward();
     };
     els.gRewards.appendChild(b);
   });
@@ -2765,6 +2985,36 @@ function showReward(){
     b.onclick=()=>{G.relics.push(relic);logGame(`获得遗物「${relic.name}」`);afterReward();};
     els.gRewards.appendChild(b);
   }
+}
+function recordRunAchievements(defeated){
+  const state={
+    victory:!defeated&&G.encounter>=5,
+    hp:Math.max(0,G.player.hp),
+    stars:G.ending?.stars||0,
+    maxCombo:G.runStats?.maxCombo||0,
+    finalDemandKills:G.runStats?.finalDemandKills||0
+  };
+  let unlockedAchievements=[];
+  try{unlockedAchievements=JSON.parse(localStorage.getItem("oneline_achievements")||"[]");}catch(e){}
+  if(!Array.isArray(unlockedAchievements))unlockedAchievements=[];
+  const newOnes=ACHIEVEMENTS.filter(item=>!unlockedAchievements.includes(item.id)&&item.test(state));
+  if(newOnes.length){
+    unlockedAchievements.push(...newOnes.map(item=>item.id));
+    try{localStorage.setItem("oneline_achievements",JSON.stringify(unlockedAchievements));}catch(e){}
+  }
+  G.newAchievements=newOnes;
+  let history=[];
+  try{history=JSON.parse(localStorage.getItem("oneline_run_history")||"[]");}catch(e){}
+  if(!Array.isArray(history))history=[];
+  history.unshift({
+    date:dateKey(),
+    victory:state.victory,
+    stage:Math.min(G.encounter,5),
+    stars:state.stars,
+    build:G.build||"combo",
+    hp:state.hp
+  });
+  try{localStorage.setItem("oneline_run_history",JSON.stringify(history.slice(0,5)));}catch(e){}
 }
 function finishRun(defeated){
   if(G.rewarded)return;
@@ -2780,6 +3030,7 @@ function finishRun(defeated){
   const earned=10+Math.floor(hp/5)+Math.floor(G.player.coins/10)+(defeated?0:10)+(G.isDaily?10:0);
   addPoints(earned);
   G.lastPoints=earned;
+  recordRunAchievements(defeated);
   if(!defeated&&ascension<5){
     ascension++;
     try{localStorage.setItem("oneline_ascension",String(ascension));}catch(e){}
@@ -2805,9 +3056,17 @@ function updateHubStatus(){
   if(els.hubPoints)els.hubPoints.textContent=points;
   if(els.dailyStatus){
     const today=dateKey();
-    let last=null,streak=0,best=0;
-    try{last=localStorage.getItem("oneline_daily_last");streak=parseInt(localStorage.getItem("oneline_daily_streak")||"0",10)||0;best=parseInt(localStorage.getItem("oneline_best_stars")||"0",10)||0;}catch(e){}
-    els.dailyStatus.textContent=(last===today?`今日挑战已完成 · 连胜 ${streak||1} 天`:`今日挑战未完成 · 连胜 ${streak} 天`)+` · 最佳 ${best}★ · 进阶 ${ascension}`;
+    let last=null,streak=0,best=0,history=[],achievements=[];
+    try{
+      last=localStorage.getItem("oneline_daily_last");
+      streak=parseInt(localStorage.getItem("oneline_daily_streak")||"0",10)||0;
+      best=parseInt(localStorage.getItem("oneline_best_stars")||"0",10)||0;
+      history=JSON.parse(localStorage.getItem("oneline_run_history")||"[]");
+      achievements=JSON.parse(localStorage.getItem("oneline_achievements")||"[]");
+    }catch(e){}
+    const latest=Array.isArray(history)&&history[0]?` · 最近 ${history[0].stage}/5 · ${history[0].stars}★`:"";
+    const ach=Array.isArray(achievements)&&achievements.length?` · 成就 ${achievements.length}/${ACHIEVEMENTS.length}`:"";
+    els.dailyStatus.textContent=(last===today?`今日挑战已完成 · 连胜 ${streak||1} 天`:`今日挑战未完成 · 连胜 ${streak} 天`)+` · 最佳 ${best}★ · 进阶 ${ascension}${latest}${ach}`;
   }
 }
 function shareRun(){
@@ -2939,7 +3198,8 @@ function showEnding(defeated){
       const losses=parseInt(localStorage.getItem("oneline_stage1_losses")||"0",10)||0;
       if(defeated&&G.encounter===0&&losses>=2)coachNote=" · 下一局将开启教练模式";
     }catch(e){}
-    els.gameEndHint.textContent=`工分 +${G.lastPoints||0}${G.coachMode?" · 教练模式":""} · ${ARCHETYPES[G.build||"combo"].name} · 历史最佳 ${bestStars}★${G.isDaily?` · 连胜 ${G.streak||1} 天`:""} · 进阶 ${ascension}${coachNote}`;
+    const achievementNote=G.newAchievements?.length?` · 新成就：${G.newAchievements.map(item=>item.name).join("、")}`:"";
+    els.gameEndHint.textContent=`工分 +${G.lastPoints||0}${G.coachMode?" · 教练模式":""} · ${ARCHETYPES[G.build||"combo"].name} · 历史最佳 ${bestStars}★${G.isDaily?` · 连胜 ${G.streak||1} 天`:""} · 进阶 ${ascension}${coachNote}${achievementNote}`;
   }
   if(els.gameRunRating){
     els.gameRunRating.style.display="flex";
@@ -3118,12 +3378,22 @@ els.buildConfirm.onclick=confirmBuild;
 els.mulliganKeep.onclick=()=>{G.mulliganSelected.clear();confirmMulligan();};
 els.mulliganConfirm.onclick=confirmMulligan;
 els.gHeroPower.onclick=useHeroPower;
-els.gameBattle.querySelector(".enemy-hud").onclick=()=>attackTarget("hero");
+els.gameBattle.querySelector(".enemy-hud").onclick=()=>{
+  if(G.pendingCardIndex>=0)playGameCard(G.pendingCardIndex,{kind:"hero"});
+  else attackTarget("hero");
+};
+document.addEventListener("keydown",event=>{
+  if(event.key==="Escape"&&G.pendingCardIndex>=0){
+    G.pendingCardIndex=-1;
+    renderGame();
+  }
+});
 els.gEndTurn.onclick=endTurn;
 els.gSkip.onclick=()=>{G.player.hp=Math.min(G.player.maxHp,G.player.hp+15);logGame("跳过奖励，回复 15 点精神值");afterReward();};
 els.gRemove.onclick=()=>showDeck("remove");
 els.gUpgrade.onclick=()=>showDeck("upgrade");
 els.gDeckCancel.onclick=()=>showGameView("reward");
+els.gUpgradeBack.onclick=()=>showDeck("upgrade");
 els.gameAgain.onclick=()=>openCharacterSelect("free");
 els.gameSave.onclick=saveEnding;
 els.gameShare.onclick=shareRun;
@@ -3157,13 +3427,15 @@ try{
   if(q.get("gamebubble")==="1"){openGame();startGameFast();setTimeout(()=>showBubble("player","谁也别拦我，我今天就要发疯！"),300);setTimeout(()=>showBubble("enemy","这个需求，今天必须上线。"),900);}
   if(q.get("gamereward")==="1"){openGame();startGameFast();G.encounter=1;G.lastBattleRating={stars:3,hpPct:.7,turns:4,kills:3,notes:["精神值保持过半","四回合内解决"]};G.stageRatings=[G.lastBattleRating];showReward();}
   if(q.get("route")==="1"){openGame();startGameFast();G.encounter=1;showRoute();}
+  if(q.get("core")==="1"){openGame();startGameFast();G.encounter=1;showCoreChoice("combo");}
+  if(q.get("upgrade")==="1"){openGame();startGameFast();G.encounter=1;showDeck("upgrade");setTimeout(()=>openUpgradeChoice(0),100);}
   if(q.get("gamedeck")==="1"){openGame();startGameFast();G.encounter=1;showDeck("remove");}
   if(q.get("gameplay")==="1"){openGame();startGameFast();setTimeout(()=>playGameCard(0),300);}
   if(q.get("gameevent")==="1"){openGame();startGameFast();setTimeout(()=>showEvent(),200);}
   if(q.get("gameenemy")==="1"){openGame();startGameFast();setTimeout(()=>endTurn(),1800);}
   if(q.get("gamedefeat")==="1"){openGame();startGameFast();setTimeout(()=>{G.turn=4;G.player.hp=0;G.enemyMinions=[makeMinion("demand"),makeMinion("demand"),makeMinion("demand")];G.battleStats={damageTaken:47,damageDealt:29,cardsPlayed:8,minionKills:0,minionLosses:2,demandTicks:6,wastedEnergy:9,blocked:8,blockGained:17,handBurned:1};showEnding(true);},300);}
   if(q.get("gameend")==="1"){openGame();G.player={hp:32,maxHp:70,energy:3,maxEnergy:3,block:0,coins:42};G.encounter=5;G.turn=8;G.build="combo";G.stageRatings=[{stars:3},{stars:2},{stars:3},{stars:2},{stars:3}];showEnding(false);}
-  const direct=location.hash==="#play"||["game","dailygame","collection","characters","build","intern","dailyresult","gamebattle","gamemulligan","gameminion","gamebubble","gamereward","route","gameplay","gameevent","gameend","app"].some(k=>q.has(k));
+  const direct=location.hash==="#play"||["game","dailygame","collection","characters","build","intern","dailyresult","gamebattle","gamemulligan","gameminion","gamebubble","gamereward","route","core","upgrade","gameplay","gameevent","gameend","app"].some(k=>q.has(k));
   showCover();
   if(direct)stopCoverLoop();
 }catch(e){}
