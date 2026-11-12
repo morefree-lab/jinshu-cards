@@ -82,6 +82,9 @@
           <p><b>随从威胁：</b>「需求」会加攻并直伤，「改稿」持续成长，「别人家的孩子」会回血拖延。</p>
           <p><b>受击预判：</b>结束回合旁会拆解下一轮的敌方卡牌、随从和需求伤害，并计算护盾后的预计掉血。</p>
           <p><b>卡牌流派：</b>嘴炮连招、护盾反击、发疯爆发各有独立核心效果；奖励会按三个方向分别展示。</p>
+          <p><b>开局方向：</b>选角色后再选工作方式，开局牌组会向对应流派倾斜，第一张同流派奖励即可激活核心。</p>
+          <p><b>对手机制：</b>老板会合并积压需求，甲方会改高手牌费用，亲戚会根据你的场面回复和加攻。</p>
+          <p><b>关卡评价：</b>剩余精神值越多、解决得越快，星级越高；三关总星数和历史最佳会保存在本机。</p>
           <p><b>难度递进：</b>第一关首轮只挨一次敌方动作；第二关开始满场铺压，通关后会进入更高的进阶等级。</p>
           <p><b>战后成长：</b>每场胜利后可以选新卡、遗物，或回血；还会遇到随机事件。</p>
           <p><b>失败条件：</b>精神值归零。撑过三场遭遇即可结算战绩。</p>
@@ -100,6 +103,16 @@
       <div class="modal-actions">
         <button class="btn" id="characterBack">返回</button>
         <button class="btn primary" id="characterConfirm">用这个角色上班</button>
+      </div>
+    </div>
+    <div class="game-view" id="gameBuild" style="display:none">
+      <div class="game-title">选择你的工作方式</div>
+      <div class="game-sub">开局牌组会向你选择的方向倾斜，第一张同流派奖励就能激活核心。</div>
+      <div class="build-grid" id="gBuildGrid"></div>
+      <div class="build-note">这不是永久职业，本局选定的方向可以随时用删牌和后续奖励调整。</div>
+      <div class="modal-actions">
+        <button class="btn" id="buildBack">返回角色</button>
+        <button class="btn primary" id="buildConfirm">就按这套来</button>
       </div>
     </div>
     <div class="game-view" id="gameMulligan" style="display:none">
@@ -170,6 +183,7 @@
     <div class="game-view" id="gameReward" style="display:none">
       <div class="game-title">战斗结束</div>
       <div class="game-sub">选一张牌加入牌组，或者跳过回血</div>
+      <div class="level-rating" id="gLevelRating"></div>
       <div class="reward-build" id="gRewardBuild"></div>
       <div class="game-rewards" id="gRewards"></div>
       <button class="btn" id="gSkip">跳过，回复 15 点精神值</button>
@@ -191,6 +205,7 @@
     </div>
     <div class="game-view" id="gameEnd" style="display:none">
       <canvas id="gameEndCanvas" width="1080" height="1440"></canvas>
+      <div class="run-rating" id="gameRunRating" style="display:none"></div>
       <div class="run-review" id="gameReview" style="display:none"></div>
       <div class="modal-actions">
         <button class="btn" id="gameAgain">再上一班</button>

@@ -157,6 +157,7 @@ const els={
   gameBtn:$("gameBtn"),startFromHub:$("startFromHub"),rulesBtn:$("rulesBtn"),dailyChallengeBtn:$("dailyChallengeBtn"),collectionBtn:$("collectionBtn"),hubPoints:$("hubPoints"),dailyStatus:$("dailyStatus"),
   gameModal:$("gameModal"),gameClose:$("gameClose"),gameMenu:$("gameMenu"),gameStart:$("gameStart"),
   gameCharacter:$("gameCharacter"),characterGrid:$("characterGrid"),characterBack:$("characterBack"),characterConfirm:$("characterConfirm"),charPoints:$("charPoints"),
+  gameBuild:$("gameBuild"),gBuildGrid:$("gBuildGrid"),buildBack:$("buildBack"),buildConfirm:$("buildConfirm"),
   gameMulligan:$("gameMulligan"),gMulliganHand:$("gMulliganHand"),gMulliganCount:$("gMulliganCount"),
   mulliganKeep:$("mulliganKeep"),mulliganConfirm:$("mulliganConfirm"),
   gSound:$("gSound"),gSpeed:$("gSpeed"),gEmbers:$("gEmbers"),gBattleIntro:$("gBattleIntro"),gIntroKicker:$("gIntroKicker"),
@@ -170,10 +171,10 @@ const els={
   gPlayerBubble:$("gPlayerBubble"),gEnemyBubble:$("gEnemyBubble"),gHurtFlash:$("gHurtFlash"),
   gRelics:$("gRelics"),
   gEndTurn:$("gEndTurn"),gForecast:$("gForecast"),gForecastValue:$("gForecastValue"),gForecastText:$("gForecastText"),
-  gameReward:$("gameReward"),gRewardBuild:$("gRewardBuild"),gRewards:$("gRewards"),gSkip:$("gSkip"),gRemove:$("gRemove"),gUpgrade:$("gUpgrade"),
+  gameReward:$("gameReward"),gLevelRating:$("gLevelRating"),gRewardBuild:$("gRewardBuild"),gRewards:$("gRewards"),gSkip:$("gSkip"),gRemove:$("gRemove"),gUpgrade:$("gUpgrade"),
   gameDeck:$("gameDeck"),gDeckTitle:$("gDeckTitle"),gDeckSub:$("gDeckSub"),gDeckList:$("gDeckList"),gDeckCancel:$("gDeckCancel"),
   gameEvent:$("gameEvent"),gEventTitle:$("gEventTitle"),gEventDesc:$("gEventDesc"),gEventChoices:$("gEventChoices"),
-  gameEnd:$("gameEnd"),gameEndCanvas:$("gameEndCanvas"),gameReview:$("gameReview"),gameAgain:$("gameAgain"),gameSave:$("gameSave"),gameShare:$("gameShare"),gameEndHint:$("gameEndHint"),
+  gameEnd:$("gameEnd"),gameEndCanvas:$("gameEndCanvas"),gameRunRating:$("gameRunRating"),gameReview:$("gameReview"),gameAgain:$("gameAgain"),gameSave:$("gameSave"),gameShare:$("gameShare"),gameEndHint:$("gameEndHint"),
   collectionModal:$("collectionModal"),collectionClose:$("collectionClose"),colPoints:$("colPoints"),colProgress:$("colProgress"),collectionGrid:$("collectionGrid"),collectionTabs:$("collectionTabs")
 };
 
@@ -291,9 +292,9 @@ const GAME_CARDS=[
   {id:"c29",name:"加班",cost:0,type:"skill",desc:"获得 2 法力，下回合少 2 法力。消耗。",energy:2,nextPenalty:2,exhaust:true,emoji:"🌃",rare:true}
 ];
 const ARCHETYPES={
-  combo:{name:"嘴炮连招",short:"连招",icon:"💬",coreAt:8,desc:"连续出牌叠高 COMBO，用攻击节奏压制对手。"},
-  shield:{name:"护盾反击",short:"护盾",icon:"🛡",coreAt:8,desc:"先叠护盾再反击，把敌方的爆发变成你的节奏。"},
-  burst:{name:"发疯爆发",short:"爆发",icon:"🔥",coreAt:4,desc:"用高伤和自损牌抢回合，在精神值见底前结束战斗。"}
+  combo:{name:"嘴炮连招",short:"连招",icon:"💬",coreAt:8,color:"#b998ff",desc:"连续出牌叠高 COMBO，用攻击节奏压制对手。"},
+  shield:{name:"护盾反击",short:"护盾",icon:"🛡",coreAt:8,color:"#6ec6ff",desc:"先叠护盾再反击，把敌方的爆发变成你的节奏。"},
+  burst:{name:"发疯爆发",short:"爆发",icon:"🔥",coreAt:4,color:"#ff8a5c",desc:"用高伤和自损牌抢回合，在精神值见底前结束战斗。"}
 };
 const CARD_ARCHETYPE={
   c1:"combo",c2:"combo",c3:"shield",c4:"burst",c5:"burst",c6:"combo",c7:"combo",
@@ -303,9 +304,9 @@ const CARD_ARCHETYPE={
 };
 const GAME_START_DECK=["c1","c1","c1","c1","c8","c8","c9","c3","c2","c12","c17","c21","c23"];
 const GAME_ENEMIES=[
-  {name:"老板",emoji:"👔",tie:"#c0392b",hp:58,starters:["demand","demand"],intents:["attack:12","summon:demand","charge:30","release"],flavor:"画饼中……"},
-  {name:"甲方",emoji:"📋",tie:"#3b6ea5",hp:74,starters:["revision","revision","cousin"],intents:["attack:14","summon:revision","attack:18","charge:34","release"],flavor:"再改一版……"},
-  {name:"亲戚",emoji:"🧧",tie:"#d9a441",hp:90,starters:["cousin","cousin","revision"],intents:["attack:11","summon:cousin","heal:8","charge:30","release"],flavor:"怎么还不结婚……"}
+  {name:"老板",emoji:"👔",tie:"#c0392b",hp:68,starters:["demand","demand"],mechanic:"积压 2 轮的需求会合并成「最终需求」",intents:["attack:12","summon:demand","charge:30","release"],flavor:"画饼中……"},
+  {name:"甲方",emoji:"📋",tie:"#3b6ea5",hp:74,starters:["revision","revision","cousin"],mechanic:"会改高手牌费用，逼你重排出牌顺序",intents:["attack:14","summon:revision","attack:18","charge:34","release"],flavor:"再改一版……"},
+  {name:"亲戚",emoji:"🧧",tie:"#d9a441",hp:90,starters:["cousin","cousin","revision"],mechanic:"你铺得越多，它回复和加攻越高",intents:["attack:11","summon:cousin","heal:8","charge:30","release"],flavor:"怎么还不结婚……"}
 ];
 const MINIONS={
   intern:{name:"实习生",emoji:"🧑‍💼",atk:1,hp:3,taunt:true},
@@ -315,6 +316,7 @@ const MINIONS={
   grinder:{name:"卷王",emoji:"🔥",atk:4,hp:3,charge:true},
   pie:{name:"老板的饼",emoji:"🥞",atk:0,hp:5,taunt:true,deathrattle:{coins:10}},
   demand:{name:"需求",emoji:"📄",atk:0,hp:3,taunt:true},
+  finaldemand:{name:"最终需求",emoji:"📦",atk:3,hp:7,taunt:true},
   revision:{name:"改稿",emoji:"✏️",atk:1,hp:2,charge:true},
   cousin:{name:"别人家的孩子",emoji:"👦",atk:2,hp:3,taunt:true}
 };
@@ -345,6 +347,11 @@ let selectedCharId="worker";
 try{
   const saved=localStorage.getItem("oneline_character");
   if(saved&&CHARACTERS.some(c=>c.id===saved)&&isUnlocked(saved))selectedCharId=saved;
+}catch(e){}
+let selectedBuild="combo";
+try{
+  const savedBuild=localStorage.getItem("oneline_build");
+  if(savedBuild&&ARCHETYPES[savedBuild])selectedBuild=savedBuild;
 }catch(e){}
 let ascension=0;
 try{ascension=parseInt(localStorage.getItem("oneline_ascension")||"0",10)||0;}catch(e){}
@@ -400,6 +407,35 @@ function unlockCharacter(c){
 function confirmCharacter(){
   if(!isUnlocked(selectedCharId)){openCollection();return;}
   try{localStorage.setItem("oneline_character",selectedCharId);}catch(e){}
+  openBuildSelect();
+}
+function openBuildSelect(){
+  renderBuildSelect();
+  showGameView("build");
+}
+function renderBuildSelect(){
+  if(!els.gBuildGrid)return;
+  const char=CHARACTERS.find(c=>c.id===selectedCharId)||CHARACTERS[0];
+  els.gBuildGrid.innerHTML="";
+  Object.entries(ARCHETYPES).forEach(([key,arch])=>{
+    const deck=createStarterDeck(char,key);
+    const count=deck.filter(id=>CARD_ARCHETYPE[id]===key).length;
+    const coreText={
+      combo:"核心：COMBO 攻击加成提升到 +3",
+      shield:"核心：卡牌和英雄技能额外 +2 护盾",
+      burst:"核心：每回合第一张攻击牌 +4 伤害"
+    }[key];
+    const d=document.createElement("div");
+    d.className="build-card"+(selectedBuild===key?" selected":"");
+    d.style.setProperty("--build-color",arch.color);
+    d.style.setProperty("--build-glow",hexA(arch.color,.16));
+    d.innerHTML=`<div class="bc-icon">${arch.icon}</div><div class="bc-name">${arch.name}</div><div class="bc-desc">${arch.desc}</div><div class="bc-core">${coreText}</div><div class="bc-count">${char.name}开局 · ${arch.short}牌 ${count}/${arch.coreAt} · 第一张同流派奖励激活核心</div>`;
+    d.onclick=()=>{selectedBuild=key;renderBuildSelect();playSfx("click");};
+    els.gBuildGrid.appendChild(d);
+  });
+}
+function confirmBuild(){
+  try{localStorage.setItem("oneline_build",selectedBuild);}catch(e){}
   startGame(pendingCharacterMode==="daily",selectedCharId);
 }
 function hashString(s){
@@ -1161,7 +1197,18 @@ function shareDiag(){
 
 let G={player:null,deck:[],hand:[],draw:[],discard:[],enemy:null,encounter:0,turn:1,running:false,log:[],ending:null,busy:false,relics:[],deal:false,combo:0,playerMinions:[],enemyMinions:[],selectedMinion:-1,mulliganHand:[],mulliganDraw:[],mulliganSelected:new Set(),pendingMulligan:false};
 let gameSpeed=1;
+let cardUid=0;
 function gs(ms){return Math.max(120,Math.round(ms/gameSpeed));}
+function cloneGameCard(card){
+  return {...card,_uid:++cardUid,costPenalty:0};
+}
+function effectiveCost(card){
+  return Math.max(0,(card?.cost||0)+(card?.costPenalty||0));
+}
+function costBadge(card){
+  const penalty=card?.costPenalty||0;
+  return `<span class="cost${penalty?" taxed":""}"${penalty?` title="甲方改价 +${penalty}"`:""}>${effectiveCost(card)}</span>`;
+}
 function cardArchetype(card){
   const key=CARD_ARCHETYPE[card?.id]||"combo";
   return {key,...ARCHETYPES[key]};
@@ -1171,6 +1218,29 @@ function archetypeCount(key){
 }
 function archetypeCoreActive(key){
   return archetypeCount(key)>=(ARCHETYPES[key]?.coreAt||8);
+}
+function createStarterDeck(char,buildKey){
+  const ids=char.deck.slice();
+  const target=buildKey==="burst"?3:7;
+  const pools={
+    combo:["c2","c7","c17"],
+    shield:["c11","c12","c15"],
+    burst:["c4","c28","c4"]
+  };
+  let count=ids.filter(id=>CARD_ARCHETYPE[id]===buildKey).length,poolIndex=0;
+  while(count<target){
+    let donorIndex=-1;
+    for(let i=ids.length-1;i>=0;i--){
+      if(CARD_ARCHETYPE[ids[i]]!==buildKey&&ids[i]!=="c21"){
+        donorIndex=i;
+        break;
+      }
+    }
+    if(donorIndex<0)break;
+    ids[donorIndex]=pools[buildKey][poolIndex++%pools[buildKey].length];
+    count++;
+  }
+  return ids;
 }
 function archetypeBadge(card){
   const arch=cardArchetype(card);
@@ -1185,6 +1255,7 @@ function archetypeSummary(){
 function showGameView(name){
   els.gameMenu.style.display=name==="menu"?"flex":"none";
   els.gameCharacter.style.display=name==="character"?"flex":"none";
+  els.gameBuild.style.display=name==="build"?"flex":"none";
   els.gameMulligan.style.display=name==="mulligan"?"flex":"none";
   els.gameBattle.style.display=name==="battle"?"flex":"none";
   els.gameReward.style.display=name==="reward"?"flex":"none";
@@ -1200,6 +1271,7 @@ function openGame(){
 function startGame(daily=false,charId=selectedCharId){
   const char=CHARACTERS.find(c=>c.id===charId)||CHARACTERS[0];
   G.character=char;
+  G.build=selectedBuild;
   G.drawCount=char.draw;
   G.refillCount=char.id==="intern"?4:3;
   G.ascension=ascension;
@@ -1208,8 +1280,10 @@ function startGame(daily=false,charId=selectedCharId){
   G.rng=mulberry32(hashString(G.seed));
   G.rewarded=false;G.lastPoints=0;G.streak=0;
   G.player={hp:char.hp,maxHp:char.hp,energy:3,maxEnergy:3,block:0,coins:0,heroPowerUsed:false,nextPenalty:0};
-  G.deck=char.deck.map(id=>GAME_CARDS.find(c=>c.id===id));
+  G.deck=createStarterDeck(char,G.build).map(id=>cloneGameCard(GAME_CARDS.find(c=>c.id===id)));
   G.encounter=0;G.log=[];G.running=false;G.ending=null;G.busy=false;G.relics=[];G.combo=0;G.fatigue=0;
+  G.stageRatings=[];
+  G.lastBattleRating=null;
   G.runStats={damageTaken:0,damageDealt:0,cardsPlayed:0,minionKills:0,minionLosses:0,demandTicks:0,wastedEnergy:0,blocked:0,handBurned:0};
   G.playerMinions=[];G.enemyMinions=[];G.selectedMinion=-1;
   const shuffled=shuffleArr(G.deck.slice());
@@ -1226,7 +1300,7 @@ function showMulligan(){
   G.mulliganHand.forEach((card,i)=>{
     const b=document.createElement("button");
     b.className="game-card "+card.type+(card.rare?" rare":"")+" arch-"+cardArchetype(card).key;
-    b.innerHTML=`${archetypeBadge(card)}<span class="cost">${card.cost}</span><div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
+    b.innerHTML=`${archetypeBadge(card)}${costBadge(card)}<div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
     b.onclick=()=>{
       if(G.mulliganSelected.has(i))G.mulliganSelected.delete(i);
       else if(G.mulliganSelected.size<2)G.mulliganSelected.add(i);
@@ -1265,6 +1339,7 @@ function startBattle(prepared){
   const firstBattle=G.encounter===0&&asc===0;
   const ehp=Math.round(base.hp*(1+0.2*asc));
   G.enemy={name:base.name,emoji:base.emoji,tie:base.tie,hp:ehp,maxHp:ehp,strength:asc,weak:0,vulnerable:0,stun:0,charged:0,armor:0,turns:0,deadlineUsed:false,intentIndex:0,intents:base.intents.slice(),flavor:base.flavor,firstBattle};
+  G.deck.forEach(card=>card.costPenalty=0);
   hideEnemyDecision();
   G.enemyMinions=[];G.playerMinions=[];G.selectedMinion=-1;
   G.enemyMinions=(base.starters||[]).map(k=>{
@@ -1320,6 +1395,7 @@ function drawCards(n){
       logGame(`手牌已满，「${card.name}」被挤掉了`);
       continue;
     }
+    card.costPenalty=0;
     G.hand.push(card);
   }
 }
@@ -1355,10 +1431,8 @@ function showBattleIntro(){
   els.gIntroKicker.textContent=`ENCOUNTER ${G.encounter+1}${G.enemy.firstBattle?" · 试岗局":""}`;
   els.gIntroName.textContent=G.enemy.name;
   els.gIntroSub.textContent=G.enemy.firstBattle
-    ?"先观察、再出牌。犯错也有容错空间。"
-    :G.encounter===1
-      ?"加压局：对手会连续执行两个动作。"
-      :"决胜局：先算清敌方随从的持续威胁。";
+    ?"试岗提示：先解需求，积压 2 轮会合并。"
+    :GAME_ENEMIES[G.encounter]?.mechanic||G.enemy.flavor;
   b.classList.remove("show");
   void b.offsetWidth;
   b.classList.add("show");
@@ -1483,7 +1557,7 @@ function showSweepWave(){
 }
 function makeMinion(key){
   const d=MINIONS[key];
-  return {key,name:d.name,emoji:d.emoji,atk:d.atk,hp:d.hp,maxHp:d.hp,taunt:!!d.taunt,charge:!!d.charge,divineShield:!!d.divineShield,battlecry:d.battlecry,deathrattle:d.deathrattle,canAttack:!!d.charge,hasAttacked:false};
+  return {key,name:d.name,emoji:d.emoji,atk:d.atk,hp:d.hp,maxHp:d.hp,taunt:!!d.taunt,charge:!!d.charge,divineShield:!!d.divineShield,battlecry:d.battlecry,deathrattle:d.deathrattle,canAttack:!!d.charge,hasAttacked:false,age:0};
 }
 function renderMinions(){
   const tauntExists=G.enemyMinions.some(m=>m.taunt);
@@ -1501,11 +1575,11 @@ function renderMinions(){
         d.classList.toggle("taunt",!!m.taunt);
         d.classList.toggle("shield",!!m.divineShield);
         d.classList.toggle("exhausted",!m.canAttack||m.hasAttacked);
-        if(["demand","revision","cousin"].includes(m.key))d.classList.add("danger-minion");
+        if(["demand","finaldemand","revision","cousin"].includes(m.key))d.classList.add("danger-minion");
         if(m.justSummoned){d.classList.add("summoned");m.justSummoned=false;}
         if(side==="player"&&G.selectedMinion===i)d.classList.add("selected");
         if(side==="enemy"&&G.selectedMinion>=0&&(tauntExists?m.taunt:true))d.classList.add("targetable");
-        const label=m.key==="demand"?"需求·增攻":m.key==="revision"?"改稿·成长":m.key==="cousin"?"别人家的孩子·回血":m.name;
+        const label=m.key==="demand"?`需求·积压${m.age||0}/2`:m.key==="finaldemand"?"最终需求·高压":m.key==="revision"?"改稿·成长":m.key==="cousin"?"别人家的孩子·回血":m.name;
         d.innerHTML=`<div class="mname">${label}</div><div class="memoji">${m.emoji}</div><div class="mstats"><span class="matk">${m.atk}</span><span class="mhp">${m.hp}</span></div>`;
         d.onclick=side==="player"?()=>selectMinion(i):()=>attackTarget("minion",i);
       }
@@ -1688,6 +1762,30 @@ function buildEnemyPlans(e){
     e.hp<e.maxHp*.5?"血线不安全，先拖回安全区。":"保持血线，不给你速攻机会。",
     18+(1-e.hp/e.maxHp)*90
   ));
+  if(e.name==="甲方"&&G.hand.length){
+    plans.push(makeEnemyPlan(
+      "rewrite","临时改价","📝","随机手牌费用 +1 + 催稿",
+      [
+        {kind:"rewrite",name:"再改一版",icon:"📝",desc:"一张手牌费用 +1"},
+        {kind:"strike",name:"催终稿",icon:"⚔️",desc:`造成 ${Math.max(5,p.strike-6)} 点直伤`,amount:Math.max(5,p.strike-6)}
+      ],
+      "先打乱你的出牌顺序，再推进度。",
+      55+G.hand.length*2+G.player.energy
+    ));
+  }
+  if(e.name==="亲戚"){
+    const compareHeal=5+playerBoard*2+Math.floor((e.turns||0)/2);
+    const comparePower=1+Math.floor(playerBoard/2);
+    plans.push(makeEnemyPlan(
+      "compare","攀比升级","📊",`回复 ${compareHeal} + 力量 ${comparePower}`,
+      [
+        {kind:"compare",name:"别人家的孩子",icon:"📊",desc:`回复 ${compareHeal}，攻击力 +${comparePower}`},
+        {kind:"strike",name:"比较式关心",icon:"⚔️",desc:`造成 ${Math.max(5,p.strike-6)} 点直伤`,amount:Math.max(5,p.strike-6)}
+      ],
+      playerBoard?"你场上的人越多，亲戚越有话可说。":"先把自己抬起来，再慢慢比较。",
+      43+playerBoard*12+(1-e.hp/e.maxHp)*25
+    ));
+  }
   if(e.turns>=4&&!e.deadlineUsed){
     plans.push(makeEnemyPlan(
       "deadline","终极截止日","☠️","高额直伤 + 永久强化",
@@ -1793,6 +1891,24 @@ async function executeEnemyAction(action){
     e.strength+=action.amount||p.buff;
     logGame(`${e.name} 使用「${action.name}」，攻击力 +${action.amount||p.buff}`);
     playSfx("charge");
+  }else if(action.kind==="rewrite"){
+    if(G.hand.length){
+      const target=G.hand[Math.floor(rand()*G.hand.length)];
+      target.costPenalty=(target.costPenalty||0)+1;
+      logGame(`${e.name} 把「${target.name}」的费用改高了 ${target.costPenalty} 点`);
+      showBubble("enemy",`这张「${target.name}」，再改一版。`);
+      playSfx("charge");
+      floatAtElement("+1费","#ff7187",els.gHand.querySelectorAll(".game-card")[G.hand.indexOf(target)]);
+    }
+  }else if(action.kind==="compare"){
+    const heal=5+G.playerMinions.length*2+Math.floor((e.turns||0)/2);
+    const power=1+Math.floor(G.playerMinions.length/2);
+    const healed=Math.min(heal,e.maxHp-e.hp);
+    e.hp+=healed;
+    e.strength+=power;
+    logGame(`${e.name} 开始攀比：回复 ${healed}，攻击力 +${power}`);
+    showBubble("enemy","你看别人家，场面多大。");
+    playSfx("heal");
   }else if(action.kind==="sweep"){
     logGame(`${e.name} 使用「${action.name}」，你的随从各受 ${action.amount||p.sweep} 点伤害`);
     showSweepWave();
@@ -1825,8 +1941,8 @@ function intentLabel(e){
 }
 function estimateIncomingTurn(){
   const e=G.enemy;
-  if(!e)return {total:0,hpLoss:0,direct:0,passive:0,minions:0,plan:"无",blocked:0,lethal:false};
-  if(e.stun>0)return {total:0,hpLoss:0,direct:0,passive:0,minions:0,plan:"已读不回 · 敌方跳过",blocked:0,lethal:false};
+  if(!e)return {total:0,hpLoss:0,direct:0,passive:0,minions:0,plan:"无",blocked:0,lethal:false,warning:""};
+  if(e.stun>0)return {total:0,hpLoss:0,direct:0,passive:0,minions:0,plan:"已读不回 · 敌方跳过",blocked:0,lethal:false,warning:""};
   const previewEnemy={...e,turns:(e.turns||0)+1};
   const plan=chooseEnemyMove(previewEnemy);
   let strength=e.strength||0,direct=0,passive=0,minions=0;
@@ -1847,6 +1963,7 @@ function estimateIncomingTurn(){
   }
   const demandHit=Math.min(4,2+G.encounter);
   passive+=G.enemyMinions.filter(m=>m.key==="demand").length*demandHit;
+  passive+=G.enemyMinions.filter(m=>m.key==="finaldemand").length*10;
   if(summonDemand)passive+=demandHit;
   const minionsWillHitHero=!playerBoardHp.some(hp=>hp>0)||G.player.hp<=14;
   if(minionsWillHitHero){
@@ -1858,7 +1975,8 @@ function estimateIncomingTurn(){
   const total=direct+passive+minions;
   const blocked=Math.min(G.player.block,total);
   const hpLoss=Math.max(0,total-blocked);
-  return {total,hpLoss,direct,passive,minions,plan:plan.name,blocked,lethal:hpLoss>=G.player.hp};
+  const mergeRisk=e.name==="老板"&&G.enemyMinions.filter(m=>m.key==="demand"&&(m.age||0)>=1).length>=2;
+  return {total,hpLoss,direct,passive,minions,plan:plan.name,blocked,lethal:hpLoss>=G.player.hp,warning:mergeRisk?"需求下轮可能合并":""};
 }
 function updateForecast(){
   if(!els.gForecast)return;
@@ -1870,7 +1988,7 @@ function updateForecast(){
   if(f.minions)parts.push(`随从 ${f.minions}`);
   if(f.blocked)parts.push(`护盾挡 ${f.blocked}`);
   const prefix=f.plan&&f.plan!=="无"?`「${f.plan}」`: "";
-  els.gForecastText.textContent=(prefix+(parts.length?` · ${parts.join(" · ")}`:" · 当前不会掉精神值"))+(f.lethal?" · 可能下班":"");
+  els.gForecastText.textContent=(prefix+(parts.length?` · ${parts.join(" · ")}`:" · 当前不会掉精神值"))+(f.warning?` · ⚠ ${f.warning}`:"")+(f.lethal?" · 可能下班":"");
   els.gForecast.classList.toggle("lethal",f.lethal);
   els.gForecast.classList.toggle("warn",!f.lethal&&f.hpLoss>=12);
 }
@@ -1897,7 +2015,9 @@ function renderGame(){
     previewForecast=preview.forecast;
   }catch(e){}
   els.gIntent.textContent=`预判：${previewName}${previewForecast?" · "+previewForecast:""}`;
-  els.gEnemyPower.textContent=`力量 ${G.enemy.strength} · 护甲 ${G.enemy.armor||0}`;
+  const mechanicShort=G.enemy.name==="老板"?"需求积压会合并":G.enemy.name==="甲方"?"手牌会被改价":"随从越多回复越强";
+  els.gEnemyPower.textContent=`力量 ${G.enemy.strength} · 护甲 ${G.enemy.armor||0} · ${mechanicShort}`;
+  els.gEnemyPower.title=GAME_ENEMIES[G.encounter]?.mechanic||"";
   els.gIntent.classList.toggle("danger",previewName.includes("截止日"));
   updateForecast();
   const board=els.gameBattle.querySelector(".game-board");
@@ -1923,8 +2043,8 @@ function renderGame(){
   G.hand.forEach((card,i)=>{
     const b=document.createElement("button");
     const full=card.type==="minion"&&G.playerMinions.length>=3;
-    b.className="game-card "+card.type+(card.rare?" rare":"")+" arch-"+cardArchetype(card).key+(G.player.energy<card.cost||full?" disabled":"");
-    b.innerHTML=`${archetypeBadge(card)}<span class="cost">${card.cost}</span><div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
+    b.className="game-card "+card.type+(card.rare?" rare":"")+" arch-"+cardArchetype(card).key+(G.player.energy<effectiveCost(card)||full?" disabled":"");
+    b.innerHTML=`${archetypeBadge(card)}${costBadge(card)}<div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
     b.style.setProperty("--i",i);
     b.onclick=()=>playGameCard(i);
     els.gHand.appendChild(b);
@@ -1963,7 +2083,7 @@ function damageEnemyHero(amount){
 function playGameCard(i){
   if(!G.running||G.busy)return;
   const card=G.hand[i];
-  if(!card||G.player.energy<card.cost)return;
+  if(!card||G.player.energy<effectiveCost(card))return;
   G.busy=true;
   playSfx("whoosh");
   const el=els.gHand.children[i];
@@ -1997,7 +2117,7 @@ function resolveCard(i){
   const card=G.hand[i];
   if(!card)return;
   if(card.type==="minion"&&G.playerMinions.length>=3){logGame("随从位已满");return;}
-  G.player.energy-=card.cost;
+  G.player.energy-=effectiveCost(card);
   G.hand.splice(i,1);
   if(!card.exhaust)G.discard.push(card);
   if(G.battleStats)G.battleStats.cardsPlayed++;
@@ -2146,10 +2266,17 @@ async function enemyMinionsAttack(){
       animateMinion(i,"attacking");
       await waitGame(150);
       launchAttackTrail(els.gEnemyBoard.children[i],els.gPlayerPortrait,"#ff8a5c");
+      m.age=(m.age||0)+1;
       G.enemy.strength+=1;
       if(G.battleStats)G.battleStats.demandTicks++;
       damagePlayerHero(demandHit,"「需求」突然变更");
       logGame("「需求」让敌方攻击力永久 +1");
+    }else if(m.key==="finaldemand"){
+      animateMinion(i,"attacking");
+      await waitGame(150);
+      G.enemy.strength+=2;
+      damagePlayerHero(10,"「最终需求」全面追加");
+      logGame("「最终需求」让敌方攻击力 +2");
     }else if(m.key==="revision"){
       m.atk+=2;m.hp+=1;m.maxHp+=1;
       animateMinion(i,"buffed");
@@ -2188,8 +2315,38 @@ async function enemyMinionsAttack(){
   }
   processDeaths();
 }
+async function triggerEnemyMechanic(){
+  if(G.enemy.name!=="老板")return;
+  const mature=G.enemyMinions
+    .map((m,index)=>({m,index}))
+    .filter(x=>x.m.key==="demand"&&(x.m.age||0)>=2);
+  if(mature.length<2)return;
+  const removeCount=Math.min(2,mature.length);
+  const removeIndexes=new Set(mature.slice(0,removeCount).map(x=>x.index));
+  const existing=G.enemyMinions.find(m=>m.key==="finaldemand");
+  G.enemyMinions=G.enemyMinions.filter((_,index)=>!removeIndexes.has(index));
+  if(existing){
+    existing.atk+=1;
+    existing.hp+=2;
+    existing.maxHp+=2;
+    logGame(`积压需求并入「最终需求」：攻击 +1，生命 +2`);
+  }else{
+    const final=makeMinion("finaldemand");
+    final.justSummoned=true;
+    final.canAttack=false;
+    G.enemyMinions.push(final);
+    logGame("积压需求合并成了「最终需求」");
+  }
+  showEnemyCardCast({name:"最终需求",icon:"📦",desc:"积压的需求开始结算"});
+  showBubble("enemy","需求合了一下，明天上线。");
+  playSfx("crit");
+  impactAt("player");
+  renderGame();
+  await waitGame(760);
+}
 async function endTurn(){
   if(!G.running||G.busy)return;
+  G.hand.forEach(card=>card.costPenalty=0);
   G.busy=true;
   G.selectedMinion=-1;
   showTurnBanner("敌方回合");
@@ -2234,6 +2391,7 @@ async function endTurn(){
         showEnding(true);
         return;
       }
+      await triggerEnemyMechanic();
     }
     if(G.enemy.weak>0)G.enemy.weak--;
     if(G.enemy.vulnerable>0)G.enemy.vulnerable--;
@@ -2262,6 +2420,18 @@ async function endTurn(){
     renderGame();
   }
 }
+function rateCurrentBattle(){
+  const hpPct=Math.max(0,G.player.hp)/G.player.maxHp;
+  const kills=G.battleStats?.minionKills||0;
+  let stars=1;
+  if(hpPct>=.5)stars++;
+  if(G.turn<=4||kills>=3)stars++;
+  const notes=[];
+  if(hpPct>=.5)notes.push("精神值保持过半");
+  if(G.turn<=4)notes.push("四回合内解决");
+  else if(kills>=3)notes.push(`解掉 ${kills} 个随从`);
+  return {stars,hpPct,turns:G.turn,kills,notes};
+}
 function winBattle(){
   hideEnemyDecision();
   G.running=false;
@@ -2269,6 +2439,9 @@ function winBattle(){
   G.player.coins+=coins;
   if(G.relics.some(r=>r.id==="piggy"))G.player.coins+=15;
   logGame(`击败「${G.enemy.name}」，获得 ${coins} 存款`);
+  G.lastBattleRating=rateCurrentBattle();
+  G.stageRatings=(G.stageRatings||[]);
+  G.stageRatings.push(G.lastBattleRating);
   G.encounter++;
   playSfx("win");
   const board=els.gameBattle.querySelector(".game-board");
@@ -2288,7 +2461,7 @@ function showDeck(mode){
   G.deck.forEach((card,idx)=>{
     const b=document.createElement("button");
     b.className="game-card "+card.type+(card.rare?" rare":"")+" arch-"+cardArchetype(card).key+(mode==="upgrade"&&card.upgraded?" disabled":"");
-    b.innerHTML=`${archetypeBadge(card)}<span class="cost">${card.cost}</span><div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
+    b.innerHTML=`${archetypeBadge(card)}${costBadge(card)}<div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
     b.onclick=()=>{
       if(mode==="remove"){
         const removed=G.deck.splice(idx,1)[0];
@@ -2328,6 +2501,15 @@ function showEvent(){
 function showReward(){
   G.busy=false;
   showGameView("reward");
+  if(els.gLevelRating){
+    const rating=G.lastBattleRating;
+    if(rating){
+      els.gLevelRating.style.display="flex";
+      els.gLevelRating.innerHTML=`<span class="stars">${"★".repeat(rating.stars)}${"☆".repeat(3-rating.stars)}</span><span>本关 <b>${rating.stars} 星</b> · ${rating.notes.join(" · ")||`${rating.turns} 回合完成`}</span>`;
+    }else{
+      els.gLevelRating.style.display="none";
+    }
+  }
   if(els.gRewardBuild){
     els.gRewardBuild.innerHTML=`<b>当前构筑</b>${archetypeSummary()}<span>每一类各提供一张，选牌会逐步激活流派核心。</span>`;
   }
@@ -2340,11 +2522,11 @@ function showReward(){
     const b=document.createElement("button");
     b.className="game-card "+card.type+(card.rare?" rare":"")+" arch-"+cardArchetype(card).key;
     b.style.setProperty("--i",idx);
-    b.innerHTML=`${archetypeBadge(card)}<span class="cost">${card.cost}</span><div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
+    b.innerHTML=`${archetypeBadge(card)}${costBadge(card)}<div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
     b.onclick=()=>{
       const key=cardArchetype(card).key;
       const wasCore=archetypeCoreActive(key);
-      G.deck.push(card);
+      G.deck.push(cloneGameCard(card));
       const nowCore=archetypeCoreActive(key);
       logGame(`获得新卡「${card.name}」`);
       if(!wasCore&&nowCore){
@@ -2397,17 +2579,18 @@ function updateHubStatus(){
   if(els.hubPoints)els.hubPoints.textContent=points;
   if(els.dailyStatus){
     const today=dateKey();
-    let last=null,streak=0;
-    try{last=localStorage.getItem("oneline_daily_last");streak=parseInt(localStorage.getItem("oneline_daily_streak")||"0",10)||0;}catch(e){}
-    els.dailyStatus.textContent=(last===today?`今日挑战已完成 · 连胜 ${streak||1} 天`:`今日挑战未完成 · 连胜 ${streak} 天`)+` · 进阶 ${ascension}`;
+    let last=null,streak=0,best=0;
+    try{last=localStorage.getItem("oneline_daily_last");streak=parseInt(localStorage.getItem("oneline_daily_streak")||"0",10)||0;best=parseInt(localStorage.getItem("oneline_best_stars")||"0",10)||0;}catch(e){}
+    els.dailyStatus.textContent=(last===today?`今日挑战已完成 · 连胜 ${streak||1} 天`:`今日挑战未完成 · 连胜 ${streak} 天`)+` · 最佳 ${best}★ · 进阶 ${ascension}`;
   }
 }
 function shareRun(){
   const name=G.ending?.ending||"未完成";
   const hp=Math.max(0,G.player.hp);
   const mode=G.isDaily?`每日挑战 ${G.seed}`:"自由模式";
+  const arch=ARCHETYPES[G.build||"combo"];
   const url=G.isDaily?"https://morefree-lab.github.io/jinshu-cards/?dailygame=1":"https://morefree-lab.github.io/jinshu-cards/";
-  const text=`oneline. 打工人求生指南 · ${mode}\n结局：${name}\n回合 ${G.turn} · 精神值 ${hp}/${G.player.maxHp} · 存款 ${G.player.coins}\n工分 +${G.lastPoints||0}${G.isDaily?` · 连胜 ${G.streak||0} 天`:""}\n来挑战：${url}`;
+  const text=`oneline. 打工人求生指南 · ${mode}\n结局：${name} · ${arch.icon}${arch.name} · ${G.ending?.stars||0}★\n回合 ${G.turn} · 精神值 ${hp}/${G.player.maxHp} · 存款 ${G.player.coins}\n工分 +${G.lastPoints||0}${G.isDaily?` · 连胜 ${G.streak||0} 天`:""}\n来挑战：${url}`;
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(text).then(()=>flash("战绩已复制")).catch(()=>flash("复制失败"));
   }else flash("请手动复制战绩");
@@ -2496,7 +2679,23 @@ function showEnding(defeated){
   else if(hp>=45){ending="升职加薪";line="你活下来了，甚至还升了职。老板说：明年继续。";grade="A";}
   else if(hp<=15){ending="带薪躺平";line="你没能升职，但你成功地在工位上躺平了。";grade="B";}
   else{ending="苟到下班";line="今天也平安地下班了，明天继续。";grade="B";}
-  G.ending={ending,line,grade};
+  const stageRatings=G.stageRatings||[];
+  const runStars=stageRatings.reduce((sum,r)=>sum+r.stars,0);
+  let bestStars=0,bestTurns=999;
+  try{
+    bestStars=parseInt(localStorage.getItem("oneline_best_stars")||"0",10)||0;
+    bestTurns=parseInt(localStorage.getItem("oneline_best_turns")||"999",10)||999;
+  }catch(e){}
+  if(!defeated&&(runStars>bestStars||(runStars===bestStars&&G.turn<bestTurns))){
+    bestStars=runStars;
+    bestTurns=G.turn;
+    try{
+      localStorage.setItem("oneline_best_stars",String(bestStars));
+      localStorage.setItem("oneline_best_turns",String(bestTurns));
+      localStorage.setItem("oneline_best_build",G.build||"combo");
+    }catch(e){}
+  }
+  G.ending={ending,line,grade,stars:runStars,bestStars,bestTurns};
   finishRun(defeated);
   if(els.gameReview){
     if(defeated){
@@ -2509,7 +2708,12 @@ function showEnding(defeated){
     }
   }
   if(els.gameEndHint){
-    els.gameEndHint.textContent=`工分 +${G.lastPoints||0}${G.isDaily?` · 每日挑战 · 连胜 ${G.streak||1} 天`:""} · 进阶 ${ascension}`;
+    els.gameEndHint.textContent=`工分 +${G.lastPoints||0} · ${ARCHETYPES[G.build||"combo"].name} · 历史最佳 ${bestStars}★${G.isDaily?` · 连胜 ${G.streak||1} 天`:""} · 进阶 ${ascension}`;
+  }
+  if(els.gameRunRating){
+    els.gameRunRating.style.display="flex";
+    const stageText=stageRatings.length?stageRatings.map(r=>"★".repeat(r.stars)+"☆".repeat(3-r.stars)).join(" "):"尚未完成关卡";
+    els.gameRunRating.innerHTML=`<span class="stars">${"★".repeat(runStars)||"☆"}</span><span>本局 <b>${runStars}★</b> · ${stageText} · 历史最佳 <b>${bestStars}★</b></span>`;
   }
   drawEndingCard(els.gameEndCanvas,ending,line,grade);
   showGameView("end");
@@ -2550,6 +2754,10 @@ function drawEndingCard(cv,ending,line,grade){
   const lines=wrapSquare(ctx,line,"yahei",34,0,W2-240);
   let ly=730;
   for(const ln of lines){ctx.fillText(ln,W2/2,ly);ly+=50;}
+  const arch=ARCHETYPES[G.build||"combo"];
+  ctx.fillStyle=arch.color;
+  ctx.font='700 30px "Microsoft YaHei",sans-serif';
+  ctx.fillText(`${arch.icon} ${arch.name} · ${G.ending?.stars||0}★`,W2/2,850);
   const stats=[
     ["精神值",`${Math.max(0,G.player.hp)} / ${G.player.maxHp}`],
     ["存款",`${G.player.coins}`],
@@ -2674,6 +2882,8 @@ els.gameClose.onclick=()=>{els.gameModal.classList.remove("show");startCoverLoop
 els.gameStart.onclick=()=>{seenRules=true;try{localStorage.setItem("oneline_seen_rules","1");}catch(e){}openCharacterSelect(pendingCharacterMode||"free");};
 els.characterBack.onclick=()=>showGameView("menu");
 els.characterConfirm.onclick=confirmCharacter;
+els.buildBack.onclick=()=>showGameView("character");
+els.buildConfirm.onclick=confirmBuild;
 els.mulliganKeep.onclick=()=>{G.mulliganSelected.clear();confirmMulligan();};
 els.mulliganConfirm.onclick=confirmMulligan;
 els.gHeroPower.onclick=useHeroPower;
@@ -2707,20 +2917,21 @@ try{
   if(q.get("dailygame")==="1"){openGame();openCharacterSelect("daily");}
   if(q.get("collection")==="1"){openCollection();}
   if(q.get("characters")==="1"){openGame();openCharacterSelect("free");}
+  if(q.get("build")==="1"){openGame();openCharacterSelect("free");setTimeout(()=>openBuildSelect(),120);}
   if(q.get("intern")==="1"){unlocked.add("intern");selectedCharId="intern";openGame();startGameFast(false);}
   if(q.get("dailyresult")==="1"){openGame();startGameFast(true);G.player.hp=32;G.player.coins=42;G.turn=8;showEnding(false);}
   if(q.get("gamebattle")==="1"){openGame();startGameFast();}
   if(q.get("gamemulligan")==="1"){openGame();startGame();}
   if(q.get("gameminion")==="1"){openGame();startGameFast();G.playerMinions=[makeMinion("intern"),makeMinion("printer")];G.enemyMinions=[makeMinion("demand")];G.playerMinions.forEach(m=>{m.canAttack=true;m.hasAttacked=false;});renderGame();setTimeout(()=>{selectMinion(0);attackTarget("minion",0);},600);}
   if(q.get("gamebubble")==="1"){openGame();startGameFast();setTimeout(()=>showBubble("player","谁也别拦我，我今天就要发疯！"),300);setTimeout(()=>showBubble("enemy","这个需求，今天必须上线。"),900);}
-  if(q.get("gamereward")==="1"){openGame();startGameFast();G.encounter=1;showReward();}
+  if(q.get("gamereward")==="1"){openGame();startGameFast();G.encounter=1;G.lastBattleRating={stars:3,hpPct:.7,turns:4,kills:3,notes:["精神值保持过半","四回合内解决"]};G.stageRatings=[G.lastBattleRating];showReward();}
   if(q.get("gamedeck")==="1"){openGame();startGameFast();G.encounter=1;showDeck("remove");}
   if(q.get("gameplay")==="1"){openGame();startGameFast();setTimeout(()=>playGameCard(0),300);}
   if(q.get("gameevent")==="1"){openGame();startGameFast();setTimeout(()=>showEvent(),200);}
   if(q.get("gameenemy")==="1"){openGame();startGameFast();setTimeout(()=>endTurn(),1800);}
   if(q.get("gamedefeat")==="1"){openGame();startGameFast();setTimeout(()=>{G.turn=4;G.player.hp=0;G.enemyMinions=[makeMinion("demand"),makeMinion("demand"),makeMinion("demand")];G.battleStats={damageTaken:47,damageDealt:29,cardsPlayed:8,minionKills:0,minionLosses:2,demandTicks:6,wastedEnergy:9,blocked:8,blockGained:17,handBurned:1};showEnding(true);},300);}
-  if(q.get("gameend")==="1"){openGame();G.player={hp:32,maxHp:70,energy:3,maxEnergy:3,block:0,coins:42};G.encounter=3;G.turn=8;showEnding(false);}
-  const direct=location.hash==="#play"||["game","dailygame","collection","characters","intern","dailyresult","gamebattle","gamemulligan","gameminion","gamebubble","gamereward","gameplay","gameevent","gameend","app"].some(k=>q.has(k));
+  if(q.get("gameend")==="1"){openGame();G.player={hp:32,maxHp:70,energy:3,maxEnergy:3,block:0,coins:42};G.encounter=3;G.turn=8;G.build="combo";G.stageRatings=[{stars:3},{stars:2},{stars:3}];showEnding(false);}
+  const direct=location.hash==="#play"||["game","dailygame","collection","characters","build","intern","dailyresult","gamebattle","gamemulligan","gameminion","gamebubble","gamereward","gameplay","gameevent","gameend","app"].some(k=>q.has(k));
   showCover();
   if(direct)stopCoverLoop();
 }catch(e){}
