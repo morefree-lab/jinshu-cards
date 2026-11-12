@@ -23,7 +23,7 @@
         <button id="collectionBtn">收集册 · <span id="hubPoints">0</span> 工分</button>
       </div>
       <div class="gf-daily" id="dailyStatus">今日挑战未完成 · 连胜 0 天</div>
-      <div class="cover-hint">免费游玩 · 无需注册 · 一局 10 分钟</div>
+      <div class="cover-hint">免费游玩 · 第一关新人保护 · 三场遭遇</div>
     </div>
     <div class="cover-stage">
       <div class="boss-zone" id="coverBoss">
@@ -73,13 +73,14 @@
         <div><b>护盾</b><span>抵挡伤害，回合开始重置</span></div>
         <div><b>存款</b><span>影响最终结局评级</span></div>
       </div>
-      <div class="brief-goal">撑过 <b>老板 → 甲方 → 亲戚</b> 三场遭遇，活着下班。</div>
+      <div class="brief-goal">第一关是试岗局，带 <b>新人保护</b>；撑过老板 → 甲方 → 亲戚，再从进阶模式继续加难度。</div>
       <details class="brief-more">
         <summary>规则详情</summary>
         <div class="brief-more-body">
           <p><b>手牌：</b>首回合 5 张，之后每回合补 3 张，未打出的牌会保留，手牌上限 7 张。</p>
           <p><b>敌方决策：</b>敌人会评估斩杀、清场、铺场和防守，不同局面会临时改变方案。</p>
           <p><b>随从威胁：</b>「需求」会加攻并直伤，「改稿」持续成长，「别人家的孩子」会回血拖延。</p>
+          <p><b>难度递进：</b>第一关首轮只挨一次敌方动作；第二关开始满场铺压，通关后会进入更高的进阶等级。</p>
           <p><b>战后成长：</b>每场胜利后可以选新卡、遗物，或回血；还会遇到随机事件。</p>
           <p><b>失败条件：</b>精神值归零。撑过三场遭遇即可结算战绩。</p>
         </div>
@@ -135,7 +136,7 @@
         <div class="enemy-hud">
           <div class="enemy-portrait portrait-slot" id="gEnemyPortrait" data-portrait="boss">👔</div>
           <div class="enemy-meta">
-            <div class="enemy-name"><span id="gEnemyName">老板</span><span class="enemy-level">Lv.99</span></div>
+            <div class="enemy-name"><span id="gEnemyName">老板</span><span class="enemy-level" id="gEnemyLevel">第 1 关 · 试岗局</span></div>
             <div class="game-hp"><i id="gEnemyHpFill" style="width:100%"></i><span id="gEnemyHp">40/40</span></div>
             <div class="intent-chip" id="gIntent">意图：攻击 8</div>
             <div class="enemy-power" id="gEnemyPower">力量 0</div>
