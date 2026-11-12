@@ -169,7 +169,7 @@ const els={
   gEnemyPortrait:$("gEnemyPortrait"),gEnemyHpFill:$("gEnemyHpFill"),gPlayerHpFill:$("gPlayerHpFill"),
   gTurnBanner:$("gTurnBanner"),gFloatLayer:$("gFloatLayer"),gEnergyGems:$("gEnergyGems"),
   gPlayerBubble:$("gPlayerBubble"),gEnemyBubble:$("gEnemyBubble"),gHurtFlash:$("gHurtFlash"),
-  gTutorialTip:$("gTutorialTip"),
+  gTutorialTip:$("gTutorialTip"),gTutorialText:$("gTutorialText"),
   gRelics:$("gRelics"),
   gEndTurn:$("gEndTurn"),gForecast:$("gForecast"),gForecastValue:$("gForecastValue"),gForecastText:$("gForecastText"),
   gameReward:$("gameReward"),gLevelRating:$("gLevelRating"),gRewardBuild:$("gRewardBuild"),gRewards:$("gRewards"),gSkip:$("gSkip"),gRemove:$("gRemove"),gUpgrade:$("gUpgrade"),
@@ -356,6 +356,14 @@ try{
 }catch(e){}
 let ascension=0;
 try{ascension=parseInt(localStorage.getItem("oneline_ascension")||"0",10)||0;}catch(e){}
+try{
+  if(!localStorage.getItem("oneline_coach_migrated_v1")){
+    const returning=localStorage.getItem("oneline_seen_rules")==="1";
+    if(ascension>0)localStorage.setItem("oneline_stage1_clear","1");
+    else if(returning)localStorage.setItem("oneline_stage1_losses","2");
+    localStorage.setItem("oneline_coach_migrated_v1","1");
+  }
+}catch(e){}
 let pendingCharacterMode="free";
 let collectionTab="characters";
 let seenRules=false;
@@ -1196,7 +1204,7 @@ function shareDiag(){
   }
 }
 
-let G={player:null,deck:[],hand:[],draw:[],discard:[],enemy:null,encounter:0,turn:1,running:false,log:[],ending:null,busy:false,relics:[],deal:false,combo:0,playerMinions:[],enemyMinions:[],selectedMinion:-1,mulliganHand:[],mulliganDraw:[],mulliganSelected:new Set(),pendingMulligan:false};
+let G={player:null,deck:[],hand:[],draw:[],discard:[],enemy:null,encounter:0,turn:1,running:false,log:[],ending:null,busy:false,relics:[],deal:false,combo:0,playerMinions:[],enemyMinions:[],selectedMinion:-1,mulliganHand:[],mulliganDraw:[],mulliganSelected:new Set(),pendingMulligan:false,tutorialStep:-1,coachMode:false};
 let gameSpeed=1;
 let cardUid=0;
 function gs(ms){return Math.max(120,Math.round(ms/gameSpeed));}
@@ -1252,6 +1260,69 @@ function archetypeSummary(){
     const count=archetypeCount(key),active=count>=arch.coreAt;
     return `<span class="arch-chip arch-${key}${active?" active":""}" title="${arch.desc}">${arch.icon} ${arch.short} <b>${count}/${arch.coreAt}</b>${active?" · 核心":""}</span>`;
   }).join("");
+}
+function recommendedArchetypeKey(){
+  const candidates=Object.entries(ARCHETYPES)
+    .map(([key,arch])=>({key,arch,count:archetypeCount(key)}))
+    .filter(x=>x.count<x.arch.coreAt);
+  const oneAway=candidates.filter(x=>x.count===x.arch.coreAt-1);
+  if(oneAway.some(x=>x.key===selectedBuild))return selectedBuild;
+  if(oneAway.length)return oneAway.sort((a,b)=>(b.count/b.arch.coreAt)-(a.count/a.arch.coreAt))[0].key;
+  return candidates.sort((a,b)=>(b.count/b.arch.coreAt)-(a.count/a.arch.coreAt))[0]?.key||selectedBuild;
+}
+function tutorialCompleted(){
+  try{return localStorage.getItem("oneline_tutorial_done")==="1";}catch(e){return false;}
+}
+function setTutorialStep(step){
+  G.tutorialStep=step;
+  updateTutorialVisuals();
+}
+function finishTutorial(){
+  G.tutorialStep=-1;
+  G.tutorialJustFinished=true;
+  try{localStorage.setItem("oneline_tutorial_done","1");}catch(e){}
+  if(els.gTutorialTip&&els.gTutorialText){
+    els.gTutorialText.textContent="教学完成。现在按受击预判自由出牌，活着下班。";
+    els.gTutorialTip.classList.add("show");
+    setTimeout(()=>{
+      G.tutorialJustFinished=false;
+      els.gTutorialTip.classList.remove("show");
+    },gs(1800));
+  }
+  updateTutorialVisuals(true);
+}
+function updateTutorialVisuals(keepMessage=false){
+  if(!els.gTutorialTip)return;
+  document.querySelectorAll(".tutorial-highlight,.tutorial-target").forEach(el=>el.classList.remove("tutorial-highlight","tutorial-target"));
+  if(G.tutorialPaused){
+    els.gTutorialTip.classList.remove("show");
+    return;
+  }
+  if(G.tutorialStep<0){
+    if(!keepMessage&&!G.tutorialJustFinished)els.gTutorialTip.classList.remove("show");
+    return;
+  }
+  const messages={
+    0:"先打出一张随从牌。前期随从会替你处理需求。",
+    1:"随从已就位。先结束回合，下一轮它才能攻击。",
+    2:"现在点击你自己的随从。",
+    3:"再点击敌方「需求」。这就是解场。"
+  };
+  if(els.gTutorialText)els.gTutorialText.textContent=messages[G.tutorialStep]||"跟着高亮完成这一步。";
+  els.gTutorialTip.classList.add("show");
+  if(G.tutorialStep===0){
+    G.hand.forEach((card,index)=>{
+      if(card.type==="minion"&&effectiveCost(card)<=G.player.energy)els.gHand.children[index]?.classList.add("tutorial-highlight");
+    });
+  }else if(G.tutorialStep===1){
+    els.gEndTurn?.classList.add("tutorial-highlight");
+  }else if(G.tutorialStep===2){
+    G.playerMinions.forEach((_,index)=>els.gPlayerBoard.children[index]?.classList.add("tutorial-target"));
+  }else if(G.tutorialStep===3){
+    G.enemyMinions.forEach((m,index)=>{
+      if(m.key==="demand")els.gEnemyBoard.children[index]?.classList.add("tutorial-target");
+    });
+  }
 }
 function showGameView(name){
   els.gameMenu.style.display=name==="menu"?"flex":"none";
@@ -1338,12 +1409,20 @@ function startBattle(prepared){
   const base=GAME_ENEMIES[G.encounter];
   const asc=G.ascension||0;
   const firstBattle=G.encounter===0&&asc===0;
+  let stage1Losses=0,stage1Clear=false;
+  try{
+    stage1Losses=parseInt(localStorage.getItem("oneline_stage1_losses")||"0",10)||0;
+    stage1Clear=localStorage.getItem("oneline_stage1_clear")==="1";
+  }catch(e){}
+  const coachMode=firstBattle&&!stage1Clear&&stage1Losses>=2;
+  G.coachMode=coachMode;
   const ehp=Math.round(base.hp*(1+0.2*asc));
   G.enemy={name:base.name,emoji:base.emoji,tie:base.tie,hp:ehp,maxHp:ehp,strength:asc,weak:0,vulnerable:0,stun:0,charged:0,armor:0,turns:0,deadlineUsed:false,intentIndex:0,intents:base.intents.slice(),flavor:base.flavor,firstBattle};
   G.deck.forEach(card=>card.costPenalty=0);
   hideEnemyDecision();
   G.enemyMinions=[];G.playerMinions=[];G.selectedMinion=-1;
-  G.enemyMinions=(base.starters||[]).map(k=>{
+  const starterKeys=coachMode?(base.starters||[]).slice(0,1):(base.starters||[]);
+  G.enemyMinions=starterKeys.map(k=>{
     const m=makeMinion(k);
     m.justSummoned=true;
     m.canAttack=false;
@@ -1355,11 +1434,23 @@ function startBattle(prepared){
     G.hand=[];G.draw=shuffleArr(G.deck.slice());G.discard=[];
     drawCards(G.drawCount||5);
   }
+  const tutorialNeeded=firstBattle&&!tutorialCompleted();
+  if(tutorialNeeded&&!G.hand.some(card=>card.type==="minion")){
+    G.hand.push(cloneGameCard(GAME_CARDS.find(card=>card.id==="c21")));
+    logGame("试岗补给：起手加入一张「实习生」");
+  }
+  G.tutorialStep=tutorialNeeded?0:-1;
+  G.tutorialPaused=tutorialNeeded;
+  G.tutorialJustFinished=false;
   G.turn=1;
   G.player.block=0;G.player.maxEnergy=3;G.player.energy=3;G.player.heroPowerUsed=false;G.player.nextPenalty=0;G.running=true;G.busy=false;
   if(firstBattle){
     G.player.block+=6;
     logGame("新人保护：获得 6 点护盾，第一轮敌方只执行一个动作");
+  }
+  if(coachMode){
+    G.player.block+=8;
+    logGame("教练模式：额外获得 8 点护盾，老板少召唤一个需求");
   }
   if(archetypeCoreActive("shield")){
     G.player.block+=4;
@@ -1375,15 +1466,7 @@ function startBattle(prepared){
   showGameView("battle");
   renderGame();
   showBattleIntro();
-  if(els.gTutorialTip){
-    clearTimeout(els.gTutorialTip._showTimer);
-    clearTimeout(els.gTutorialTip._hideTimer);
-    els.gTutorialTip.classList.remove("show");
-    if(firstBattle){
-      els.gTutorialTip._showTimer=setTimeout(()=>els.gTutorialTip.classList.add("show"),gs(2100));
-      els.gTutorialTip._hideTimer=setTimeout(()=>els.gTutorialTip.classList.remove("show"),gs(7200));
-    }
-  }
+  if(tutorialNeeded)setTimeout(()=>{G.tutorialPaused=false;updateTutorialVisuals();},gs(1900));
   setTimeout(()=>showTurnBanner("你的回合"),gs(1600));
 }
 function drawCards(n){
@@ -1610,6 +1693,7 @@ function selectMinion(i){
   if(!m||!m.canAttack||m.hasAttacked||m.atk<=0)return;
   G.selectedMinion=G.selectedMinion===i?-1:i;
   playSfx("click");
+  if(G.tutorialStep===2&&G.selectedMinion===i)setTutorialStep(3);
   renderGame();
 }
 function dealToMinion(m,amount){
@@ -1676,6 +1760,7 @@ async function attackTarget(kind,index){
     if(taunts.length&&!target.taunt){logGame("必须先攻击嘲讽随从");G.busy=false;return;}
     const targetEl=els.gEnemyBoard.children[index];
     combat(attacker,target,"enemy",attackerEl,targetEl);
+    if(G.tutorialStep===3&&target.key==="demand")finishTutorial();
   }else{
     if(taunts.length){logGame("必须先攻击嘲讽随从");G.busy=false;return;}
     attacker.hasAttacked=true;
@@ -2000,6 +2085,7 @@ function estimateIncomingTurn(){
 function updateForecast(){
   if(!els.gForecast)return;
   const f=estimateIncomingTurn();
+  G.lastForecast=f;
   els.gForecastValue.textContent=f.hpLoss?`-${f.hpLoss}`:"0";
   const parts=[];
   if(f.direct)parts.push(`敌方卡 ${f.direct}`);
@@ -2011,6 +2097,16 @@ function updateForecast(){
   els.gForecast.classList.toggle("lethal",f.lethal);
   els.gForecast.classList.toggle("warn",!f.lethal&&f.hpLoss>=12);
 }
+function updateDangerHints(){
+  if(!els.gHand)return;
+  [...els.gHand.children].forEach(el=>el.classList.remove("defense-hint"));
+  els.gHeroPower?.classList.remove("defense-hint");
+  if(G.tutorialStep>=0||G.busy||!G.running||!G.lastForecast?.lethal)return;
+  G.hand.forEach((card,index)=>{
+    if((card.block||card.heal)&&effectiveCost(card)<=G.player.energy)els.gHand.children[index]?.classList.add("defense-hint");
+  });
+  if(!G.player.heroPowerUsed&&G.player.energy>=2)els.gHeroPower?.classList.add("defense-hint");
+}
 function renderGame(){
   els.gHp.textContent=`${Math.max(0,G.player.hp)}/${G.player.maxHp}`;
   els.gBlock.textContent=G.player.block;
@@ -2019,7 +2115,7 @@ function renderGame(){
   els.gEnemyName.textContent=G.enemy.name;
   if(els.gEnemyLevel){
     els.gEnemyLevel.textContent=G.enemy.firstBattle
-      ? "第 1 关 · 试岗局"
+      ? `第 1 关 · ${G.coachMode?"教练模式":"试岗局"}`
       : `第 ${G.encounter+1} 关 · ${["热身","加压","决胜"][G.encounter]||"加班"}${G.ascension?` · 进阶 ${G.ascension}`:""}`;
   }
   els.gEnemyHp.textContent=`${Math.max(0,G.enemy.hp)}/${G.enemy.maxHp}`;
@@ -2074,6 +2170,8 @@ function renderGame(){
     els.gHand.classList.add("dealing");
     G.deal=false;
   }
+  updateTutorialVisuals();
+  updateDangerHints();
 }
 function playerDamage(base){
   let d=base;
@@ -2158,6 +2256,7 @@ function resolveCard(i){
       }
       if(m.battlecry.draw)drawCards(m.battlecry.draw);
     }
+    if(G.tutorialStep===0)setTutorialStep(1);
     G.combo++;
     if(G.combo%3===0){showCombo(`COMBO ×${G.combo} · 攻击 ${archetypeCoreActive("combo")?"+3":"+2"}`);playSfx("combo");}
     if(G.enemy.hp<=0){winBattle();return;}
@@ -2366,6 +2465,10 @@ async function triggerEnemyMechanic(){
 }
 async function endTurn(){
   if(!G.running||G.busy)return;
+  if(G.tutorialStep===1){
+    G.tutorialWaiting=true;
+    els.gTutorialTip?.classList.remove("show");
+  }
   G.hand.forEach(card=>card.costPenalty=0);
   G.busy=true;
   G.selectedMinion=-1;
@@ -2428,6 +2531,10 @@ async function endTurn(){
     G.firstAttackUsed=false;
     G.playerMinions.forEach(m=>{m.hasAttacked=false;m.canAttack=true;});
     drawCards((G.refillCount||3)+(G.relics.some(r=>r.id==="coffee")?1:0));
+    if(G.tutorialWaiting){
+      G.tutorialWaiting=false;
+      G.tutorialStep=2;
+    }
     playSfx("draw");
     G.deal=true;
     renderGame();
@@ -2459,6 +2566,9 @@ function winBattle(){
   G.player.coins+=coins;
   if(G.relics.some(r=>r.id==="piggy"))G.player.coins+=15;
   logGame(`击败「${G.enemy.name}」，获得 ${coins} 存款`);
+  if(G.encounter===0){
+    try{localStorage.setItem("oneline_stage1_clear","1");localStorage.setItem("oneline_stage1_losses","0");}catch(e){}
+  }
   G.lastBattleRating=rateCurrentBattle();
   G.stageRatings=(G.stageRatings||[]);
   G.stageRatings.push(G.lastBattleRating);
@@ -2530,8 +2640,9 @@ function showReward(){
       els.gLevelRating.style.display="none";
     }
   }
+  const recommendedKey=recommendedArchetypeKey();
   if(els.gRewardBuild){
-    els.gRewardBuild.innerHTML=`<b>当前构筑</b>${archetypeSummary()}<span>每一类各提供一张，选牌会逐步激活流派核心。</span>`;
+    els.gRewardBuild.innerHTML=`<b>当前构筑</b>${archetypeSummary()}<span>当前推荐：<b>${ARCHETYPES[recommendedKey].icon} ${ARCHETYPES[recommendedKey].name}</b> · 更接近激活核心</span>`;
   }
   els.gRewards.innerHTML="";
   const choices=Object.keys(ARCHETYPES).map(key=>{
@@ -2540,7 +2651,8 @@ function showReward(){
   }).filter(Boolean);
   choices.forEach((card,idx)=>{
     const b=document.createElement("button");
-    b.className="game-card "+card.type+(card.rare?" rare":"")+" arch-"+cardArchetype(card).key;
+    const archKey=cardArchetype(card).key;
+    b.className="game-card "+card.type+(card.rare?" rare":"")+" arch-"+archKey+(archKey===recommendedKey?" recommended":"");
     b.style.setProperty("--i",idx);
     b.innerHTML=`${archetypeBadge(card)}${costBadge(card)}<div class="cicon">${card.emoji}</div><div class="cname">${card.name}</div><div class="cdesc">${card.desc}</div>`;
     b.onclick=()=>{
@@ -2570,6 +2682,13 @@ function showReward(){
 function finishRun(defeated){
   if(G.rewarded)return;
   G.rewarded=true;
+  let stage1Losses=0;
+  if(defeated&&G.encounter===0){
+    try{
+      stage1Losses=(parseInt(localStorage.getItem("oneline_stage1_losses")||"0",10)||0)+1;
+      localStorage.setItem("oneline_stage1_losses",String(stage1Losses));
+    }catch(e){}
+  }
   const hp=Math.max(0,G.player.hp);
   const earned=10+Math.floor(hp/5)+Math.floor(G.player.coins/10)+(defeated?0:10)+(G.isDaily?10:0);
   addPoints(earned);
@@ -2728,7 +2847,12 @@ function showEnding(defeated){
     }
   }
   if(els.gameEndHint){
-    els.gameEndHint.textContent=`工分 +${G.lastPoints||0} · ${ARCHETYPES[G.build||"combo"].name} · 历史最佳 ${bestStars}★${G.isDaily?` · 连胜 ${G.streak||1} 天`:""} · 进阶 ${ascension}`;
+    let coachNote="";
+    try{
+      const losses=parseInt(localStorage.getItem("oneline_stage1_losses")||"0",10)||0;
+      if(defeated&&G.encounter===0&&losses>=2)coachNote=" · 下一局将开启教练模式";
+    }catch(e){}
+    els.gameEndHint.textContent=`工分 +${G.lastPoints||0}${G.coachMode?" · 教练模式":""} · ${ARCHETYPES[G.build||"combo"].name} · 历史最佳 ${bestStars}★${G.isDaily?` · 连胜 ${G.streak||1} 天`:""} · 进阶 ${ascension}${coachNote}`;
   }
   if(els.gameRunRating){
     els.gameRunRating.style.display="flex";

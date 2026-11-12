@@ -336,6 +336,12 @@
   @keyframes cardPlay{0%{transform:translateY(0) scale(1)}50%{transform:translateY(-30px) scale(1.12);box-shadow:0 0 30px rgba(245,215,110,.5)}100%{transform:translateY(-10px) scale(1.05)}}
   .game-card .cost{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe0a8,#ff8a5c 60%,#c0392b);color:#1a1208;font-weight:900;border:1px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;font-size:13px;z-index:2}
   .game-card .cost.taxed{background:radial-gradient(circle at 35% 30%,#ffd1d8,#ff5c79 60%,#9b1530);color:#fff;box-shadow:0 0 12px rgba(255,72,104,.55)}
+  .game-card.tutorial-highlight{animation:tutorialCard 1s ease-in-out infinite;border-color:#6ec6ff!important;box-shadow:0 0 24px rgba(110,198,255,.45)!important}
+  .game-card.defense-hint{animation:defenseCard .9s ease-in-out infinite;border-color:#7ce0a8!important;box-shadow:0 0 22px rgba(124,224,168,.42)!important}
+  .game-card.recommended{border-color:#f5d76e!important;box-shadow:0 0 28px rgba(245,215,110,.28)!important}
+  .recommend-tag{position:absolute;right:7px;bottom:7px;z-index:3;font-size:8px;font-weight:900;color:#21180a;background:#f5d76e;border-radius:999px;padding:3px 6px}
+  @keyframes tutorialCard{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+  @keyframes defenseCard{0%,100%{box-shadow:0 0 12px rgba(124,224,168,.18)}50%{box-shadow:0 0 28px rgba(124,224,168,.52)}}
   .game-card .cicon{font-size:30px;margin-top:20px;text-align:center}
   .game-card .cname{font-weight:900;font-size:13px;margin-top:6px;text-align:center;letter-spacing:.5px}
   .game-card .cdesc{font-size:11px;color:rgba(255,255,255,.6);line-height:1.45;margin-top:6px;text-align:center}
@@ -375,6 +381,8 @@
   .minion.exhausted{opacity:.5}
   .minion.selected{border-color:#f5d76e;box-shadow:0 0 22px rgba(245,215,110,.5)}
   .minion.targetable{border-color:#ff6b81;box-shadow:0 0 22px rgba(255,107,129,.5);animation:targetPulse .8s infinite}
+  .minion.tutorial-target{border-color:#6ec6ff!important;box-shadow:0 0 26px rgba(110,198,255,.58)!important;animation:tutorialTarget .9s ease-in-out infinite}
+  @keyframes tutorialTarget{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
   .minion.danger-minion{border-color:rgba(255,92,92,.55);box-shadow:0 0 14px rgba(255,92,92,.2)}
   .minion.summoned{animation:summonPop .5s ease-out}
   .minion.attacking{animation:minionAttack .42s cubic-bezier(.2,.8,.2,1);z-index:8}
@@ -391,6 +399,7 @@
   .player-row .minion{border-color:rgba(110,198,255,.25)}
   .hero-power{display:block;margin-top:8px;width:100%;padding:6px 8px;border-radius:999px;border:1px solid rgba(245,215,110,.35);background:rgba(245,215,110,.08);color:#f5d76e;font-size:11px;font-weight:700;cursor:pointer}
   .hero-power:disabled{opacity:.4;cursor:not-allowed}
+  .hero-power.defense-hint{animation:defenseCard .9s ease-in-out infinite;border-color:#7ce0a8}
   .game-rewards{display:flex;gap:10px;overflow-x:auto;padding:4px 0}
   .reward-build{display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:8px 10px;border-radius:11px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);font-size:10px;color:rgba(255,255,255,.55)}
   .reward-build b{color:#fff}
